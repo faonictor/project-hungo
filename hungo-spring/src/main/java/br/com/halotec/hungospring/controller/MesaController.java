@@ -25,7 +25,7 @@ public class MesaController {
 
     @GetMapping("/mesa/{id}")
     public ResponseEntity<Mesa> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(mesaService.buscarPorId(id));
+        return mesaService.buscarPorId(id);
     }
 
     @DeleteMapping("/mesa/{id}")
@@ -34,10 +34,13 @@ public class MesaController {
     }
 
     @PutMapping("/mesa/{id}")
-    public ResponseEntity<Mesa> atualizar(@PathVariable Long id, @RequestBody Mesa mesa) {
+    public ResponseEntity<Mesa> atualizar(
+            @PathVariable Long id,
+            @RequestBody Mesa mesa) {
         mesa.setId(id);
         return mesaService.salvar(mesa);
     }
+
 }
 
 

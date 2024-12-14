@@ -25,11 +25,19 @@ public class VendaController {
 
     @GetMapping("/venda/{id}")
     public ResponseEntity<Venda> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(vendaService.buscarPorId(id));
+        return vendaService.buscarPorId(id);
     }
 
     @DeleteMapping("/venda/{id}")
     public ResponseEntity deletar(@PathVariable Long id) {
         return vendaService.deletar(id);
+    }
+
+    @PutMapping("/venda/{id}")
+    public ResponseEntity<Venda> atualizar(
+            @PathVariable Long id,
+            @RequestBody Venda venda) {
+        venda.setId(id);
+        return vendaService.salvar(venda);
     }
 }

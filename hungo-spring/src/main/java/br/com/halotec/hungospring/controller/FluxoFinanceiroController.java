@@ -23,19 +23,22 @@ public class FluxoFinanceiroController {
         return fluxoFinanceiroService.listarTodos();
     }
 
-    @GetMapping("/fluxo-financeiro/{id}")
+    @GetMapping("/fluxo/{id}")
     public ResponseEntity<FluxoFinanceiro> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(fluxoFinanceiroService.buscarPorId(id));
+        return fluxoFinanceiroService.buscarPorId(id);
     }
 
-    @DeleteMapping("/fluxo-financeiro/{id}")
+    @DeleteMapping("/fluxo/{id}")
     public ResponseEntity deletar(@PathVariable Long id) {
         return fluxoFinanceiroService.deletar(id);
     }
 
-    @PutMapping("/fluxo-financeiro/{id}")
-    public ResponseEntity<FluxoFinanceiro> atualizar(@PathVariable Long id, @RequestBody FluxoFinanceiro fluxoFinanceiro) {
+    @PutMapping("/fluxo/{id}")
+    public ResponseEntity<FluxoFinanceiro> atualizar(
+            @PathVariable Long id,
+            @RequestBody FluxoFinanceiro fluxoFinanceiro) {
         fluxoFinanceiro.setId(id);
         return fluxoFinanceiroService.salvar(fluxoFinanceiro);
     }
+
 }

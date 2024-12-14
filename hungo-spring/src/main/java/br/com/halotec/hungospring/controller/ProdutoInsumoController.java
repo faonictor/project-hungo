@@ -6,21 +6,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/produto-insumo")
 public class ProdutoInsumoController {
 
     @Autowired
     private ProdutoInsumoService produtoInsumoService;
 
-    @PostMapping
+    @PostMapping("/produto-insumo")
     public ResponseEntity<ProdutoInsumo> salvar(@RequestBody ProdutoInsumo produtoInsumo) {
         return produtoInsumoService.salvar(produtoInsumo);
     }
 
-    @GetMapping
+    @GetMapping("/produto-insumo")
     public Iterable<ProdutoInsumo> listarTodos() {
         return produtoInsumoService.listarTodos();
     }
-}
 
+    @GetMapping("/produto-insumo/{id}")
+    public ResponseEntity<ProdutoInsumo> buscarPorId(@PathVariable Long id) {
+        return produtoInsumoService.buscarPorId(id);
+    }
+
+    @DeleteMapping("/produto-insumo/{id}")
+    public ResponseEntity deletar(@PathVariable Long id) {
+        return produtoInsumoService.deletar(id);
+    }
+
+    @PutMapping("/produto-insumo/{id}")
+    public ResponseEntity<ProdutoInsumo> atualizar(
+            @PathVariable Long id,
+            @RequestBody ProdutoInsumo produtoInsumo) {
+        produtoInsumo.setId(id);
+        return produtoInsumoService.salvar(produtoInsumo);
+    }
+}

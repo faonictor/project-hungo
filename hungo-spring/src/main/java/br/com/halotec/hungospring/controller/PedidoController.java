@@ -25,7 +25,7 @@ public class PedidoController {
 
     @GetMapping("/pedido/{id}")
     public ResponseEntity<Pedido> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(pedidoService.buscarPorId(id));
+        return pedidoService.buscarPorId(id);
     }
 
     @DeleteMapping("/pedido/{id}")
@@ -34,7 +34,9 @@ public class PedidoController {
     }
 
     @PutMapping("/pedido/{id}")
-    public ResponseEntity<Pedido> atualizar(@PathVariable Long id, @RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> atualizar(
+            @PathVariable Long id,
+            @RequestBody Pedido pedido) {
         pedido.setId(id);
         return pedidoService.salvar(pedido);
     }

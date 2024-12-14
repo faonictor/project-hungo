@@ -25,7 +25,7 @@ public class InsumoController {
 
     @GetMapping("/insumo/{id}")
     public ResponseEntity<Insumo> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(insumoService.buscarPorId(id));
+        return insumoService.buscarPorId(id);
     }
 
     @DeleteMapping("/insumo/{id}")
@@ -34,10 +34,13 @@ public class InsumoController {
     }
 
     @PutMapping("/insumo/{id}")
-    public ResponseEntity<Insumo> atualizar(@PathVariable Long id, @RequestBody Insumo insumo) {
+    public ResponseEntity<Insumo> atualizar(
+            @PathVariable Long id,
+            @RequestBody Insumo insumo) {
         insumo.setId(id);
         return insumoService.salvar(insumo);
     }
+
 }
 
 
