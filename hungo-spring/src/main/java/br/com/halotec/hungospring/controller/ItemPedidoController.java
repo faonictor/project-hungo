@@ -23,17 +23,17 @@ public class ItemPedidoController {
         return itemPedidoService.listarTodos();
     }
 
-    @GetMapping("/itempedido/{id}")
+    @GetMapping("/item-pedido/{id}")
     public ResponseEntity<ItemPedido> buscarPorId(@PathVariable Long id) {
         return itemPedidoService.buscarPorId(id);
     }
 
-    @DeleteMapping("/itempedido/{id}")
+    @DeleteMapping("/item-pedido/{id}")
     public ResponseEntity deletar(@PathVariable Long id) {
         return itemPedidoService.deletar(id);
     }
 
-    @PutMapping("/itempedido/{id}")
+    @PutMapping("/item-pedido/{id}")
     public ResponseEntity<ItemPedido> atualizar(
             @PathVariable Long id,
             @RequestBody ItemPedido itemPedido) {
