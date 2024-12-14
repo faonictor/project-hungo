@@ -26,6 +26,6 @@ public class ProdutoService {
 
     public ResponseEntity deletar(Long id) {
         produtoRepository.deleteById(id);
-        return new ResponseEntity("{\"mensagem\":\"Removido com sucesso\"}",HttpStatus.OK);
+        return new ResponseEntity("{\"mensagem\":\"Produto Removido com Sucesso\"}",HttpStatus.OK);
     }
 }

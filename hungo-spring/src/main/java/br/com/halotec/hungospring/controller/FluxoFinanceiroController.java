@@ -1,4 +1,41 @@
 package br.com.halotec.hungospring.controller;
 
+import br.com.halotec.hungospring.entity.FluxoFinanceiro;
+import br.com.halotec.hungospring.service.FluxoFinanceiroService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@CrossOrigin(origins = "*")
+@RestController
 public class FluxoFinanceiroController {
+
+    @Autowired
+    private FluxoFinanceiroService fluxoFinanceiroService;
+
+    @PostMapping("/fluxo-financeiro")
+    public ResponseEntity<FluxoFinanceiro> salvar(@RequestBody FluxoFinanceiro fluxoFinanceiro) {
+        return fluxoFinanceiroService.salvar(fluxoFinanceiro);
+    }
+
+    @GetMapping("/fluxo-financeiro")
+    public Iterable<FluxoFinanceiro> listarTodos() {
+        return fluxoFinanceiroService.listarTodos();
+    }
+
+    @GetMapping("/fluxo-financeiro/{id}")
+    public ResponseEntity<FluxoFinanceiro> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(fluxoFinanceiroService.buscarPorId(id));
+    }
+
+    @DeleteMapping("/fluxo-financeiro/{id}")
+    public ResponseEntity deletar(@PathVariable Long id) {
+        return fluxoFinanceiroService.deletar(id);
+    }
+
+    @PutMapping("/fluxo-financeiro/{id}")
+    public ResponseEntity<FluxoFinanceiro> atualizar(@PathVariable Long id, @RequestBody FluxoFinanceiro fluxoFinanceiro) {
+        fluxoFinanceiro.setId(id);
+        return fluxoFinanceiroService.salvar(fluxoFinanceiro);
+    }
 }
