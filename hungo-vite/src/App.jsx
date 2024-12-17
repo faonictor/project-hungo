@@ -1,14 +1,14 @@
-import './App.css'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Dashboard, Auth } from "@/layouts";
 
 function App() {
-
   return (
-    <>
-      <div className={"h-screen bg-red-500 flex w-full justify-center items-center"}>
-          <p className={"text-2xl text-slate-100"}>Tailwind com CSS</p>
-      </div>
-    </>
-  )
+    <Routes>
+      <Route path="/dashboard/*" element={<Dashboard />} />
+      <Route path="/auth/*" element={<Auth />} />
+      <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;

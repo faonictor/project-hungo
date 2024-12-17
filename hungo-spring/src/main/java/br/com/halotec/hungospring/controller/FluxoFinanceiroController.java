@@ -13,12 +13,12 @@ public class FluxoFinanceiroController {
     @Autowired
     private FluxoFinanceiroService fluxoFinanceiroService;
 
-    @PostMapping("/fluxo-financeiro")
+    @PostMapping("/fluxo")
     public ResponseEntity<FluxoFinanceiro> salvar(@RequestBody FluxoFinanceiro fluxoFinanceiro) {
         return fluxoFinanceiroService.salvar(fluxoFinanceiro);
     }
 
-    @GetMapping("/fluxo-financeiro")
+    @GetMapping("/fluxo")
     public Iterable<FluxoFinanceiro> listarTodos() {
         return fluxoFinanceiroService.listarTodos();
     }
