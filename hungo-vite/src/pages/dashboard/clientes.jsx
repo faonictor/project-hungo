@@ -1,14 +1,14 @@
 import {
-  Card,
   Input,
-  Checkbox,
   Button,
   Typography,
 } from "@material-tailwind/react";
-import { Link } from "react-router-dom";
-
 
 export function Clientes() {
+
+
+
+
   return (
     <>
       <section className="bg-white mx-0 mt-0 flex-1 min-h-0 justify-between rounded-lg border border-blue-gray-100 lg:flex">
@@ -33,7 +33,7 @@ export function Clientes() {
                   }}
                 />
               </div>
-
+              {/* teste */}
               <div className="flex flex-col gap-3 col-span-1 sm:col-span-4">
                 <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
                   Digite seu telefone
