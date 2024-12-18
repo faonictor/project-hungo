@@ -18,6 +18,6 @@ public class Cliente {
     private String telefone;
     private String email;
     private String senha;
+    private String cpf;
     private LocalDateTime dataCadastro;
-    private String cpf;    
 }

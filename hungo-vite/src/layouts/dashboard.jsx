@@ -22,7 +22,7 @@ export function Dashboard() {
           sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
         }
       />
-      <div className="p-4 xl:ml-80">
+      <div className="flex flex-col flex-1 min-h-screen p-4 xl:ml-80">
         <DashboardNavbar />
         <Configurator />
         <IconButton
