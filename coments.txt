@@ -1,0 +1,14 @@
+//    @Autowired
+//    private EnderecoService enderecoService;
+    
+//    @PostMapping("/clienteEEndereco")
+//    public ResponseEntity<Cliente> salvarEndereco(@RequestBody ClienteEnderecoDTO clienteEndereco) {
+//        //isso tudo fica no service, pois é regra de negócio.
+//        Cliente cliente = new Cliente();
+//        Endereco endereco = new Endereco ();
+//        // setar atributo por atributo do entiti com as informações do dto exemplo:
+//        // endereco.setRua(clienteEndereco.getRua());
+//        clienteService.salvar(cliente);
+//         enderecoService.salvar(endereco);
+//         return null;
+//    }
