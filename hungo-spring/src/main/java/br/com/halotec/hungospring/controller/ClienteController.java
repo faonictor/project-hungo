@@ -1,6 +1,8 @@
 package br.com.halotec.hungospring.controller;
 
+import br.com.halotec.hungospring.dto.ClienteEnderecoDTO;
 import br.com.halotec.hungospring.entity.Cliente;
+import br.com.halotec.hungospring.service.ClienteEnderecoService;
 import br.com.halotec.hungospring.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,15 @@ public class ClienteController {
 
     @Autowired
     private ClienteService clienteService;
+
+    @Autowired
+    private ClienteEnderecoService clienteEnderecoService;
+
+    // Endpoint para salvar Cliente e Endereco
+    @PostMapping("/cliente-endereco")
+    public ResponseEntity<Cliente> salvarClienteEndereco(@RequestBody ClienteEnderecoDTO clienteEnderecoDTO) {
+        return clienteEnderecoService.salvarClienteEndereco(clienteEnderecoDTO);
+    }
 
     @PostMapping("/cliente")
     public ResponseEntity<Cliente> salvar(@RequestBody Cliente cliente) {
@@ -40,5 +51,4 @@ public class ClienteController {
         cliente.setId(id);
         return clienteService.salvar(cliente);
     }
-
 }
