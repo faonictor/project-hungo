@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input, Button, Typography, Alert } from "@material-tailwind/react";
-import { InformationCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import api from '../../services/axiosConfig';  // Importando a configuração do axios
 
 export function ClienteEnderecoForm() {
@@ -14,14 +14,38 @@ export function ClienteEnderecoForm() {
     const [complemento, setComplemento] = useState('');
     const [bairro, setBairro] = useState('');
     const [cidade, setCidade] = useState('');
-    const [cep, setCep] = useState('');
     const [alertMessage, setAlertMessage] = useState(null);  // Para exibir as mensagens de sucesso ou erro
     const [alertColor, setAlertColor] = useState('green');  // Definindo a cor do alerta (verde para sucesso, vermelho para erro)
     const [showAlert, setShowAlert] = useState(true); // Controla a visibilidade da notificação
+    const [formErrors, setFormErrors] = useState({}); // Estado para armazenar erros de validação
+
+    // Função para validação de campos
+    const validateForm = () => {
+        let errors = {};
+
+        // Verificar se campos obrigatórios estão preenchidos
+        if (!nome) errors.nome = "* O nome é obrigatório";
+        if (!telefone) errors.telefone = "* O telefone é obrigatório";
+        if (!email) errors.email = "* O e-mail é obrigatório";
+        if (!rua) errors.rua = "* A Rua é obrigatória";
+        if (!numero) errors.numero = "* O nº é obrigatório";
+        if (!bairro) errors.bairro = "* O Bairro é obrigatório";
+        if (!cidade) errors.cidade = "* A cidade é obrigatória";
+
+        setFormErrors(errors);
+
+        // Se houver erros, retorna false, caso contrário, true
+        return Object.keys(errors).length === 0;
+    };
 
     // Função para enviar o formulário
     const handleSubmit = async (e) => {
         e.preventDefault();  // Impede o comportamento padrão do formulário
+
+        // Verificar se o formulário é válido
+        if (!validateForm()) {
+            return; // Não envia o formulário se houver erros
+        }
 
         // Construindo o DTO com os dados do formulário
         const clienteEnderecoDTO = {
@@ -34,7 +58,6 @@ export function ClienteEnderecoForm() {
             complemento,
             bairro,
             cidade,
-            cep,
         };
 
         try {
@@ -56,7 +79,6 @@ export function ClienteEnderecoForm() {
             setComplemento('');
             setBairro('');
             setCidade('');
-            setCep('');
         } catch (error) {
             // Exibindo mensagem de erro
             setAlertMessage('Erro ao cadastrar cliente. Tente novamente.');
@@ -83,8 +105,10 @@ export function ClienteEnderecoForm() {
 
                             {/* Nome */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-5">
-                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">Seu nome
-                                    completo</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Nome completo:
+                                    {formErrors.nome && <span className="text-sm font-light ml-4 text-red-500">{formErrors.nome}</span>}
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -93,12 +117,15 @@ export function ClienteEnderecoForm() {
                                     onChange={(e) => setNome(e.target.value)}
                                     className="!border-t-blue-gray-200 focus:!border-t-gray-900"
                                 />
+
                             </div>
 
                             {/* Telefone */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-3">
-                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">Digite seu
-                                    telefone</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Telefone:
+                                    {formErrors.telefone && <span className="text-sm font-light ml-4 text-red-500">{formErrors.telefone}</span>}
+                                </Typography>
                                 <Input
                                     type="tel"
                                     size="lg"
@@ -111,8 +138,10 @@ export function ClienteEnderecoForm() {
 
                             {/* Email */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-5">
-                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">Digite seu
-                                    e-mail</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    E-mail:
+                                    {formErrors.email && <span className="text-sm font-light ml-4 text-red-500">{formErrors.email}</span>}
+                                </Typography>
                                 <Input
                                     type="email"
                                     size="lg"
@@ -125,8 +154,9 @@ export function ClienteEnderecoForm() {
 
                             {/* CPF */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-3">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">CPF</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    CPF:
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -141,8 +171,10 @@ export function ClienteEnderecoForm() {
 
                             {/* Rua */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-6">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">Rua</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Rua
+                                    {formErrors.rua && <span className="text-sm font-light ml-4 text-red-500">{formErrors.rua}</span>}
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -155,8 +187,10 @@ export function ClienteEnderecoForm() {
 
                             {/* Número */}
                             <div className="flex flex-col gap-3 col-span-1 sm:col-span-2">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">Número</Typography>
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Número
+                                    {formErrors.numero && <span className="text-sm font-light ml-4 text-red-500">{formErrors.numero}</span>}
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -168,7 +202,7 @@ export function ClienteEnderecoForm() {
                             </div>
 
                             {/* Complemento */}
-                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-4">
+                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-3">
                                 <Typography variant="small" color="blue-gray"
                                             className="-mb-3 font-medium">Complemento</Typography>
                                 <Input
@@ -182,9 +216,11 @@ export function ClienteEnderecoForm() {
                             </div>
 
                             {/* Bairro */}
-                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-4">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">Bairro</Typography>
+                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-3">
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Bairro
+                                    {formErrors.bairro && <span className="text-sm font-light ml-4 text-red-500">{formErrors.bairro}</span>}
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -196,9 +232,11 @@ export function ClienteEnderecoForm() {
                             </div>
 
                             {/* Cidade */}
-                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-5">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">Cidade</Typography>
+                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-2">
+                                <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+                                    Cidade
+                                    {formErrors.cidade && <span className="text-sm font-light ml-4 text-red-500">{formErrors.cidade}</span>}
+                                </Typography>
                                 <Input
                                     type="text"
                                     size="lg"
@@ -208,25 +246,11 @@ export function ClienteEnderecoForm() {
                                     className="!border-t-blue-gray-200 focus:!border-t-gray-900"
                                 />
                             </div>
-
-                            {/* CEP */}
-                            <div className="flex flex-col gap-3 col-span-1 sm:col-span-3">
-                                <Typography variant="small" color="blue-gray"
-                                            className="-mb-3 font-medium">CEP</Typography>
-                                <Input
-                                    type="text"
-                                    size="lg"
-                                    placeholder="ex.: 12345-678"
-                                    value={cep}
-                                    onChange={(e) => setCep(e.target.value)}
-                                    className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-                                />
-                            </div>
                         </div>
 
                         {/* Botão de Submit */}
                         <div className="flex w-full justify-center">
-                            <Button type="submit" className="mt-6 w-32">
+                            <Button type="submit" className="mt-6 w-32" disabled={Object.keys(formErrors).length > 0}>
                                 Cadastrar
                             </Button>
                         </div>
@@ -256,7 +280,7 @@ export function ClienteEnderecoForm() {
                 </div>
             </section>
         </>
-);
+    );
 }
 
 export default ClienteEnderecoForm;
