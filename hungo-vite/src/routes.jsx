@@ -9,7 +9,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
-import Clientes from "./pages/dashboard/clientes";
+import Clientes from "./pages/dashboard/clientes/clientesEnderecoAdd.jsx";
+import ClientsList from "@/pages/dashboard/clientes/clientsList.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -49,6 +50,12 @@ export const routes = [
           path: "/novo-cliente",
           element: <Clientes />,
         },
+      {
+        icon: <UserIcon {...icon} />,
+        name: "Listar Clientes",
+        path: "/clientes",
+        element: <ClientsList />,
+      },
     ],
   },
   {

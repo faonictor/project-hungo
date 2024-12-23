@@ -1,6 +1,6 @@
 import React from "react";
 import InputMask from "react-input-mask";
-import { Input, Typography } from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
 
 const InputField = ({ label, placeholder, value, onChange, type = "text", mask }) => (
     <div className="flex flex-col gap-3">
@@ -14,25 +14,25 @@ const InputField = ({ label, placeholder, value, onChange, type = "text", mask }
                 onChange={(e) => onChange(e.target.value)}
             >
                 {(inputProps) => (
-                    <Input
+                    <input
                         {...inputProps}
                         type={type}
                         size="lg"
                         placeholder={placeholder}
                         aria-label={label}
-                        className="!border-blue-gray-200 focus:!border-gray-900"
+                        className="border border-blue-gray-200 focus:ring-1 p-3 rounded-md text-base"
                     />
                 )}
             </InputMask>
         ) : (
-            <Input
+            <input
                 type={type}
                 size="lg"
                 placeholder={placeholder}
                 aria-label={label}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+                className="border border-blue-gray-200 focus:ring-1 p-3 rounded-md text-base"
             />
         )}
     </div>
