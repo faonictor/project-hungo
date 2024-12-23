@@ -9,7 +9,7 @@ import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
 import ClientesList from "@/pages/dashboard/clientes/clientesList.jsx";
 import ClienteAdd from "@/pages/dashboard/clientes/clienteAdd.jsx";
-import ClienteEnderecoAdd from "@/pages/dashboard/clientes/clientesEnderecoAdd.jsx";
+import ClienteEnderecoAdd from "@/pages/dashboard/clientes/clienteDeliveryAdd.jsx";
 import ClienteForm from "@/widgets/forms/form-cliente.jsx";
 
 const icon = {
@@ -34,7 +34,7 @@ export const routes = [
     pages: [
       {
         icon: <UserPlusIcon {...icon} />,
-        name: "Cliente Rápido",
+        name: "Cliente Delivery",
         path: "/cliente-rapido",
         element: <ClienteEnderecoAdd/>,
       },

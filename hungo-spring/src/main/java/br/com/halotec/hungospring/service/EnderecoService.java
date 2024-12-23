@@ -28,6 +28,10 @@ public class EnderecoService {
         enderecoRepository.deleteById(id);
         return new ResponseEntity("{\"mensagem\":\"Endereço Removido com Sucesso\"}", HttpStatus.OK);
     }
+
+    public Iterable<Endereco> buscarEnderecosPorCliente(Long clienteId) {
+        return enderecoRepository.findByClienteId(clienteId);
+    }
 }
 
 

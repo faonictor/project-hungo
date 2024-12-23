@@ -28,6 +28,12 @@ public class EnderecoController {
         return enderecoService.buscarPorId(id);
     }
 
+    @GetMapping("/endereco/cliente/{clienteId}")
+    public ResponseEntity<Iterable<Endereco>> listarEnderecosPorCliente(@PathVariable Long clienteId) {
+        Iterable<Endereco> enderecos = enderecoService.buscarEnderecosPorCliente(clienteId);
+        return ResponseEntity.ok(enderecos);
+    }
+
     @DeleteMapping("/endereco/{id}")
     public ResponseEntity deletar(@PathVariable Long id) {
         return enderecoService.deletar(id);
@@ -40,5 +46,4 @@ public class EnderecoController {
         endereco.setId(id);
         return enderecoService.salvar(endereco);
     }
-
 }

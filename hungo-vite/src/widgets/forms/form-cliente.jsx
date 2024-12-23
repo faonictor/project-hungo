@@ -41,7 +41,6 @@ const ClienteForm = () => {
         }
     }, [id]);  // Executa a busca apenas quando o id mudar
 
-    // Verifica se o formulário é válido, incluindo a comparação das senhas
     const isFormValid = () => {
         const emailRegex = /\S+@\S+\.\S+/;
         return (
@@ -92,7 +91,7 @@ const ClienteForm = () => {
             <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
                 <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                     <Typography variant="h6" color="white">
-                        {id ? 'Editar Cliente' : 'Cadastrar Cliente'}
+                        {id ? 'Editar Cliente' : 'Cadastrar Cliente Conta'}
                     </Typography>
                 </CardHeader>
                 <CardBody className="px-4 pt-0 pb-6">
