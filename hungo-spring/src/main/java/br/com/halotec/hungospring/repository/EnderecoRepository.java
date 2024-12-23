@@ -8,7 +8,6 @@ import java.util.List;
 
 @Repository
 public interface EnderecoRepository extends CrudRepository<Endereco, Long> {
-    
     List<Endereco> findByClienteId(Long clienteId);
 }
 

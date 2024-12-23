@@ -18,6 +18,10 @@ public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private EnderecoRepository enderecoRepository;
+
+
     public Iterable<Cliente> listarTodos() {
         return clienteRepository.findAll();
     }
@@ -30,30 +34,18 @@ public class ClienteService {
         return new ResponseEntity<>(clienteRepository.findById(id).orElseThrow(), HttpStatus.OK);
     }
 
-//    public ResponseEntity deletar(Long id) {
-//        clienteRepository.deleteById(id);
-//        return new ResponseEntity("{\"mensagem\":\"Cliente Removido com Sucesso\"}", HttpStatus.OK);
-//    }
-
-    @Autowired
-    private EnderecoRepository enderecoRepository;
-
     @Transactional
     public ResponseEntity deletar(Long id) {
-        // 1. Busca o cliente
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID " + id));
 
-        // 2. Remove os endereços associados
         removerEnderecos(cliente);
 
-        // 3. Após remover os endereços, exclui o cliente
         clienteRepository.delete(cliente);
 
-        return new ResponseEntity("{\"mensagem\":\"Cliente e seus endereços removidos com sucesso\"}", HttpStatus.OK);
+        return new ResponseEntity("{\"mensagem\":\"Cliente e Endereços removidos com sucesso\"}", HttpStatus.OK);
     }
 
-    // Método para remover os endereços associados ao cliente
     private void removerEnderecos(Cliente cliente) {
         List<Endereco> enderecos = enderecoRepository.findByClienteId(cliente.getId());
         for (Endereco endereco : enderecos) {
