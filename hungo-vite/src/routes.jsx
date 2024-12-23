@@ -1,16 +1,16 @@
 import {
   HomeIcon,
   UserCircleIcon,
-  TableCellsIcon,
-  InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
   UserIcon, UserPlusIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";
-import { SignIn, SignUp } from "@/pages/auth";
-import Clientes from "./pages/dashboard/clientes/clientesEnderecoAdd.jsx";
-import ClientsList from "@/pages/dashboard/clientes/clientsList.jsx";
+import {Home} from "@/pages/dashboard";
+import {SignIn, SignUp} from "@/pages/auth";
+import ClientesList from "@/pages/dashboard/clientes/clientesList.jsx";
+import ClienteAdd from "@/pages/dashboard/clientes/clienteAdd.jsx";
+import ClienteEnderecoAdd from "@/pages/dashboard/clientes/clientesEnderecoAdd.jsx";
+import ClienteForm from "@/widgets/forms/form-cliente.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -22,40 +22,35 @@ export const routes = [
     pages: [
       {
         icon: <HomeIcon {...icon} />,
-        name: "dashboard",
+        name: "Dashboard",
         path: "/home",
-        element: <Home />,
+        element: <Home/>,
+      },
+    ],
+  },
+  {
+    title: "Clientes",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <UserPlusIcon {...icon} />,
+        name: "Novo Cliente",
+        path: "/novo-cliente",
+        element: <ClienteEnderecoAdd/>,
       },
       {
-        icon: <UserCircleIcon {...icon} />,
-        name: "profile",
-        path: "/profile",
-        element: <Profile />,
+        icon: <UserPlusIcon {...icon} />,
+        name: "Cadastrar Cliente",
+        path: "/cliente",
+        element: <ClienteAdd/>,
       },
-      {
-        icon: <TableCellsIcon {...icon} />,
-        name: "tables",
-        path: "/tables",
-        element: <Tables />,
-      },
-      {
-        icon: <InformationCircleIcon {...icon} />,
-        name: "notifications",
-        path: "/notifications",
-        element: <Notifications />,
-      },
-        {
-          icon: <UserPlusIcon {...icon} />,
-          name: "Novo Cliente",
-          path: "/novo-cliente",
-          element: <Clientes />,
-        },
       {
         icon: <UserIcon {...icon} />,
         name: "Listar Clientes",
         path: "/clientes",
-        element: <ClientsList />,
+        element: <ClientesList/>,
       },
+      // Removemos a rota de "Editar Cliente" do menu
     ],
   },
   {
@@ -64,15 +59,25 @@ export const routes = [
     pages: [
       {
         icon: <ServerStackIcon {...icon} />,
-        name: "sign in",
+        name: "Sign In",
         path: "/sign-in",
-        element: <SignIn />,
+        element: <SignIn/>,
       },
       {
         icon: <RectangleStackIcon {...icon} />,
-        name: "sign up",
+        name: "Sign Up",
         path: "/sign-up",
-        element: <SignUp />,
+        element: <SignUp/>,
+      },
+    ],
+  },
+  // Mantemos a rota de edição, mas ela não aparecerá no menu
+  {
+    layout: "dashboard",
+    pages: [
+      {
+        path: "/cliente/:id", // Rota para edição de clientes
+        element: <ClienteForm/>,
       },
     ],
   },

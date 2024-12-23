@@ -12,3 +12,51 @@
 //         enderecoService.salvar(endereco);
 //         return null;
 //    }
+
+// {
+//   layout: "dashboard",
+//   pages: [
+//     {
+//       icon: <HomeIcon {...icon} />,
+//       name: "dashboard",
+//       path: "/home",
+//       element: <Home />,
+//     },
+//     {
+//       icon: <UserCircleIcon {...icon} />,
+//       name: "profile",
+//       path: "/profile",
+//       element: <Profile />,
+//     },
+//     {
+//       icon: <TableCellsIcon {...icon} />,
+//       name: "tables",
+//       path: "/tables",
+//       element: <Tables />,
+//     },
+//     {
+//       icon: <InformationCircleIcon {...icon} />,
+//       name: "notifications",
+//       path: "/notifications",
+//       element: <Notifications />,
+//     },
+//       {
+//         icon: <UserPlusIcon {...icon} />,
+//         name: "Novo Cliente",
+//         path: "/novo-cliente",
+//         element: <ClienteEnderecoAdd />,
+//       },
+//     {
+//       icon: <UserIcon {...icon} />,
+//       name: "Listar Clientes",
+//       path: "/clientes",
+//       element: <ClientesList />,
+//     },
+//     {
+//       icon: <UserCircleIcon {...icon} />,
+//       name: "Clientes",
+//       path: "/cliente",
+//       element: <ClienteAdd/>,
+//     },
+//   ],
+// },

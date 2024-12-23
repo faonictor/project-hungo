@@ -1,10 +1,10 @@
 import ClienteEnderecoForm from "@/widgets/forms/form-clienteEndereco.jsx";
 
-export function Cliente() {
+export function ClienteEnderecoAdd() {
   return (
     <>
       <ClienteEnderecoForm />
     </>
   );
 }
-export default Cliente;
+export default ClienteEnderecoAdd;
