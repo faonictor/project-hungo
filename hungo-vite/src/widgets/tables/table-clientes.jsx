@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/solid'; // Importando os ícones do Heroicons
 import api from '../../services/axiosConfig';
+import {InformationCircleIcon} from "@heroicons/react/24/outline";
 
 const ClienteList = () => {
     const [clientes, setClientes] = useState([]);
@@ -83,21 +84,23 @@ const ClienteList = () => {
                             <td className="px-4 py-2 border-b">{cliente.cpf}</td>
                             <td className="px-4 py-2 border-b">{cliente.email}</td>
                             <td className="px-4 py-2 border-b">{cliente.telefone}</td>
-                            <td className="px-4 py-2 border-b">
-                                {/* Botão de edição */}
-                                <button
-                                    onClick={() => handleEdit(cliente.id)}
-                                    className="text-yellow-500 hover:text-yellow-700 mr-2"
-                                >
-                                    <PencilIcon className="w-5 h-5" />
+                            <td className="px-4 py-2 border-b space-x-1">
+                                <button onClick={() => handleEdit(cliente.id)}>
+                                    <div className="p-1 rounded-md text-blue-700 hover:bg-blue-100">
+                                        <PencilIcon className="w-5 h-5"/>
+                                    </div>
                                 </button>
 
-                                {/* Botão de exclusão */}
-                                <button
-                                    onClick={() => handleConfirmDelete(cliente)}
-                                    className="text-red-500 hover:text-red-700"
-                                >
-                                    <TrashIcon className="w-5 h-5" />
+                                <button onClick={() => handleConfirmDelete(cliente)}>
+                                    <div className="p-1 rounded-md text-red-700 hover:bg-red-100 ">
+                                        <TrashIcon className="w-5 h-5"/>
+                                    </div>
+                                </button>
+
+                                <button>
+                                    <div className="p-1 rounded-md text-gray-800 hover:bg-gray-200 ">
+                                        <InformationCircleIcon className="w-5 h-5"/>
+                                    </div>
                                 </button>
                             </td>
                         </tr>
