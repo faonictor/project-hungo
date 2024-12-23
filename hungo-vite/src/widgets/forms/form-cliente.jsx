@@ -4,24 +4,25 @@ import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
 import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
 import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ClienteForm = () => {
-    const { id } = useParams();  // Pega o id da URL
-    const navigate = useNavigate(); // Para navegar após a ação
+    const { id } = useParams();
+    const navigate = useNavigate();
 
     const [nome, setNome] = useState('');
     const [telefone, setTelefone] = useState('');
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
-    const [confirmarSenha, setConfirmarSenha] = useState('');  // Novo estado para a confirmação de senha
+    const [confirmarSenha, setConfirmarSenha] = useState('');
     const [cpf, setCpf] = useState('');
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
 
+    {/* Função para buscar cliente pelo id */}
     useEffect(() => {
         if (id) {
-            // Se o id for passado na URL, busque os dados do cliente
             const fetchCliente = async () => {
                 try {
                     const response = await api.get(`/cliente/${id}`);
@@ -39,8 +40,9 @@ const ClienteForm = () => {
             };
             fetchCliente();
         }
-    }, [id]);  // Executa a busca apenas quando o id mudar
+    }, [id]);
 
+    {/* Função Validação de Formulário */}
     const isFormValid = () => {
         const emailRegex = /\S+@\S+\.\S+/;
         return (
@@ -48,11 +50,12 @@ const ClienteForm = () => {
         );
     };
 
+    {/* Função Cadastro ou Edição */}
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!isFormValid()) {
-            setAlertMessage('Por favor, preencha todos os campos obrigatórios corretamente e certifique-se de que as senhas são iguais.');
+            setAlertMessage('Por favor, preencha todos os campos obrigatórios e valide com senhas iguais.');
             setAlertColor('red');
             return;
         }
@@ -62,21 +65,18 @@ const ClienteForm = () => {
             const clienteDTO = { nome, telefone, email, senha, cpf };
 
             if (id) {
-                // Se tiver o id, realiza o PUT (edição)
                 await api.put(`/cliente/${id}`, clienteDTO);
                 setAlertMessage('Cliente editado com sucesso!');
             } else {
-                // Caso contrário, realiza o POST (criação)
                 await api.post('/cliente', clienteDTO);
                 setAlertMessage('Cliente cadastrado com sucesso!');
             }
 
             setAlertColor('green');
 
-            // Exibe a notificação por 2 segundos e depois redireciona
             setTimeout(() => {
-                navigate('/dashboard/clientes');  // Navega para a lista de clientes após o sucesso
-            }, 2000);
+                navigate('/dashboard/clientes');
+            }, 1000);
         } catch (error) {
             setAlertMessage('Erro ao cadastrar/editar cliente. Tente novamente.');
             setAlertColor('red');
@@ -127,6 +127,7 @@ const ClienteForm = () => {
                             </div>
                         </div>
 
+                        {/* Validação de Senha */}
                         {senha && confirmarSenha && senha !== confirmarSenha && (
                             <div className="mt-4 w-full">
                                 <Alert open color="red" className="relative flex items-center justify-between px-4 py-3 rounded-lg">
@@ -155,20 +156,12 @@ const ClienteForm = () => {
                             </Button>
                         </div>
 
-
-                        {alertMessage && (
-                            <div className="mt-8 w-full">
-                                <Alert open color={alertColor}
-                                       className="relative flex items-center justify-between px-4 py-3 rounded-lg">
-                                    <span>{alertMessage}</span>
-                                    <button onClick={() => setAlertMessage(null)}
-                                            className="absolute top-1/2 right-4 transform -translate-y-1/2">
-                                        <XMarkIcon
-                                            className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md"/>
-                                    </button>
-                                </Alert>
-                            </div>
-                        )}
+                        {/* Notificação */}
+                        <AlertMessage
+                            alertMessage={alertMessage}
+                            alertColor={alertColor}
+                            onClose={() => setAlertMessage(null)}
+                        />
                     </form>
                 </CardBody>
             </Card>

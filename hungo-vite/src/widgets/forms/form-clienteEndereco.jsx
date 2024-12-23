@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import {Button, Typography, Alert, CardHeader, Card, CardBody} from "@material-tailwind/react";
-import { XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import {Button, Typography, CardHeader, Card, CardBody} from "@material-tailwind/react";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
+import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ClienteDeliveryForm = () => {
     const [nome, setNome] = useState('');
@@ -19,6 +20,7 @@ const ClienteDeliveryForm = () => {
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
 
+    {/* Função Validar Formulário */}
     const isFormValid = () => {
         const emailRegex = /\S+@\S+\.\S+/;
         return (
@@ -26,12 +28,14 @@ const ClienteDeliveryForm = () => {
         );
     };
 
+    {/* Função Limpar Campos */}
     const resetFields = () => {
         setNome(''); setTelefone(''); setEmail(''); setCpf('');
         setRua(''); setNumero(''); setComplemento('');
         setBairro(''); setCidade('');
     };
 
+    {/* Função Cadastro */}
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -119,19 +123,12 @@ const ClienteDeliveryForm = () => {
                             </Button>
                         </div>
 
-                        {alertMessage && (
-                            <div className="mt-8 w-full">
-                                <Alert open color={alertColor}
-                                       className="relative flex items-center justify-between px-4 py-3 rounded-lg">
-                                    <span>{alertMessage}</span>
-                                    <button onClick={() => setAlertMessage(null)}
-                                            className="absolute top-1/2 right-4 transform -translate-y-1/2">
-                                        <XMarkIcon
-                                            className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md"/>
-                                    </button>
-                                </Alert>
-                            </div>
-                        )}
+                        {/* Notificação */}
+                        <AlertMessage
+                            alertMessage={alertMessage}
+                            alertColor={alertColor}
+                            onClose={() => setAlertMessage(null)}
+                        />
                     </form>
                 </CardBody>
             </Card>
