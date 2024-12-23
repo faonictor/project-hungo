@@ -294,7 +294,6 @@
 //
 // export default Sidenav;
 //------------------------ Sidebar Antiga ------------------------------------------//
-
 import PropTypes from "prop-types";
 import { Link, NavLink } from "react-router-dom";
 import { XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
@@ -320,6 +319,17 @@ export function Sidenav({ brandImg, brandName }) {
       ...prevState,
       [title]: !prevState[title], // Alterna o estado do dropdown
     }));
+  };
+
+  // Função para verificar se o path contém um parâmetro de rota dinâmico, como :id
+  const containsIdParam = (path) => {
+    // Verifica se a rota contém ':id' no caminho
+    return /:\w+/.test(path);
+  };
+
+  // Função para filtrar as rotas que não contêm ':id'
+  const filterRoutes = (pages) => {
+    return pages.filter((page) => !containsIdParam(page.path)); // Filtra páginas com ':id' no path
   };
 
   return (
@@ -353,7 +363,6 @@ export function Sidenav({ brandImg, brandName }) {
         <div className="m-4">
           {routes.map(({ title, layout, pages }, key) => (
               <ul key={key} className="mb-4 flex flex-col gap-1">
-                {/* Condição para mostrar o título de categorias (com múltiplas páginas) */}
                 {title && pages.length > 1 ? (
                     <>
                       <Button
@@ -373,7 +382,7 @@ export function Sidenav({ brandImg, brandName }) {
                       <ul
                           className={`mt-2 pl-6 ${openDropdown[title] ? "block" : "hidden"}`}
                       >
-                        {pages.map(({ icon, name, path }, idx) => (
+                        {filterRoutes(pages).map(({ icon, name, path }, idx) => (
                             <li key={idx} className="mb-2">
                               <NavLink to={`/${layout}${path}`}>
                                 {({ isActive }) => (
@@ -400,8 +409,7 @@ export function Sidenav({ brandImg, brandName }) {
                       </ul>
                     </>
                 ) : (
-                    // Caso haja apenas uma página, renderiza normalmente sem o dropdown
-                    pages.map(({ icon, name, path }, idx) => (
+                    filterRoutes(pages).map(({ icon, name, path }, idx) => (
                         <li key={idx}>
                           <NavLink to={`/${layout}${path}`}>
                             {({ isActive }) => (
