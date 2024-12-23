@@ -34,8 +34,8 @@ export const routes = [
     pages: [
       {
         icon: <UserPlusIcon {...icon} />,
-        name: "Novo Cliente",
-        path: "/novo-cliente",
+        name: "Cliente Rápido",
+        path: "/cliente-rapido",
         element: <ClienteEnderecoAdd/>,
       },
       {
