@@ -3,7 +3,8 @@ import {
   UserCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
-  UserIcon, UserPlusIcon,
+  UserPlusIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
@@ -39,13 +40,13 @@ export const routes = [
         element: <ClienteEnderecoAdd/>,
       },
       {
-        icon: <UserPlusIcon {...icon} />,
+        icon: <UserCircleIcon {...icon} />,
         name: "Cadastrar Cliente",
         path: "/cliente",
         element: <ClienteAdd/>,
       },
       {
-        icon: <UserIcon {...icon} />,
+        icon: <UserGroupIcon {...icon} />,
         name: "Listar Clientes",
         path: "/clientes",
         element: <ClientesList/>,
