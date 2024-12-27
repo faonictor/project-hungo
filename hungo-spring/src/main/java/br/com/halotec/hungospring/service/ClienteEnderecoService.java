@@ -16,7 +16,7 @@ public class ClienteEnderecoService {
     @Autowired
     private EnderecoService enderecoService;
 
-    // Método responsável por criar o Cliente e o Endereco
+    // Metodo responsável por criar o Cliente e o Endereco
     public ResponseEntity<Cliente> salvarClienteEndereco(ClienteEnderecoDTO clienteEnderecoDTO) {
         // Criar o cliente
         Cliente cliente = new Cliente();
@@ -28,7 +28,7 @@ public class ClienteEnderecoService {
         cliente.setDataCadastro(java.time.LocalDateTime.now());
 
         // Salvar o cliente
-        cliente = clienteService.salvar(cliente).getBody();  // Aqui podemos usar a resposta do método salvar
+        cliente = clienteService.salvar(cliente).getBody();  // Aqui podemos usar a resposta do metodo salvar
 
         // Criar o endereço
         Endereco endereco = new Endereco();

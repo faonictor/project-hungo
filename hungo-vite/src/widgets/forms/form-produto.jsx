@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
 import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
@@ -8,6 +8,7 @@ import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ProdutoForm = () => {
     const navigate = useNavigate();
+    const { id } = useParams(); // Pega o ID da URL, caso seja para editar um produto
 
     // Estados para armazenar os dados
     const [nome, setNome] = useState('');
@@ -25,7 +26,7 @@ const ProdutoForm = () => {
         const fetchCategorias = async () => {
             try {
                 const response = await api.get('/categoria');
-                setCategorias(response.data); // Supondo que a resposta seja um array de categorias
+                setCategorias(response.data);
             } catch (error) {
                 console.error('Erro ao carregar categorias', error);
                 setAlertMessage('Erro ao carregar categorias.');
@@ -36,7 +37,7 @@ const ProdutoForm = () => {
         const fetchInsumos = async () => {
             try {
                 const response = await api.get('/insumo');
-                setInsumos(response.data); // Supondo que a resposta seja um array de insumos
+                setInsumos(response.data);
             } catch (error) {
                 console.error('Erro ao carregar insumos', error);
                 setAlertMessage('Erro ao carregar insumos.');
@@ -44,9 +45,32 @@ const ProdutoForm = () => {
             }
         };
 
+        const fetchProduto = async () => {
+            if (id) {
+                try {
+                    const response = await api.get(`/produto/${id}`); // Alterado para /produto/{id}
+                    const produto = response.data;
+
+                    // Preenche os estados com os dados do produto
+                    setNome(produto.nome);
+                    setPreco(produto.preco);
+                    setCategoriaId(produto.categoriaId);
+                    setSelectedInsumos(produto.insumos || []);
+                } catch (error) {
+                    console.error('Erro ao carregar produto:', error);
+                    setAlertMessage('Erro ao carregar os dados do produto.');
+                    setAlertColor('red');
+                }
+            }
+        };
+
         fetchCategorias();
         fetchInsumos();
-    }, []);
+
+        if (id) {
+            fetchProduto();
+        }
+    }, [id]);
 
     // Função para validar o formulário
     const isFormValid = () => {
@@ -65,6 +89,7 @@ const ProdutoForm = () => {
         setSelectedInsumos(updatedInsumos);
     };
 
+    // Função de envio de dados
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -75,36 +100,38 @@ const ProdutoForm = () => {
         }
 
         setIsLoading(true);
+
         try {
-            // Certifique-se de que todos os dados estão corretamente estruturados
             const produtoDTO = { nome, preco, categoriaId, insumos: selectedInsumos };
 
-            console.log('Dados para salvar:', produtoDTO); // Adicione esse console.log para verificar os dados
+            if (id) {
+                // Atualizar produto existente
+                await api.put(`/produto/${id}`, produtoDTO); // Alterado para /produto/{id}
+                setAlertMessage('Produto atualizado com sucesso!');
+            } else {
+                // Criar novo produto
+                await api.post('/produto', produtoDTO); // Alterado para /produto
+                setAlertMessage('Produto cadastrado com sucesso!');
+            }
 
-            // Enviar dados para cadastro
-            await api.post('/produtodto', produtoDTO);  // Certifique-se de que o endpoint está correto no backend
-            setAlertMessage('Produto cadastrado com sucesso!');
             setAlertColor('green');
-
-            // Redirecionar após o cadastro
             setTimeout(() => {
                 navigate('/dashboard/produtos');
             }, 1000);
         } catch (error) {
-            setAlertMessage('Erro ao cadastrar produto. Tente novamente.');
-            setAlertColor('red');
             console.error('Erro na requisição:', error);
+            setAlertMessage('Erro ao salvar produto. Tente novamente.');
+            setAlertColor('red');
         } finally {
             setIsLoading(false);
         }
     };
 
-
     return (
         <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
             <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                 <Typography variant="h6" color="white">
-                    Cadastrar Produto
+                    {id ? "Editar Produto" : "Cadastrar Produto"}
                 </Typography>
             </CardHeader>
             <CardBody className="px-4 pt-0 pb-6">
@@ -194,7 +221,7 @@ const ProdutoForm = () => {
                             {isLoading ? (
                                 <ArrowPathIcon className="h-4 w-4 text-white animate-spin" />
                             ) : (
-                                'Cadastrar'
+                                id ? 'Atualizar' : 'Cadastrar'
                             )}
                         </Button>
                     </div>

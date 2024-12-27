@@ -5,7 +5,7 @@ import {
   RectangleStackIcon,
   UserPlusIcon,
   UserGroupIcon,
-  CubeIcon,
+  CubeIcon, ShoppingBagIcon, PencilIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
@@ -14,6 +14,7 @@ import ClienteAdd from "@/pages/dashboard/clientes/clienteAdd.jsx";
 import ClienteEnderecoAdd from "@/pages/dashboard/clientes/clienteDeliveryAdd.jsx";
 import ClienteForm from "@/widgets/forms/form-cliente.jsx";
 import ProdutoAdd from "@/pages/dashboard/produtos/produtoAdd.jsx";
+import ProdutosList from "@/pages/dashboard/produtos/produtosList.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -66,18 +67,18 @@ export const routes = [
         path: "/produto",
         element: <ProdutoAdd />,
       },
-      // {
-      //   icon: <ShoppingBagIcon {...icon} />,
-      //   name: "Listar Produtos",
-      //   path: "/produtos",
-      //   element: <ProdutosList />,
-      // },
-      // {
-      //   icon: <PencilIcon {...icon} />,
-      //   name: "Editar Produto",
-      //   path: "/produto/:id",
-      //   element: <ProdutoAdd />,
-      // },
+      {
+        icon: <ShoppingBagIcon {...icon} />,
+        name: "Listar Produtos",
+        path: "/produtos",
+        element: <ProdutosList />,
+      },
+      {
+        icon: <PencilIcon {...icon} />,
+        name: "Editar Produto",
+        path: "/produto/:id",
+        element: <ProdutoAdd />,
+      },
     ],
   },
   {
