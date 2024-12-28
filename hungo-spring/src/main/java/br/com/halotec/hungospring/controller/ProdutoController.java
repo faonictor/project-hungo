@@ -19,24 +19,14 @@ public class ProdutoController {
     public ResponseEntity<Produto> salvarProduto(@RequestBody ProdutoDTO produtoDTO) {
         return produtoService.salvarProduto(produtoDTO);
     }
-
-    // Endpoint para salvar Produto
-//    @PostMapping("/produto")
-//    public ResponseEntity<Produto> salvar(@RequestBody Produto produto) {
-//        return produtoService.salvar(produto);
-//    }
+    
 
     // Listar todos os produtos
-    @GetMapping("/produto")
+    @GetMapping("/produtos")
     public Iterable<Produto> listarTodos() {
         return produtoService.listarTodos();
     }
-
-    // Buscar produto por ID
-//    @GetMapping("/produto/{id}")
-//    public ResponseEntity<Produto> buscarPorId(@PathVariable Long id) {
-//        return produtoService.buscarPorId(id);
-//    }
+    
 
     @GetMapping("/produto/{id}")
     public ResponseEntity<ProdutoDTO> buscarProdutoPorId(@PathVariable Long id) {
