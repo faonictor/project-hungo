@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/hungo.iml" filepath="$PROJECT_DIR$/hungo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hungo-spring/hungo-spring.iml" filepath="$PROJECT_DIR$/hungo-spring/hungo-spring.iml" />
       <module fileurl="file://$PROJECT_DIR$/hungo-vite.iml" filepath="$PROJECT_DIR$/hungo-vite.iml" />
       <module fileurl="file://$PROJECT_DIR$/hungo-vite/services/services.iml" filepath="$PROJECT_DIR$/hungo-vite/services/services.iml" />
     </modules>

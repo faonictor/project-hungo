@@ -11,7 +11,7 @@ public class ProdutoInsumo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private float quantidade;
+    private int quantidade;
 
     @ManyToOne
     private Produto produto;

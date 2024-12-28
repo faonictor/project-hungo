@@ -1,12 +1,13 @@
 package br.com.halotec.hungospring.dto;
 
 import lombok.Data;
+import lombok.AllArgsConstructor;
 
 @Data
 public class ProdutoInsumoDTO {
-
-    private Long insumoId;  // ID do insumo
-    private float quantidade;  // Quantidade do insumo
+    private Long insumoId;
+    private Integer quantidade;
 }
+
 
 
