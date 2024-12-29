@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {ExclamationTriangleIcon, PencilIcon, PlusIcon, TrashIcon} from '@heroicons/react/24/solid';
+import { ExclamationTriangleIcon, PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import api from '../../services/axiosConfig';
 import { Card, CardBody, CardHeader, Typography, Alert } from "@material-tailwind/react";
 import Loading from "@/widgets/loading.jsx";
@@ -8,7 +8,7 @@ import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ProdutosTable = () => {
     const [produtos, setProdutos] = useState([]);
-    const [insumosProduto, setInsumosProduto] = useState({});  // Mapeando insumos por ID de produto
+    const [insumosProduto, setInsumosProduto] = useState({});  {/* Mapeando insumos por ID de produto */}
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
@@ -17,14 +17,14 @@ const ProdutosTable = () => {
 
     const navigate = useNavigate();
 
-    // Função para buscar todos os produtos
+    {/* Função para buscar todos os produtos */}
     const fetchProdutos = async () => {
         try {
             const response = await api.get('/produtos');
             setProdutos(response.data);
-            // Buscar os insumos para cada produto ao mesmo tempo
+            {/* Buscar os insumos para cada produto ao mesmo tempo */}
             response.data.forEach(produto => {
-                fetchInsumosPorProduto(produto.id);  // Buscar insumos para cada produto
+                fetchInsumosPorProduto(produto.id);  {/* Buscar insumos para cada produto */}
             });
         } catch (error) {
             console.error('Erro ao buscar produtos:', error);
@@ -34,57 +34,40 @@ const ProdutosTable = () => {
         }
     };
 
-    // Função para buscar os insumos de um produto específico
+    {/* Função para buscar os insumos de um produto específico */}
     const fetchInsumosPorProduto = async (produtoId) => {
         try {
             const response = await api.get(`/produto-insumo?produtoId=${produtoId}`);
             setInsumosProduto(prevState => ({
                 ...prevState,
-                [produtoId]: response.data  // Armazenar os insumos do produto
-            }));
+                [produtoId]: response.data
+        }));
         } catch (error) {
             console.error('Erro ao buscar insumos para o produto:', error);
         }
     };
 
-    // Recarregar lista de produtos quando o componente é montado
+    {/* Recarregar lista de produtos quando o componente é montado */}
     useEffect(() => {
         fetchProdutos();
     }, []);
 
-    // Função para editar produto
+    {/* Função para editar produto */}
     const handleEdit = (id) => {
         navigate(`/dashboard/produto/${id}`);
     };
 
-    // Função para abrir o modal de confirmação de exclusão
+    {/* Função para abrir o modal de confirmação de exclusão */}
     const handleConfirmDelete = (produto) => {
         setProdutoSelecionado(produto);
-        setModalVisible(true); // Exibe o modal
+        setModalVisible(true); {/* Exibe o modal */}
     };
 
-    // // Função deletar produto
-    // const handleDelete = async () => {
-    //     if (produtoSelecionado) {
-    //         try {
-    //             await api.delete(`/produto/${produtoSelecionado.id}`);
-    //             setProdutoSelecionado(null);
-    //             fetchProdutos();
-    //             setAlertMessage(`Produto "${produtoSelecionado.nome}" excluído com sucesso.`);
-    //             setAlertColor('green');
-    //         } catch (error) {
-    //             console.error('Erro ao remover produto:', error);
-    //             setAlertMessage(`Ocorreu um erro ao excluir o produto "${produtoSelecionado.nome}".`);
-    //             setAlertColor('red');
-    //         }
-    //     }
-    // };
-
-    // Função para excluir o produto
+    {/* Função para excluir o produto */}
     const handleDelete = async () => {
         if (produtoSelecionado) {
             try {
-                // Fechar o modal após confirmação
+                {/* Fechar o modal após confirmação */}
                 setModalVisible(false);
                 await api.delete(`/produto/${produtoSelecionado.id}`);
                 setProdutoSelecionado(null);
@@ -99,17 +82,17 @@ const ProdutosTable = () => {
         }
     };
 
-    // Função para formatar o preço para o formato de moeda brasileira
+    {/* Função para formatar o preço para o formato de moeda brasileira */}
     const formatPreco = (preco) => {
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(preco);
     };
 
-    // Função para redirecionar para a página de criar produto
+    {/* Função para redirecionar para a página de criar produto */}
     const handleCreateProduto = () => {
         navigate('/dashboard/produto');
     };
 
-    // Carregamento
+    {/* Carregamento */}
     if (loading) {
         return <Loading text="Carregando Produtos" />;
     }
@@ -122,11 +105,11 @@ const ProdutosTable = () => {
                         Lista de Produtos
                     </Typography>
                     <button
-                        onClick={handleCreateProduto} // Ação ao clicar no botão
+                        onClick={handleCreateProduto}
                         className="flex items-center bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
                     >
                         <span className="flex p-1 justify-center items-center">
-                            <PlusIcon className="w-5 h-5 text-sm"/>
+                            <PlusIcon className="w-5 h-5 text-sm" />
                             <span className="text-sm">Novo Produto </span>
                         </span>
                     </button>
@@ -161,10 +144,10 @@ const ProdutosTable = () => {
                                         {insumosProduto[produto.id] && insumosProduto[produto.id].length > 0 && (
                                             <div className="text-sm text-blue-500 mt-2">
                                                 {insumosProduto[produto.id].map((insumo, index) => {
-                                                    const {insumo: insumoDetails, quantidade} = insumo;
+                                                    const { insumo: insumoDetails, quantidade } = insumo;
                                                     return (
                                                         <span key={index}>
-                                                                {quantidade} {insumoDetails.nome}
+                                                                {quantidade > 0 ? `${quantidade} ` : ''}{insumoDetails.nome}
                                                             {index < insumosProduto[produto.id].length - 1 ? ', ' : '.'}
                                                             </span>
                                                     );
@@ -175,25 +158,23 @@ const ProdutosTable = () => {
                                     <td className="px-4 py-2 border-b">{produto.categoria?.nome || 'Sem Categoria'}</td>
                                     <td className="px-4 py-2 border-b">{formatPreco(produto.preco)}</td>
                                     <td className="px-4 py-2 border-b">
-                                        <span
-                                            className={`inline-flex items-center px-2 text-sm rounded-full 
+                                            <span
+                                                className={`inline-flex items-center px-2 text-sm rounded-full 
                                                 ${produto.tipo ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'}`}
-                                        >
-                                            {produto.tipo ? 'Ativo' : 'Inativo'}
-                                        </span>
+                                            >
+                                                {produto.tipo ? 'Ativo' : 'Inativo'}
+                                            </span>
                                     </td>
                                     <td className="pr-4 py-2 border-b space-x-2">
                                         <button onClick={() => handleEdit(produto.id)}>
-                                            <div
-                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-blue-100 active:text-blue-500">
-                                                <PencilIcon className="w-5 h-5"/>
+                                            <div className="p-1 rounded-md text-blue-gray-500 hover:bg-blue-100 active:text-blue-500">
+                                                <PencilIcon className="w-5 h-5" />
                                             </div>
                                         </button>
 
                                         <button onClick={() => handleConfirmDelete(produto)}>
-                                            <div
-                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-red-100 active:text-red-600">
-                                                <TrashIcon className="w-5 h-5"/>
+                                            <div className="p-1 rounded-md text-blue-gray-500 hover:bg-red-100 active:text-red-600">
+                                                <TrashIcon className="w-5 h-5" />
                                             </div>
                                         </button>
                                     </td>

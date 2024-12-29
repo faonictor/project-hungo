@@ -5,19 +5,21 @@ import InputField from '../forms/input-field';
 import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
 import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline"; // Ícone de "X"
 import AlertMessage from "@/widgets/alert-message.jsx";
+import SelectField from "@/widgets/forms/select-field.jsx";
+import {PlusIcon} from "@heroicons/react/24/solid";
 
 const ProdutoForm = () => {
     const navigate = useNavigate();
-    const { id } = useParams(); // Pega o ID da URL, caso seja para editar um produto
+    const { id } = useParams(); {/* Pega o ID da URL, caso seja para editar um produto */}
 
-    // Estados para armazenar os dados
+    {/* Estados para armazenar os dados */}
     const [nome, setNome] = useState('');
     const [preco, setPreco] = useState('');
     const [categoriaId, setCategoriaId] = useState('');
     const [insumos, setInsumos] = useState([]);
     const [selectedInsumos, setSelectedInsumos] = useState([{ insumoId: '', quantidade: '' }]);
     const [categorias, setCategorias] = useState([]);
-    const [tipo, setTipo] = useState(true); // Tipo: true para ativo, false para inativo
+    const [tipo, setTipo] = useState(true); {/* Tipo: true para ativo, false para inativo */}
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,15 +50,15 @@ const ProdutoForm = () => {
         const fetchProduto = async () => {
             if (id) {
                 try {
-                    const response = await api.get(`/produto/${id}`); // Alterado para /produto/{id}
+                    const response = await api.get(`/produto/${id}`); {/* Alterado para /produto/{id} */}
                     const produto = response.data;
 
-                    // Preenche os estados com os dados do produto
+                    {/* Preenche os estados com os dados do produto */}
                     setNome(produto.nome);
                     setPreco(produto.preco);
                     setCategoriaId(produto.categoriaId);
-                    setTipo(produto.tipo); // Definindo o tipo conforme o produto
-                    setSelectedInsumos(produto.insumos || []); // Certificando que é um array
+                    setTipo(produto.tipo); {/* Definindo o tipo conforme o produto */}
+                    setSelectedInsumos(produto.insumos || []); {/* Certificando que é um array */}
                 } catch (error) {
                     console.error('Erro ao carregar produto:', error);
                     setAlertMessage('Erro ao carregar os dados do produto.');
@@ -73,30 +75,30 @@ const ProdutoForm = () => {
         }
     }, [id]);
 
-    // Função para validar o formulário
+    {/* Função para validar o formulário */}
     const isFormValid = () => {
-        return nome && preco && categoriaId && (selectedInsumos.length === 0 || selectedInsumos.every(insumo => insumo.insumoId && insumo.quantidade));
+        return nome && preco && categoriaId && (selectedInsumos.length === 0 || selectedInsumos.every(insumo => insumo.insumoId));
     };
 
-    // Função para adicionar um novo insumo
+    {/* Função para adicionar um novo insumo */}
     const handleAddInsumo = () => {
         setSelectedInsumos([...selectedInsumos, { insumoId: '', quantidade: '' }]);
     };
 
-    // Função para remover um insumo
+    {/* Função para remover um insumo */}
     const handleRemoveInsumo = (index) => {
         const updatedInsumos = selectedInsumos.filter((_, i) => i !== index);
         setSelectedInsumos(updatedInsumos);
     };
 
-    // Função para atualizar os valores dos insumos selecionados
+    {/* Função para atualizar os valores dos insumos selecionados */}
     const handleInsumoChange = (index, field, value) => {
         const updatedInsumos = [...selectedInsumos];
         updatedInsumos[index][field] = value;
         setSelectedInsumos(updatedInsumos);
     };
 
-    // Função de envio de dados
+    {/* Função de envio de dados */}
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -113,17 +115,14 @@ const ProdutoForm = () => {
                 nome,
                 preco,
                 categoriaId,
-                tipo, // Enviando o tipo booleano
-                insumos: selectedInsumos.length > 0 ? selectedInsumos : [] // Envia insumos como array vazio se não houver insumos
+                tipo,
+                insumos: selectedInsumos.length > 0 ? selectedInsumos : []
             };
-
             if (id) {
-                // Atualizar produto existente
-                await api.put(`/produto/${id}`, produtoDTO); // Alterado para /produto/{id}
+                await api.put(`/produto/${id}`, produtoDTO);
                 setAlertMessage('Produto atualizado com sucesso!');
             } else {
-                // Criar novo produto
-                await api.post('/produto', produtoDTO); // Alterado para /produto
+                await api.post('/produto', produtoDTO);
                 setAlertMessage('Produto cadastrado com sucesso!');
             }
 
@@ -149,110 +148,113 @@ const ProdutoForm = () => {
             </CardHeader>
             <CardBody className="px-4 pt-0 pb-6">
                 <form onSubmit={handleSubmit} className="mt-8 max-w-screen-lg lg:w-full mx-auto">
-                    <div className="mb-1 grid grid-cols-1 sm:grid-cols-8 gap-6">
+                    <div className="mb-1 grid grid-cols-1 sm:grid-cols-12 gap-4">
                         <div className="col-span-1 sm:col-span-5">
                             <InputField
                                 label="Nome do Produto"
-                                placeholder="ex.: Produto A"
+                                placeholder="ex.: X-Tudo"
                                 value={nome}
                                 onChange={setNome}
                                 className="border border-red-400"
                             />
                         </div>
 
-                        <div className="col-span-1 sm:col-span-3">
+                        <div className="col-span-1 sm:col-span-2">
                             <InputField
                                 label="Preço"
-                                placeholder="ex.: 99.99"
+                                placeholder="ex.: 9.99"
                                 value={preco}
                                 onChange={setPreco}
                                 type="number"
-                                step="0.01"
+                                step="0.5"
                             />
+                        </div>
+
+                        <div className="col-span-1 sm:col-span-3">
+                            <SelectField
+                                label="Categoria"
+                                value={categoriaId}
+                                onChange={(value) => setCategoriaId(value)}
+                                options={categorias.map((categoria) => ({
+                                    value: categoria.id,
+                                    label: categoria.nome,
+                                }))}
+                                placeholder="Selecione uma categoria"
+                            />
+                        </div>
+
+                        <div className="col-span-1 sm:col-span-2">
+                            <SelectField
+                                label="Status"
+                                value={tipo}
+                                onChange={(value) => setTipo(value === 'true')}
+                                options={[
+                                    {value: 'true', label: 'Ativo'},
+                                    {value: 'false', label: 'Inativo'},
+                                ]}
+                                placeholder="Selecione o tipo"
+                            />
+                        </div>
+
+                        <div className="col-span-1 sm:col-span-12 border-t border-blue-gray-200 my-4 pt-4">
+                            <div className="space-y-2">
+                                {selectedInsumos.map((insumo, index) => (
+                                    <div key={index} className="grid grid-cols-8 sm:grid-cols-12 gap-4 items-center">
+                                        {/* SelectField para o campo insumo */}
+                                        <div className="col-span-4 sm:col-span-10">
+                                            <SelectField
+                                                label="Item"
+                                                value={insumo.insumoId}
+                                                onChange={(value) => handleInsumoChange(index, 'insumoId', value)}
+                                                options={insumos.map(ins => ({value: ins.id, label: ins.nome}))}
+                                                placeholder="Adicione um item"
+                                            />
+                                        </div>
+
+                                        <InputField
+                                            label="Quantidade"
+                                            type="number"
+                                            value={insumo.quantidade}
+                                            onChange={(e) => handleInsumoChange(index, 'quantidade', e)}
+                                            min="0"
+                                            step="1"
+                                            placeholder="0"
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveInsumo(index)}
+                                            className="flex text-red-400 rounded-md justify-center items-center hover:bg-red-100 h-8 w-8 -ml-3 mt-6"
+                                        >
+                                            <XMarkIcon className="h-6 w-6"/>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Botão para adicionar insumo */}
+                            <div className="mt-4 col-span-8">
+                                <button
+                                    type="button"
+                                    onClick={handleAddInsumo}
+                                    className="justify-center items-center  py-1 px-2 text-blue-500 rounded-full flex gap-1 hover:bg-blue-50"
+                                >
+                                    <PlusIcon className="h-5 w-5"/>
+                                    Adicionar Insumo
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Campo Categoria */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700">Categoria</label>
-                        <select
-                            value={categoriaId}
-                            onChange={(e) => setCategoriaId(e.target.value)}
-                            className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"
-                        >
-                            <option value="">Selecione uma categoria</option>
-                            {categorias.map(categoria => (
-                                <option key={categoria.id} value={categoria.id}>
-                                    {categoria.nome}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Campo Tipo (Ativo / Inativo) */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700">Tipo</label>
-                        <select
-                            value={tipo}
-                            onChange={(e) => setTipo(e.target.value === 'true')}
-                            className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"
-                        >
-                            <option value={true}>Ativo</option>
-                            <option value={false}>Inativo</option>
-                        </select>
-                    </div>
-
-                    {/* Campo Insumos */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700">Insumos</label>
-                        {selectedInsumos.map((insumo, index) => (
-                            <div key={index} className="flex space-x-4 mb-2">
-                                <select
-                                    value={insumo.insumoId}
-                                    onChange={(e) => handleInsumoChange(index, 'insumoId', e.target.value)}
-                                    className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"
-                                >
-                                    <option value="">Selecione um insumo</option>
-                                    {insumos.map(ins => (
-                                        <option key={ins.id} value={ins.id}>
-                                            {ins.nome}
-                                        </option>
-                                    ))}
-                                </select>
-                                <input
-                                    type="number"
-                                    className="w-24 px-4 py-2 mt-2 border border-gray-300 rounded-md"
-                                    value={insumo.quantidade}
-                                    onChange={(e) => handleInsumoChange(index, 'quantidade', e.target.value)}
-                                    min="0"
-                                    step="0.01"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveInsumo(index)}
-                                    className="text-red-500 ml-2"
-                                >
-                                    <XMarkIcon className="h-6 w-6" />
-                                </button>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={handleAddInsumo}
-                            className="mt-2 text-blue-500"
-                        >
-                            Adicionar Insumo
-                        </button>
-                    </div>
 
                     <div className="flex w-full justify-center">
                         <Button
                             type="submit"
-                            className={`mt-6 w-32 flex items-center justify-center`}
+                            className={`mt-6 w-32 flex items-center justify-center mb-4`}
                             disabled={!isFormValid() || isLoading}
                         >
                             {isLoading ? (
-                                <ArrowPathIcon className="h-4 w-4 text-white animate-spin" />
+                                <ArrowPathIcon className="h-4 w-4 text-white animate-spin"/>
                             ) : (
                                 id ? 'Atualizar' : 'Cadastrar'
                             )}
