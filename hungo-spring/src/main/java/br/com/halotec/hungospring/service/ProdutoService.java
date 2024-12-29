@@ -60,40 +60,55 @@ public class ProdutoService {
         return new ResponseEntity("{\"mensagem\":\"Produto e registros relacionados removidos com sucesso\"}", HttpStatus.OK);
     }
 
-    //salvar um produto DTO
-    public ResponseEntity<Produto> salvarProduto(ProdutoDTO produtoDTO) {
-        // 1. Verificar ou criar a Categoria
-        Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+    @Transactional
+    public ResponseEntity<Produto> salvarOuAtualizarProduto(ProdutoDTO produtoDTO) {
+        Produto produto;
 
-        // 2. Criar o Produto e associar a Categoria
-        Produto produto = new Produto();
+        // Verificar se o produto já existe (atualização) ou criar um novo
+        if (produtoDTO.getId() != null) {
+            // Atualizar produto existente
+            produto = produtoRepository.findById(produtoDTO.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + produtoDTO.getId()));
+        } else {
+            // Criar novo produto
+            produto = new Produto();
+        }
+
         produto.setNome(produtoDTO.getNome());
         produto.setPreco(produtoDTO.getPreco());
-        produto.setCategoria(categoria);
-        produto = produtoRepository.save(produto);  // Produto é salvo aqui
+        produto.setTipo(produtoDTO.getTipo());
 
-        // 3. Criar e associar os Insumos ao Produto
+
+        Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId())
+                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+        produto.setCategoria(categoria);
+
+        produto = produtoRepository.save(produto);
+
+        // 4. Gerenciar os insumos associados
         if (produtoDTO.getInsumos() != null && !produtoDTO.getInsumos().isEmpty()) {
+            // 4.1 Remover os insumos antigos antes de adicionar os novos
+            produtoInsumoRepository.deleteByProduto(produto);
+
+            // 4.2 Adicionar os novos insumos
             for (ProdutoInsumoDTO insumoDTO : produtoDTO.getInsumos()) {
                 ProdutoInsumo produtoInsumo = new ProdutoInsumo();
                 Insumo insumo = insumoRepository.findById(insumoDTO.getInsumoId())
                         .orElseThrow(() -> new EntityNotFoundException("Insumo não encontrado"));
 
-                produtoInsumo.setProduto(produto);  // Associando o produto ao ProdutoInsumo
-                produtoInsumo.setInsumo(insumo);    // Associando o insumo ao ProdutoInsumo
+                produtoInsumo.setProduto(produto);
+                produtoInsumo.setInsumo(insumo);
                 produtoInsumo.setQuantidade(insumoDTO.getQuantidade());
 
-                // Salvando a associação ProdutoInsumo
+                // Salvar o insumo associado ao produto
                 produtoInsumoRepository.save(produtoInsumo);
             }
         }
 
-        // Retornar o produto criado com a categoria associada
-        return new ResponseEntity<>(produto, HttpStatus.CREATED);
+        // 5. Retornar o produto atualizado ou criado
+        return new ResponseEntity<>(produto, HttpStatus.OK);
     }
 
-    //retornar um produto DTO
     public ResponseEntity<ProdutoDTO> buscarProdutoPorId(Long id) {
         // 1. Buscar o Produto
         Produto produto = produtoRepository.findById(id)
@@ -104,11 +119,17 @@ public class ProdutoService {
         produtoDTO.setId(produto.getId());
         produtoDTO.setNome(produto.getNome());
         produtoDTO.setPreco(produto.getPreco());
-        produtoDTO.setCategoriaId(produto.getCategoria().getId());
+        produtoDTO.setTipo(produto.getTipo());  // Garantindo que o 'tipo' seja transferido
 
-        // 3. Preencher a lista de insumos (ProdutoInsumoDTO)
+        // 3. Verificar e adicionar a categoria
+        if (produto.getCategoria() != null) {
+            produtoDTO.setCategoriaId(produto.getCategoria().getId());
+        }
+
+        // 4. Preencher a lista de insumos (ProdutoInsumoDTO)
         List<ProdutoInsumoDTO> insumosDTO = new ArrayList<>();
         List<ProdutoInsumo> produtoInsumos = produtoInsumoRepository.findByProduto(produto);
+
         for (ProdutoInsumo produtoInsumo : produtoInsumos) {
             ProdutoInsumoDTO insumoDTO = new ProdutoInsumoDTO();
             insumoDTO.setInsumoId(produtoInsumo.getInsumo().getId());
@@ -117,7 +138,7 @@ public class ProdutoService {
         }
         produtoDTO.setInsumos(insumosDTO);
 
-        // 4. Retornar a resposta com o ProdutoDTO
+        // 5. Retornar a resposta com o ProdutoDTO
         return new ResponseEntity<>(produtoDTO, HttpStatus.OK);
     }
 }

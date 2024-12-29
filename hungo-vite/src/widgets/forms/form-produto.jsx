@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
 import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline"; // Ícone de "X"
 import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ProdutoForm = () => {
@@ -79,6 +79,12 @@ const ProdutoForm = () => {
     // Função para adicionar um novo insumo
     const handleAddInsumo = () => {
         setSelectedInsumos([...selectedInsumos, { insumoId: '', quantidade: '' }]);
+    };
+
+    // Função para remover um insumo
+    const handleRemoveInsumo = (index) => {
+        const updatedInsumos = selectedInsumos.filter((_, i) => i !== index);
+        setSelectedInsumos(updatedInsumos);
     };
 
     // Função para atualizar os valores dos insumos selecionados
@@ -205,6 +211,13 @@ const ProdutoForm = () => {
                                     min="0"
                                     step="0.01"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveInsumo(index)}
+                                    className="text-red-500 ml-2"
+                                >
+                                    <XMarkIcon className="h-6 w-6" />
+                                </button>
                             </div>
                         ))}
                         <button

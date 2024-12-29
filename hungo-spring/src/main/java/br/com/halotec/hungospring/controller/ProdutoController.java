@@ -14,37 +14,30 @@ public class ProdutoController {
     @Autowired
     private ProdutoService produtoService;
 
-    // Endpoint para salvar ProdutoDTO
     @PostMapping("/produto")
     public ResponseEntity<Produto> salvarProduto(@RequestBody ProdutoDTO produtoDTO) {
-        return produtoService.salvarProduto(produtoDTO);
+        return produtoService.salvarOuAtualizarProduto(produtoDTO);
     }
-    
+
+    @PutMapping("/produto/{id}")
+    public ResponseEntity<Produto> atualizarProduto(@PathVariable Long id, @RequestBody ProdutoDTO produtoDTO) {
+        produtoDTO.setId(id);
+        return produtoService.salvarOuAtualizarProduto(produtoDTO);
+    }
 
     // Listar todos os produtos
     @GetMapping("/produtos")
     public Iterable<Produto> listarTodos() {
         return produtoService.listarTodos();
     }
-    
 
     @GetMapping("/produto/{id}")
     public ResponseEntity<ProdutoDTO> buscarProdutoPorId(@PathVariable Long id) {
         return produtoService.buscarProdutoPorId(id);
     }
 
-    // Deletar produto
     @DeleteMapping("/produto/{id}")
     public ResponseEntity deletar(@PathVariable Long id) {
         return produtoService.deletar(id);
-    }
-
-    // Atualizar produto
-    @PutMapping("/produto/{id}")
-    public ResponseEntity<Produto> atualizar(
-            @PathVariable Long id,
-            @RequestBody Produto produto) {
-        produto.setId(id);
-        return produtoService.salvar(produto);
     }
 }

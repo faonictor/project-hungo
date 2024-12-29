@@ -9,5 +9,6 @@ public class ProdutoDTO {
     private String nome;
     private Float preco;
     private Long categoriaId;
+    private Boolean tipo;
     private List<ProdutoInsumoDTO> insumos;
 }

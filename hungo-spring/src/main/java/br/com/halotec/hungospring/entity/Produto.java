@@ -11,7 +11,7 @@ public class Produto {
     private Long id;
     private String nome;
     private Float preco;
-    private Boolean tipo; //Ativo???
+    private Boolean tipo;
 
     @ManyToOne
     private Categoria categoria;
