@@ -17,6 +17,7 @@ const ProdutoForm = () => {
     const [insumos, setInsumos] = useState([]);
     const [selectedInsumos, setSelectedInsumos] = useState([{ insumoId: '', quantidade: '' }]);
     const [categorias, setCategorias] = useState([]);
+    const [tipo, setTipo] = useState(true); // Tipo: true para ativo, false para inativo
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +55,7 @@ const ProdutoForm = () => {
                     setNome(produto.nome);
                     setPreco(produto.preco);
                     setCategoriaId(produto.categoriaId);
+                    setTipo(produto.tipo); // Definindo o tipo conforme o produto
                     setSelectedInsumos(produto.insumos || []); // Certificando que é um array
                 } catch (error) {
                     console.error('Erro ao carregar produto:', error);
@@ -111,6 +113,7 @@ const ProdutoForm = () => {
                 nome,
                 preco,
                 categoriaId,
+                tipo, // Enviando o tipo booleano
                 insumos: selectedInsumos.length > 0 ? selectedInsumos : [] // Envia insumos como array vazio se não houver insumos
             };
 
@@ -183,6 +186,19 @@ const ProdutoForm = () => {
                                     {categoria.nome}
                                 </option>
                             ))}
+                        </select>
+                    </div>
+
+                    {/* Campo Tipo (Ativo / Inativo) */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select
+                            value={tipo}
+                            onChange={(e) => setTipo(e.target.value === 'true')}
+                            className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"
+                        >
+                            <option value={true}>Ativo</option>
+                            <option value={false}>Inativo</option>
                         </select>
                     </div>
 
