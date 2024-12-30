@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
-import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
+import { Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import AlertMessage from "@/widgets/alert-message.jsx";
 

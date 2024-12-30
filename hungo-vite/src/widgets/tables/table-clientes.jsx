@@ -42,6 +42,11 @@ const ClientesTable = () => {
         }
     };
 
+    {/* Função para redirecionar para a página de criar produto */}
+    const handleCreateCliente = () => {
+        navigate('/dashboard/cliente');
+    };
+
     /* Recarregar lista de clientes quando o componente é montado */
     useEffect(() => {
         fetchClientes();
@@ -121,10 +126,19 @@ const ClientesTable = () => {
         <>
             <Card
                 className="overflow-x-auto bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
-                <CardHeader variant="gradient" color="gray" className="my-4 p-4">
+                <CardHeader variant="gradient" color="gray" className="my-4 p-4 flex space-x-6 items-center justify-between">
                     <Typography variant="h6" color="white">
                         Lista de Clientes
                     </Typography>
+                    <button
+                        onClick={handleCreateCliente}
+                        className="flex items-center bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+                    >
+                        <span className="flex p-1 justify-center items-center">
+                            <PlusIcon className="w-5 h-5 text-sm"/>
+                            <span className="text-sm">Novo Cliente</span>
+                        </span>
+                    </button>
                 </CardHeader>
                 <CardBody className="px-4 pt-0 pb-6">
 

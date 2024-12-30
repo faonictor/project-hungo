@@ -1,51 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, {useState, useEffect} from 'react';
+import {useParams, useNavigate} from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
-import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import AlertMessage from "@/widgets/alert-message.jsx";
+import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
+import {ArrowPathIcon, PencilIcon, TrashIcon} from '@heroicons/react/24/solid';
 
-const FuncionarioForm = () => {
-    const { id } = useParams();
+import AlertMessage from "@/widgets/alert-message.jsx";
+import CategoriaTables from "@/widgets/tables/table-categorias.jsx";
+
+const CategoriaForm = () => {
+    const {id} = useParams();
     const navigate = useNavigate();
 
     const [nome, setNome] = useState('');
-    const [telefone, setTelefone] = useState('');
-    const [email, setEmail] = useState('');
-    const [senha, setSenha] = useState('');
-    const [funcao, setFuncao] = useState('');
-    const [permissao, setPermissao] = useState('');
-    const [cpf, setCpf] = useState('');
+    const [categorias, setCategorias] = useState([]);
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        const fetchCategorias = async () => {
+            try {
+                const response = await api.get('/categoria');
+                setCategorias(response.data);
+            } catch (error) {
+                setAlertMessage('Erro ao carregar as categorias');
+                setAlertColor('red');
+                console.error('Erro ao buscar categorias:', error);
+            }
+        };
+
+        const fetchCategoria = async () => {
+            try {
+                const response = await api.get(`/categoria/${id}`);
+                const {nome} = response.data;
+                setNome(nome);
+            } catch (error) {
+                setAlertMessage('Erro ao carregar os dados da categoria');
+                setAlertColor('red');
+                console.error('Erro ao buscar categoria:', error);
+            }
+        };
+
+        fetchCategorias();
+
         if (id) {
-            const fetchFuncionario = async () => {
-                try {
-                    const response = await api.get(`/funcionario/${id}`);
-                    const { nome, telefone, email, senha, funcao, permissao, cpf } = response.data;
-                    setNome(nome);
-                    setTelefone(telefone);
-                    setEmail(email);
-                    setSenha(senha);
-                    setFuncao(funcao);
-                    setPermissao(permissao);
-                    setCpf(cpf);
-                } catch (error) {
-                    setAlertMessage('Erro ao carregar os dados do funcionário');
-                    setAlertColor('red');
-                    console.error('Erro ao buscar funcionário:', error);
-                }
-            };
-            fetchFuncionario();
+            fetchCategoria();
         }
     }, [id]);
 
     const isFormValid = () => {
-        return nome.trim() !== '' && email.trim() !== '' && senha.trim() !== '' && cpf.trim() !== '';
+        return nome !== '';
     };
 
     const handleSubmit = async (e) => {
@@ -59,22 +64,22 @@ const FuncionarioForm = () => {
 
         setIsLoading(true);
         try {
-            const funcionarioDTO = { nome, telefone, email, senha, funcao, permissao, cpf };
+            const categoriaDTO = { nome };
 
             if (id) {
-                await api.put(`/funcionario/${id}`, funcionarioDTO);
-                setAlertMessage('Funcionário editado com sucesso!');
+                await api.put(`/categoria/${id}`, categoriaDTO);
+                setAlertMessage('Categoria editada com sucesso!');
+                setCategorias(categorias.map(categoria => categoria.id === id ? { ...categoria, nome } : categoria));
+                navigate('/dashboard/categoria'); // Redireciona para a tela de categorias
             } else {
-                await api.post('/funcionario', funcionarioDTO);
-                setAlertMessage('Funcionário cadastrado com sucesso!');
+                const response = await api.post('/categoria', categoriaDTO);
+                setAlertMessage('Categoria cadastrada com sucesso!');
+                setCategorias([...categorias, response.data]);
             }
-
             setAlertColor('green');
-            setTimeout(() => {
-                navigate('/dashboard/funcionarios');
-            }, 1000);
+            setNome('');
         } catch (error) {
-            setAlertMessage('Erro ao cadastrar/editar funcionário. Tente novamente.');
+            setAlertMessage('Erro ao cadastrar/editar categoria. Tente novamente.');
             setAlertColor('red');
             console.error('Erro na requisição:', error);
         } finally {
@@ -82,40 +87,103 @@ const FuncionarioForm = () => {
         }
     };
 
+    const handleEdit = (categoriaId) => {
+        const categoria = categorias.find(categoria => categoria.id === categoriaId);
+        if (categoria) {
+            setNome(categoria.nome);
+            navigate(`/dashboard/categoria/${categoriaId}`);
+
+        }
+    };
+
+    const handleDelete = async (categoriaId) => {
+        try {
+            await api.delete(`/categoria/${categoriaId}`);
+            setCategorias(categorias.filter(categoria => categoria.id !== categoriaId));
+            setAlertMessage('Categoria excluída com sucesso!');
+            setAlertColor('green');
+        } catch (error) {
+            setAlertMessage('Erro ao excluir categoria. Tente novamente.');
+            setAlertColor('red');
+            console.error('Erro ao excluir categoria:', error);
+        }
+    };
+
     return (
-        <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
-            <CardHeader variant="gradient" color="gray" className="my-4 p-4">
-                <Typography variant="h6" color="white">
-                    {id ? 'Editar Funcionário' : 'Cadastrar Funcionário'}
-                </Typography>
-            </CardHeader>
-            <CardBody className="px-4 pt-0 pb-6">
-                <form onSubmit={handleSubmit} className="mt-8 max-w-screen-lg lg:w-full mx-auto">
-                    <InputField label="Nome" placeholder="ex.: João Silva" value={nome} onChange={setNome} />
-                    <InputField label="Telefone" placeholder="ex.: (99) 99999-9999" value={telefone} onChange={setTelefone} />
-                    <InputField label="E-mail" placeholder="ex.: email@mail.com" value={email} onChange={setEmail} />
-                    <InputField label="CPF" placeholder="ex.: 000.000.000-00" value={cpf} onChange={setCpf} />
-                    <InputField label="Senha" type="password" value={senha} onChange={setSenha} />
-                    <InputField label="Função" placeholder="ex.: Gerente" value={funcao} onChange={setFuncao} />
-                    <InputField label="Permissão" placeholder="ex.: ADMIN" value={permissao} onChange={setPermissao} />
+        <>
+            <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border  border-blue-gray-100 lg:flex">
+                <CardHeader variant="gradient" color="gray" className="my-4 p-4">
+                    <Typography variant="h6" color="white">
+                        {id ? 'Editar Categoria' : 'Cadastrar Categoria'}
+                    </Typography>
+                </CardHeader>
+                <CardBody className="px-4 pt-0 pb-6 flex flex-col justify-center items-center">
+                    <form onSubmit={handleSubmit} className="mt-8 max-w-screen-lg lg:w-full mx-auto">
+                        <div className="mb-1 grid grid-cols-1 sm:grid-cols-8 gap-6">
+                            <div className="col-span-1 sm:col-span-8">
+                                <InputField label="Nome" placeholder="ex.: Categoria A" value={nome} onChange={setNome}/>
+                            </div>
 
-                    <Button
-                        type="submit"
-                        className={`mt-6 w-32 flex items-center justify-center ${id ? 'bg-green-500 hover:bg-green-600' : ''}`}
-                        disabled={!isFormValid() || isLoading}
-                    >
-                        {isLoading ? (
-                            <ArrowPathIcon className="h-4 w-4 text-white animate-spin"/>
-                        ) : (
-                            id ? 'Editar' : 'Cadastrar'
-                        )}
-                    </Button>
+                            <div className="flex col-span-1 sm:col-span-8 w-full justify-center items-center">
+                                <Button
+                                    type="submit"
+                                    className={`mt-6 w-32 mb-4 flex items-center justify-center ${id ? 'bg-green-500 hover:bg-green-600' : ''}`}
+                                    disabled={!isFormValid() || isLoading}
+                                >
+                                    {isLoading ? (
+                                        <ArrowPathIcon className="h-4 w-4 text-white animate-spin"/>
+                                    ) : (
+                                        id ? 'Editar' : 'Cadastrar'
+                                    )}
+                                </Button>
+                            </div>
+                        </div>
+                        <AlertMessage
+                            alertMessage={alertMessage}
+                            alertColor={alertColor}
+                            onClose={() => setAlertMessage(null)}
+                        />
+                    </form>
 
-                    <AlertMessage alertMessage={alertMessage} alertColor={alertColor} onClose={() => setAlertMessage(null)} />
-                </form>
-            </CardBody>
-        </Card>
+                    <div className="overflow-x-auto w-full md:w-1/2 bg-white shadow-md rounded-lg mt-8">
+                        <table className="min-w-full table-auto">
+                            <thead>
+                            <tr>
+                                <th className="px-4 py-2 border-b text-left">ID</th>
+                                <th className="px-4 py-2 border-b text-left">Nome</th>
+                                <th className="pr-4 py-2 border-b text-left">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {categorias.map((categoria) => (
+                                <tr key={categoria.id}>
+                                    <td className="px-4 py-2 border-b">{categoria.id}</td>
+                                    <td className="px-4 py-2 border-b">{categoria.nome}</td>
+                                    <td className="pr-4 py-2 border-b space-x-2 flex flex-nowrap">
+                                        <button onClick={() => handleEdit(categoria.id)}>
+                                            <div
+                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-blue-100 active:text-blue-500">
+                                                <PencilIcon className="w-5 h-5"/>
+                                            </div>
+                                        </button>
+
+                                        <button onClick={() => handleDelete(categoria.id)}>
+                                            <div
+                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-red-100 active:text-red-600">
+                                                <TrashIcon className="w-5 h-5"/>
+                                            </div>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardBody>
+            </Card>
+        </>
     );
 };
 
-export default FuncionarioForm;
+export default CategoriaForm;
+

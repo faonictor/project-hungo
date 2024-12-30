@@ -10,15 +10,13 @@ const FuncionarioForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        nome: '',
-        telefone: '',
-        email: '',
-        senha: '',
-        funcao: '',
-        permissao: '',
-        cpf: ''
-    });
+    const [nome, setNome] = useState('');
+    const [telefone, setTelefone] = useState('');
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [funcao, setFuncao] = useState('');
+    const [permissao, setPermissao] = useState('');
+    const [cpf, setCpf] = useState('');
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +26,14 @@ const FuncionarioForm = () => {
             const fetchFuncionario = async () => {
                 try {
                     const response = await api.get(`/funcionario/${id}`);
-                    setFormData(response.data);
+                    const { nome, telefone, email, senha, funcao, permissao, cpf } = response.data;
+                    setNome(nome);
+                    setTelefone(telefone);
+                    setEmail(email);
+                    setSenha(senha);
+                    setFuncao(funcao);
+                    setPermissao(permissao);
+                    setCpf(cpf);
                 } catch (error) {
                     setAlertMessage('Erro ao carregar os dados do funcionário');
                     setAlertColor('red');
@@ -39,13 +44,8 @@ const FuncionarioForm = () => {
         }
     }, [id]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
     const isFormValid = () => {
-        return formData.nome.trim() !== '' && formData.email.trim() !== '' && formData.senha.trim() !== '' && formData.cpf.trim() !== '';
+        return nome.trim() !== '' && email.trim() !== '' && senha.trim() !== '' && cpf.trim() !== '';
     };
 
     const handleSubmit = async (e) => {
@@ -59,11 +59,13 @@ const FuncionarioForm = () => {
 
         setIsLoading(true);
         try {
+            const funcionarioDTO = { nome, telefone, email, senha, funcao, permissao, cpf };
+
             if (id) {
-                await api.put(`/funcionario/${id}`, formData);
+                await api.put(`/funcionario/${id}`, funcionarioDTO);
                 setAlertMessage('Funcionário editado com sucesso!');
             } else {
-                await api.post('/funcionario', formData);
+                await api.post('/funcionario', funcionarioDTO);
                 setAlertMessage('Funcionário cadastrado com sucesso!');
             }
 
@@ -89,13 +91,13 @@ const FuncionarioForm = () => {
             </CardHeader>
             <CardBody className="px-4 pt-0 pb-6">
                 <form onSubmit={handleSubmit} className="mt-8 max-w-screen-lg lg:w-full mx-auto">
-                    <InputField label="Nome" name="nome" placeholder="ex.: João Silva" value={formData.nome} onChange={handleChange} />
-                    <InputField label="Telefone" name="telefone" placeholder="ex.: (99) 99999-9999" value={formData.telefone} onChange={handleChange} />
-                    <InputField label="E-mail" name="email" placeholder="ex.: email@mail.com" value={formData.email} onChange={handleChange} />
-                    <InputField label="CPF" name="cpf" placeholder="ex.: 000.000.000-00" value={formData.cpf} onChange={handleChange} />
-                    <InputField label="Senha" name="senha" type="password" value={formData.senha} onChange={handleChange} />
-                    <InputField label="Função" name="funcao" placeholder="ex.: Gerente" value={formData.funcao} onChange={handleChange} />
-                    <InputField label="Permissão" name="permissao" placeholder="ex.: ADMIN" value={formData.permissao} onChange={handleChange} />
+                    <InputField label="Nome" placeholder="ex.: João Silva" value={nome} onChange={setNome} />
+                    <InputField label="Telefone" placeholder="ex.: (99) 99999-9999" value={telefone} onChange={setTelefone} />
+                    <InputField label="E-mail" placeholder="ex.: email@mail.com" value={email} onChange={setEmail} />
+                    <InputField label="CPF" placeholder="ex.: 000.000.000-00" value={cpf} onChange={setCpf} />
+                    <InputField label="Senha" type="password" value={senha} onChange={setSenha} />
+                    <InputField label="Função" placeholder="ex.: Gerente" value={funcao} onChange={setFuncao} />
+                    <InputField label="Permissão" placeholder="ex.: ADMIN" value={permissao} onChange={setPermissao} />
 
                     <Button
                         type="submit"
