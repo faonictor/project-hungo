@@ -1,6 +1,6 @@
 import ProdutoForm from "@/widgets/forms/form-produto.jsx";
 
-export function ProdutoAdd() {
+export function ProdutoAddEdit() {
     return (
         <>
             <ProdutoForm/>
@@ -8,4 +8,4 @@ export function ProdutoAdd() {
     );
 }
 
-export default ProdutoAdd;
+export default ProdutoAddEdit;

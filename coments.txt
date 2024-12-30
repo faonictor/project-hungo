@@ -56,7 +56,7 @@
 //       icon: <UserCircleIcon {...icon} />,
 //       name: "Clientes",
 //       path: "/cliente",
-//       element: <ClienteAdd/>,
+//       element: <ClienteAddEdit/>,
 //     },
 //   ],
 // },

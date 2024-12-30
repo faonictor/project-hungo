@@ -3,14 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
 import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
-import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline"; // Ícone de "X"
+import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import AlertMessage from "@/widgets/alert-message.jsx";
 import SelectField from "@/widgets/forms/select-field.jsx";
 import {PlusIcon} from "@heroicons/react/24/solid";
 
 const ProdutoForm = () => {
     const navigate = useNavigate();
-    const { id } = useParams(); {/* Pega o ID da URL, caso seja para editar um produto */}
+    {/* Pega o ID da URL, caso seja para editar um produto */}
+    const { id } = useParams();
 
     {/* Estados para armazenar os dados */}
     const [nome, setNome] = useState('');
@@ -19,7 +20,7 @@ const ProdutoForm = () => {
     const [insumos, setInsumos] = useState([]);
     const [selectedInsumos, setSelectedInsumos] = useState([{ insumoId: '', quantidade: '' }]);
     const [categorias, setCategorias] = useState([]);
-    const [tipo, setTipo] = useState(true); {/* Tipo: true para ativo, false para inativo */}
+    const [tipo, setTipo] = useState(true);
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
@@ -50,15 +51,14 @@ const ProdutoForm = () => {
         const fetchProduto = async () => {
             if (id) {
                 try {
-                    const response = await api.get(`/produto/${id}`); {/* Alterado para /produto/{id} */}
+                    const response = await api.get(`/produto/${id}`);
                     const produto = response.data;
 
-                    {/* Preenche os estados com os dados do produto */}
                     setNome(produto.nome);
                     setPreco(produto.preco);
                     setCategoriaId(produto.categoriaId);
-                    setTipo(produto.tipo); {/* Definindo o tipo conforme o produto */}
-                    setSelectedInsumos(produto.insumos || []); {/* Certificando que é um array */}
+                    setTipo(produto.tipo);
+                    setSelectedInsumos(produto.insumos || []);
                 } catch (error) {
                     console.error('Erro ao carregar produto:', error);
                     setAlertMessage('Erro ao carregar os dados do produto.');
@@ -77,7 +77,8 @@ const ProdutoForm = () => {
 
     {/* Função para validar o formulário */}
     const isFormValid = () => {
-        return nome && preco && categoriaId && (selectedInsumos.length === 0 || selectedInsumos.every(insumo => insumo.insumoId));
+        return nome && preco && categoriaId && (
+            selectedInsumos.length === 0 || selectedInsumos.every(insumo => insumo.insumoId));
     };
 
     {/* Função para adicionar um novo insumo */}
@@ -129,7 +130,7 @@ const ProdutoForm = () => {
             setAlertColor('green');
             setTimeout(() => {
                 navigate('/dashboard/produtos');
-            }, 1000);
+            }, 500);
         } catch (error) {
             console.error('Erro na requisição:', error);
             setAlertMessage('Erro ao salvar produto. Tente novamente.');
@@ -162,7 +163,7 @@ const ProdutoForm = () => {
                         <div className="col-span-1 sm:col-span-2">
                             <InputField
                                 label="Preço"
-                                placeholder="ex.: 9.99"
+                                placeholder="ex.: 9,99"
                                 value={preco}
                                 onChange={setPreco}
                                 type="number"

@@ -1,6 +1,6 @@
 import ClienteForm from "@/widgets/forms/form-cliente.jsx";
 
-export function ClienteAdd() {
+export function ClienteAddEdit() {
     return (
         <>
             <ClienteForm/>
@@ -8,4 +8,4 @@ export function ClienteAdd() {
     );
 }
 
-export default ClienteAdd;
+export default ClienteAddEdit;

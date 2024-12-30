@@ -10,11 +10,11 @@ import {
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
 import ClientesList from "@/pages/dashboard/clientes/clientesList.jsx";
-import ClienteAdd from "@/pages/dashboard/clientes/clienteAdd.jsx";
+import ClienteAddEdit from "@/pages/dashboard/clientes/clienteAddEdit.jsx";
 import ClienteEnderecoAdd from "@/pages/dashboard/clientes/clienteDeliveryAdd.jsx";
-import ClienteForm from "@/widgets/forms/form-cliente.jsx";
-import ProdutoAdd from "@/pages/dashboard/produtos/produtoAdd.jsx";
+import ProdutoAddEdit from "@/pages/dashboard/produtos/produtoAdd.jsx";
 import ProdutosList from "@/pages/dashboard/produtos/produtosList.jsx";
+import EnderecoAddEdit from "@/pages/dashboard/enderecos/enderecoAddEdit.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -46,7 +46,7 @@ export const routes = [
         icon: <UserCircleIcon {...icon} />,
         name: "Cadastrar Cliente",
         path: "/cliente",
-        element: <ClienteAdd/>,
+        element: <ClienteAddEdit/>,
       },
       {
         icon: <UserGroupIcon {...icon} />,
@@ -65,7 +65,7 @@ export const routes = [
         icon: <CubeIcon {...icon} />,
         name: "Cadastrar Produto",
         path: "/produto",
-        element: <ProdutoAdd />,
+        element: <ProdutoAddEdit />,
       },
       {
         icon: <ShoppingBagIcon {...icon} />,
@@ -77,7 +77,7 @@ export const routes = [
         icon: <PencilIcon {...icon} />,
         name: "Editar Produto",
         path: "/produto/:id",
-        element: <ProdutoAdd />,
+        element: <ProdutoAddEdit />,
       },
     ],
   },
@@ -99,13 +99,37 @@ export const routes = [
       },
     ],
   },
+  {
+    title: "Endereços",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <RectangleStackIcon {...icon} />,
+        name: "Cadastrar Endereço",
+        path: "/endereco/cadastro", // Rota Visível no Menu
+        element: <EnderecoAddEdit />,
+      },
+      {
+        icon: <RectangleStackIcon {...icon} />,
+        name: "Cadastrar Endereço para Cliente",
+        path: "/endereco/cadastro/:clienteId", // Rota para cadastro a partir de cliente selecionado
+        element: <EnderecoAddEdit />,
+      },
+      {
+        icon: <RectangleStackIcon {...icon} />,
+        name: "Editar Endereço",
+        path: "endereco/editar/:id",
+        element: <EnderecoAddEdit />,
+      },
+    ],
+  },
   // Mantemos a rota de edição, mas ela não aparecerá no menu
   {
     layout: "dashboard",
     pages: [
       {
         path: "/cliente/:id", // Rota para edição de clientes
-        element: <ClienteForm/>,
+        element: <ClienteAddEdit />,
       },
     ],
   },
