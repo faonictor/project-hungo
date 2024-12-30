@@ -89,6 +89,12 @@ export const routes = [
       },
       {
         icon: <PencilIcon {...icon} />,
+        name: "Editar Categoriao",
+        path: "/insumo/:id",
+        element: <InsumoAddEdit />,
+      },
+      {
+        icon: <PencilIcon {...icon} />,
         name: "Editar Produto",
         path: "/produto/:id",
         element: <ProdutoAddEdit />,
