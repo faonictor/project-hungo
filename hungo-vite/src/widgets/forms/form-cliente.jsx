@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, {useState, useEffect} from 'react';
+import {useParams, useNavigate} from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
-import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
-import { ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {Alert, Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
+import {ArrowPathIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import AlertMessage from "@/widgets/alert-message.jsx";
 
 const ClienteForm = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
 
     const [nome, setNome] = useState('');
@@ -20,13 +20,14 @@ const ClienteForm = () => {
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
 
-    {/* Função para buscar cliente pelo id */}
+    {/* Função para buscar cliente pelo id */
+    }
     useEffect(() => {
         if (id) {
             const fetchCliente = async () => {
                 try {
                     const response = await api.get(`/cliente/${id}`);
-                    const { nome, telefone, email, cpf, senha } = response.data;
+                    const {nome, telefone, email, cpf, senha} = response.data;
                     setNome(nome);
                     setTelefone(telefone);
                     setEmail(email);
@@ -42,7 +43,8 @@ const ClienteForm = () => {
         }
     }, [id]);
 
-    {/* Função Validação de Formulário */}
+    {/* Função Validação de Formulário */
+    }
     const isFormValid = () => {
         const emailRegex = /\S+@\S+\.\S+/;
         return (
@@ -50,7 +52,8 @@ const ClienteForm = () => {
         );
     };
 
-    {/* Função Cadastro ou Edição */}
+    {/* Função Cadastro ou Edição */
+    }
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -62,7 +65,7 @@ const ClienteForm = () => {
 
         setIsLoading(true);
         try {
-            const clienteDTO = { nome, telefone, email, senha, cpf };
+            const clienteDTO = {nome, telefone, email, senha, cpf};
 
             if (id) {
                 await api.put(`/cliente/${id}`, clienteDTO);
@@ -118,25 +121,27 @@ const ClienteForm = () => {
 
                             <div className="col-span-1 sm:col-span-4">
                                 <InputField label="Senha" placeholder="Digite sua senha" type="password" value={senha}
-                                            onChange={setSenha} />
+                                            onChange={setSenha}/>
                             </div>
 
                             <div className="col-span-1 sm:col-span-4">
                                 <InputField label="Confirmar Senha" placeholder="Confirme sua senha" type="password"
-                                            value={confirmarSenha} onChange={setConfirmarSenha} />
+                                            value={confirmarSenha} onChange={setConfirmarSenha}/>
                             </div>
                         </div>
 
                         {/* Validação de Senha */}
                         {senha && confirmarSenha && senha !== confirmarSenha && (
                             <div className="mt-4 w-full">
-                                <Alert open color="red" className="relative flex items-center justify-between px-4 py-3 rounded-lg">
+                                <Alert open color="red"
+                                       className="relative flex items-center justify-between px-4 py-3 rounded-lg">
                                     <span>As senhas precisam ser iguais. Digite de novo.</span>
                                     <button
                                         onClick={() => setAlertMessage(null)}
                                         className="absolute top-1/2 right-4 transform -translate-y-1/2"
                                     >
-                                        <XMarkIcon className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md" />
+                                        <XMarkIcon
+                                            className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md"/>
                                     </button>
                                 </Alert>
                             </div>

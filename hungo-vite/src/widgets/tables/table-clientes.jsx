@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import {
     CheckBadgeIcon,
     ExclamationCircleIcon,
@@ -10,9 +10,9 @@ import {
     ArrowPathIcon, ExclamationTriangleIcon
 } from '@heroicons/react/24/solid';
 import api from '../../services/axiosConfig';
-import { Card, CardBody, CardHeader, Typography, Alert, Spinner } from "@material-tailwind/react";
+import {Card, CardBody, CardHeader, Typography, Alert, Spinner} from "@material-tailwind/react";
 import Loading from "@/widgets/loading.jsx";
-import { CircleStackIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import {CircleStackIcon, InformationCircleIcon} from "@heroicons/react/24/outline";
 import AlertMessage from "@/widgets/alert-message.jsx";
 import {PlusIcon} from "@heroicons/react/24/solid/index.js";
 
@@ -28,7 +28,7 @@ const ClientesTable = () => {
 
     const navigate = useNavigate();
 
-    {/* Função para buscar todos os clientes */}
+    /* Função para buscar todos os clientes */
     const fetchClientes = async () => {
         try {
             const response = await api.get('/cliente');
@@ -42,12 +42,12 @@ const ClientesTable = () => {
         }
     };
 
-    {/* Recarregar lista de clientes quando o componente é montado */}
+    /* Recarregar lista de clientes quando o componente é montado */
     useEffect(() => {
         fetchClientes();
     }, []);
 
-    {/* Função para buscar os endereços de um cliente */}
+    /* Função para buscar os endereços de um cliente */
     const fetchEnderecos = async (clienteId) => {
         try {
             const response = await api.get(`/endereco/cliente/${clienteId}`);
@@ -61,26 +61,26 @@ const ClientesTable = () => {
         }
     };
 
-    {/* Função para exibir os endereços de um cliente */}
+    /* Função para exibir os endereços de um cliente */
     const handleShowEnderecos = (clienteId, nomeCliente) => {
-        setClienteSelecionado({ id: clienteId, nome: nomeCliente });
+        setClienteSelecionado({id: clienteId, nome: nomeCliente});
         fetchEnderecos(clienteId);
         setModalEnderecosVisible(true);
     };
 
 
-    {/* Função para editar na tela de cliente */}
+    /* Função para editar na tela de cliente */
     const handleEdit = (id) => {
         navigate(`/dashboard/cliente/${id}`);
     };
 
-    {/* Função modal confirmar exclusão */}
+    /* Função modal confirmar exclusão */
     const handleConfirmDelete = (cliente) => {
         setClienteSelecionado(cliente);
         setModalVisible(true);
     };
 
-    {/* Função deletar cliente e endereços */}
+    /* Função deletar cliente e endereços */
     const handleDelete = async () => {
         if (clienteSelecionado) {
             try {
@@ -98,9 +98,23 @@ const ClientesTable = () => {
         }
     };
 
-    {/* carregamento */}
+    /* Função para excluir um endereço */
+    const handleDeleteEndereco = async (enderecoId) => {
+        try {
+            await api.delete(`/endereco/${enderecoId}`);
+            setAlertMessage("Endereço removido com sucesso.");
+            setAlertColor("green");
+            fetchEnderecos(clienteSelecionado.id); // Atualiza a lista de endereços
+        } catch (error) {
+            console.error("Erro ao excluir endereço:", error);
+            setAlertMessage("Ocorreu um erro ao remover o endereço.");
+            setAlertColor("red");
+        }
+    };
+
+    /* carregamento */
     if (loading) {
-        return <Loading text="Carregando Clientes" />;
+        return <Loading text="Carregando Clientes"/>;
     }
 
     return (
@@ -143,20 +157,23 @@ const ClientesTable = () => {
                                     <td className="px-4 py-2 border-b">{cliente.telefone}</td>
                                     <td className="pr-4 py-2 border-b space-x-2">
                                         <button onClick={() => handleEdit(cliente.id)}>
-                                            <div className="p-1 rounded-md text-blue-gray-500 hover:bg-blue-100 active:text-blue-500">
-                                                <PencilIcon className="w-5 h-5" />
+                                            <div
+                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-blue-100 active:text-blue-500">
+                                                <PencilIcon className="w-5 h-5"/>
                                             </div>
                                         </button>
 
                                         <button onClick={() => handleConfirmDelete(cliente)}>
-                                            <div className="p-1 rounded-md text-blue-gray-500 hover:bg-red-100 active:text-red-600">
-                                                <TrashIcon className="w-5 h-5" />
+                                            <div
+                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-red-100 active:text-red-600">
+                                                <TrashIcon className="w-5 h-5"/>
                                             </div>
                                         </button>
 
                                         <button onClick={() => handleShowEnderecos(cliente.id, cliente.nome)}>
-                                            <div className="p-1 rounded-md text-blue-gray-500 hover:bg-gray-200 active:text-green-500">
-                                                <MapPinIcon className="w-5 h-5" />
+                                            <div
+                                                className="p-1 rounded-md text-blue-gray-500 hover:bg-gray-200 active:text-green-500">
+                                                <MapPinIcon className="w-5 h-5"/>
                                             </div>
                                         </button>
                                     </td>
@@ -171,11 +188,13 @@ const ClientesTable = () => {
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                             <div className="bg-white p-6 rounded-lg shadow-xl w-1/3">
                                 <Typography variant="h4" color="gray" className="mb-4 flex items-center gap-x-2">
-                                    <ExclamationTriangleIcon className="text-gray-400 w-7 h-7" /><span>Confirmar Exclusão</span>
+                                    <ExclamationTriangleIcon
+                                        className="text-gray-400 w-7 h-7"/><span>Confirmar Exclusão</span>
                                 </Typography>
-                                <h3 className="text-xl font-semibold mb-4"> </h3>
+                                <h3 className="text-xl font-semibold mb-4"></h3>
                                 <p>
-                                    Tem certeza de que deseja remover o cliente "<strong>{clienteSelecionado?.nome}</strong>"?
+                                    Tem certeza de que deseja remover o cliente
+                                    "<strong>{clienteSelecionado?.nome}</strong>"?
                                 </p>
                                 <div className="mt-4 flex justify-end">
                                     <button
@@ -197,20 +216,27 @@ const ClientesTable = () => {
 
                     {/* Modal de Endereços */}
                     {modalEnderecosVisible && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={() => setModalEnderecosVisible(false)}>
-                            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg md:w-1/2">
+                        <div className="fixed inset-0 py-16 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                             onClick={() => setModalEnderecosVisible(false)}>
+                            <div
+                                className="bg-white overflow-y-scroll max-h-full p-8 rounded-lg shadow-xl w-full max-w-lg md:w-1/2">
                                 <div className="flex justify-between items-center mb-4">
-                                    <Typography variant="h4" color="gray">
-                                        Endereços de {clienteSelecionado?.nome}
+                                    <Typography variant="h5" color="gray">
+                                        <Typography variant="h7" color="gray">
+                                            <span>Endereços de: </span>
+                                        </Typography>
+                                       <div>
+                                           {clienteSelecionado?.nome}
+                                       </div>
                                     </Typography>
 
                                     <button
                                         onClick={() => navigate(`/dashboard/endereco/cadastro/${clienteSelecionado?.id}`)}
-                                        className="flex items-center bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+                                        className="flex items-center ml-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
                                     >
                                        <span className="flex p-1 justify-center items-center">
                                         <PlusIcon className="w-5 h-5 text-sm"/>
-                                        <span className="text-sm">Novo Endereco</span>
+                                        <span className="text-sm whitespace-nowrap">Novo Endereco</span>
                                        </span>
                                     </button>
                                 </div>
@@ -222,7 +248,7 @@ const ClientesTable = () => {
                                         {enderecos.map((endereco, index) => (
                                             <Card key={index} className="mb-4 border border-blue-gray-50">
                                                 <CardBody>
-                                                <Typography variant="h6" color="blue-gray">
+                                                    <Typography variant="h6" color="blue-gray">
                                                         {endereco.rua}, {endereco.numero} {endereco.complemento && `- ${endereco.complemento}`}
                                                     </Typography>
                                                     <div className="flex flex-wrap gap-x-4">
@@ -236,13 +262,21 @@ const ClientesTable = () => {
                                                             <strong>CEP:</strong> {endereco.cep}
                                                         </Typography>
                                                     </div>
+
                                                     <div className="mt-2 flex justify-end space-x-2">
-                                                        {/* Botão Editar Endereço */}
                                                         <button
                                                             onClick={() => navigate(`/dashboard/endereco/editar/${endereco.id}`)}
-                                                            className="justify-center items-center  py-1 px-2 text-blue-500 rounded-full flex gap-1 hover:bg-blue-50"
+                                                            className="justify-center items-center py-1 px-2 text-blue-500 rounded-full flex gap-1 hover:bg-blue-50"
                                                         >
                                                             Editar
+                                                        </button>
+
+                                                        {/* Botão Remover Endereço */}
+                                                        <button
+                                                            onClick={() => handleDeleteEndereco(endereco.id)}
+                                                            className="justify-center items-center py-1 px-2 text-red-500 rounded-full flex gap-1 hover:bg-red-50"
+                                                        >
+                                                            Remover
                                                         </button>
                                                     </div>
                                                 </CardBody>
@@ -250,6 +284,7 @@ const ClientesTable = () => {
                                         ))}
                                     </div>
                                 )}
+
                                 <div className="mt-4 flex justify-center">
                                     <button
                                         onClick={() => setModalEnderecosVisible(false)}
