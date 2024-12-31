@@ -60,6 +60,7 @@ public class ProdutoService {
         return new ResponseEntity("{\"mensagem\":\"Produto e registros relacionados removidos com sucesso\"}", HttpStatus.OK);
     }
 
+
     @Transactional
     public ResponseEntity<Produto> salvarOuAtualizarProduto(ProdutoDTO produtoDTO) {
         Produto produto;
@@ -78,7 +79,6 @@ public class ProdutoService {
         produto.setPreco(produtoDTO.getPreco());
         produto.setTipo(produtoDTO.getTipo());
 
-
         Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId())
                 .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
         produto.setCategoria(categoria);
@@ -86,11 +86,14 @@ public class ProdutoService {
         produto = produtoRepository.save(produto);
 
         // 4. Gerenciar os insumos associados
-        if (produtoDTO.getInsumos() != null && !produtoDTO.getInsumos().isEmpty()) {
-            // 4.1 Remover os insumos antigos antes de adicionar os novos
+        if (produtoDTO.getInsumos() == null || produtoDTO.getInsumos().isEmpty()) {
+            // Caso a lista de insumos esteja vazia ou nula, remover todos os insumos associados ao produto
+            produtoInsumoRepository.deleteByProduto(produto);
+        } else {
+            // Remover os insumos antigos antes de adicionar os novos
             produtoInsumoRepository.deleteByProduto(produto);
 
-            // 4.2 Adicionar os novos insumos
+            // Adicionar os novos insumos
             for (ProdutoInsumoDTO insumoDTO : produtoDTO.getInsumos()) {
                 ProdutoInsumo produtoInsumo = new ProdutoInsumo();
                 Insumo insumo = insumoRepository.findById(insumoDTO.getInsumoId())
@@ -105,9 +108,10 @@ public class ProdutoService {
             }
         }
 
-        // 5. Retornar o produto atualizado ou criado
+        // Retornar o produto atualizado ou criado
         return new ResponseEntity<>(produto, HttpStatus.OK);
     }
+
 
     public ResponseEntity<ProdutoDTO> buscarProdutoPorId(Long id) {
         // 1. Buscar o Produto

@@ -5,7 +5,7 @@ import {
   RectangleStackIcon,
   UserPlusIcon,
   UserGroupIcon,
-  CubeIcon, ShoppingBagIcon, PencilIcon, ArchiveBoxArrowDownIcon, SquaresPlusIcon, MapPinIcon,
+  CubeIcon, ShoppingBagIcon, PencilIcon, ArchiveBoxArrowDownIcon, SquaresPlusIcon, MapPinIcon, ShoppingCartIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
@@ -17,6 +17,7 @@ import ProdutosList from "@/pages/dashboard/produtos/produtosList.jsx";
 import EnderecoAddEdit from "@/pages/dashboard/enderecos/enderecoAddEdit.jsx";
 import InsumoAddEdit from "@/pages/dashboard/produtos/insumoAddEdit.jsx";
 import CategoriaAddEdit from "@/pages/dashboard/produtos/categoriaAddEdit.jsx";
+import PedidoForm from "@/widgets/forms/form-pedido.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -31,6 +32,18 @@ export const routes = [
         name: "Dashboard",
         path: "/home",
         element: <Home/>,
+      },
+    ],
+  },
+  {
+    title: "Pedidos",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ShoppingCartIcon {...icon} />,
+        name: "Pedidos",
+        path: "/pedido",
+        element: <PedidoForm/>,
       },
     ],
   },

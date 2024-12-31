@@ -14,8 +14,6 @@ public class Pedido {
     @ManyToOne
     private Cliente cliente;
 
-
-
     @ManyToOne
     private Endereco endereco;
 
