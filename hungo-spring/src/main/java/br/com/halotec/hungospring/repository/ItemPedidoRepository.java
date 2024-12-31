@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface ItemPedidoRepository extends CrudRepository<ItemPedido, Long> {
-//    void deleteByPedido(Pedido pedido);
-//    List<ItemPedido> findByPedido(Pedido pedido);
+    void deleteByPedido(Pedido pedido);
+    List<ItemPedido> findByPedido(Pedido pedido);
 }
 
