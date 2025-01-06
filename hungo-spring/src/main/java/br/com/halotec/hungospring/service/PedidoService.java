@@ -18,12 +18,16 @@ import java.util.stream.StreamSupport;
 public class PedidoService {
     @Autowired
     private PedidoRepository pedidoRepository;
+
     @Autowired
     private ClienteRepository clienteRepository;
+
     @Autowired
     private VendaRepository vendaRepository;
+
     @Autowired
     private ProdutoRepository produtoRepository;
+
     @Autowired
     private ItemPedidoRepository itemPedidoRepository;
 
@@ -48,6 +52,7 @@ public class PedidoService {
     public ResponseEntity<PedidoDTO> salvar(PedidoDTO pedidoDTO) {
         Pedido pedido;
 
+        // Se o pedido já existe (verificando o ID), atualiza, caso contrário, cria um novo
         if (pedidoDTO.getId() != null) {
             pedido = pedidoRepository.findById(pedidoDTO.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + pedidoDTO.getId()));
@@ -68,33 +73,43 @@ public class PedidoService {
         pedido.setStatusPedido(pedidoDTO.getStatusPedido());
         pedido.setDataHora(pedidoDTO.getDataHora());
 
-        // Salvar o Pedido no banco
+        // Salvar ou atualizar o Pedido no banco
         pedido = pedidoRepository.save(pedido);
 
-        // Salvar os Itens do Pedido
+        // Salvar ou atualizar os Itens do Pedido
         if (pedidoDTO.getItens() != null && !pedidoDTO.getItens().isEmpty()) {
             Pedido finalPedido = pedido;
             List<ItemPedido> itens = pedidoDTO.getItens().stream().map(itemDTO -> {
-                ItemPedido item = new ItemPedido();
+                ItemPedido item;
+
+                // Caso o ItemPedido já tenha um ID, significa que é uma atualização
+                if (itemDTO.getId() != null) {
+                    item = itemPedidoRepository.findById(itemDTO.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("Item de Pedido não encontrado"));
+                } else {
+                    item = new ItemPedido();
+                }
+
                 item.setPedido(finalPedido);
 
                 Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
                         .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
                 item.setProduto(produto);
                 item.setQuantidade(itemDTO.getQuantidade());
-                item.setTotal(itemDTO.getTotal());
+
+                // Cálculo do total no backend
+                item.setTotal(item.getQuantidade() * produto.getPreco());
 
                 return item;
             }).collect(Collectors.toList());
 
-            // Salvar os itens no banco
+            // Salvar ou atualizar os itens no banco
             Iterable<ItemPedido> itensSalvos = itemPedidoRepository.saveAll(itens);
 
-            // Convertendo o Iterable para List
+            // Atualizar o ID dos itens no PedidoDTO
             List<ItemPedido> itensSalvosList = StreamSupport.stream(itensSalvos.spliterator(), false)
                     .collect(Collectors.toList());
 
-            // Atualizar o ID dos itens no PedidoDTO
             for (int i = 0; i < itensSalvosList.size(); i++) {
                 pedidoDTO.getItens().get(i).setId(itensSalvosList.get(i).getId());
             }
@@ -102,8 +117,9 @@ public class PedidoService {
 
         pedidoDTO.setId(pedido.getId());
 
-        return new ResponseEntity<>(pedidoDTO, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
     }
+
 
     public List<Pedido> buscarPedidosPorVenda(Long vendaId) {
         return pedidoRepository.findByVendaId(vendaId);

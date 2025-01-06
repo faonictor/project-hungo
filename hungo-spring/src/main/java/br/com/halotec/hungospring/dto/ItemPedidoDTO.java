@@ -7,6 +7,5 @@ public class ItemPedidoDTO {
     private Long id;
     private Long produtoId;
     private int quantidade;
-    private float total;
 }
 

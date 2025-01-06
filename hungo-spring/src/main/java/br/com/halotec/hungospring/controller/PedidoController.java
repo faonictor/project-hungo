@@ -22,6 +22,12 @@ public class PedidoController {
         return pedidoService.salvar(pedidoDTO);
     }
 
+    @PutMapping("/pedido/{id}")
+    public ResponseEntity<PedidoDTO> atualizar(@PathVariable Long id, @RequestBody PedidoDTO pedidoDTO) {
+        pedidoDTO.setId(id);
+        return pedidoService.salvar(pedidoDTO);
+    }
+
     @GetMapping("/pedido")
     public Iterable<Pedido> listarTodos() {
         return pedidoService.listarTodos();

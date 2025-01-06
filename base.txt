@@ -1,0 +1,254 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../../services/axiosConfig";
+import { Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { PlusSmallIcon } from "@heroicons/react/24/solid";
+import SelectField from "@/widgets/forms/select-field.jsx";
+import AlertMessage from "@/widgets/alert-message.jsx";
+import { TrashIcon } from "@heroicons/react/24/outline/index.js";
+
+const PedidoForm = () => {
+    const { pedidoId, vendaId } = useParams(); // Captura os parâmetros da URL
+    const navigate = useNavigate();
+
+    const [clientes, setClientes] = useState([]);
+    const [produtos, setProdutos] = useState([]);
+    const [selectedCliente, setSelectedCliente] = useState(null);
+    const [carrinho, setCarrinho] = useState([]);
+    const [alertMessage, setAlertMessage] = useState(null);
+    const [alertColor, setAlertColor] = useState("green");
+    const [loading, setLoading] = useState(false);
+
+    // Estrutura do pedido - formato JSON que será montado
+    const [pedidoData, setPedidoData] = useState(null);
+
+    // Carregar clientes
+    useEffect(() => {
+        const fetchClientes = async () => {
+            try {
+                const response = await api.get("/cliente");
+                setClientes(response.data);
+            } catch (error) {
+                setAlertMessage("Erro ao carregar clientes");
+                setAlertColor("red");
+            }
+        };
+
+        fetchClientes();
+    }, []);
+
+    // Carregar produtos
+    useEffect(() => {
+        const fetchProdutos = async () => {
+            try {
+                const response = await api.get("/produtos");
+                setProdutos(response.data);
+            } catch (error) {
+                setAlertMessage("Erro ao carregar produtos");
+                setAlertColor("red");
+            }
+        };
+
+        fetchProdutos();
+    }, []);
+
+    // Carregar os dados do pedido e da venda (se estiver editando um pedido existente)
+    useEffect(() => {
+        if (pedidoId) {
+            const fetchPedido = async () => {
+                try {
+                    // Buscar dados do pedido e da venda usando o id
+                    const responsePedido = await api.get(`/pedido/${pedidoId}`);
+                    const pedido = responsePedido.data;
+
+                    const responseVenda = await api.get(`/venda/${pedido.venda.id}`);
+                    const venda = responseVenda.data;
+
+                    // Montar o JSON no formato esperado
+                    const novoPedidoData = {
+                        id: pedido.id,
+                        cliente: pedido.cliente, // Assume que os dados do cliente estão no pedido
+                        endereco: pedido.endereco, // Pode ser null, como no seu exemplo
+                        venda: {
+                            id: venda.id,
+                            mesa: venda.mesa,
+                            dataInicioVenda: venda.dataInicioVenda,
+                            dataFimVenda: venda.dataFimVenda,
+                            total: venda.total,
+                        },
+                        dataHora: pedido.dataHora,
+                        tipoPedido: pedido.tipoPedido,
+                        statusPedido: pedido.statusPedido
+                    };
+
+                    setPedidoData(novoPedidoData);
+                    setCarrinho(pedido.itens || []);
+                    setSelectedCliente(pedido.cliente.id);
+
+                } catch (error) {
+                    setAlertMessage("Erro ao carregar pedido");
+                    setAlertColor("red");
+                }
+            };
+
+            fetchPedido();
+        }
+    }, [pedidoId]);
+
+    // Função para adicionar um item ao carrinho
+    const handleAddToCarrinho = (produto) => {
+        const produtoExistente = carrinho.find((item) => item.produto.id === produto.id);
+        if (produtoExistente) {
+            produtoExistente.quantidade += 1;
+            setCarrinho([...carrinho]);
+        } else {
+            setCarrinho([...carrinho, { produto, quantidade: 1 }]);
+        }
+    };
+
+    // Função para remover um item do carrinho
+    const handleRemoveFromCarrinho = (produtoId) => {
+        setCarrinho(carrinho.filter((item) => item.produto.id !== produtoId));
+    };
+
+    // Função para enviar o pedido para a API
+    const handleSubmitPedido = async () => {
+        if (!selectedCliente) {
+            setAlertMessage("Por favor, selecione um cliente!");
+            setAlertColor("red");
+            return;
+        }
+
+        if (carrinho.length === 0) {
+            setAlertMessage("Carrinho vazio! Adicione produtos.");
+            setAlertColor("red");
+            return;
+        }
+
+        const pedidoDataEnvio = {
+            clienteId: selectedCliente,
+            vendaId: vendaId, // Passando o ID da venda
+            tipoPedido: pedidoData.tipoPedido,
+            statusPedido: pedidoData.statusPedido,
+            dataHora: new Date().toISOString(),
+            itens: carrinho.map(item => ({
+                produtoId: item.produto.id,
+                quantidade: item.quantidade
+            }))
+        };
+
+        try {
+            setLoading(true);
+
+            if (pedidoId) {
+                // Se estamos editando um pedido, fazemos um PUT
+                await api.put(`/pedido/${pedidoId}`, pedidoDataEnvio);
+                setAlertMessage("Pedido atualizado com sucesso!");
+            } else {
+                // Se estamos criando um novo pedido, fazemos um POST
+                await api.post("/pedido", pedidoDataEnvio);
+                setAlertMessage("Pedido criado com sucesso!");
+            }
+
+            setAlertColor("green");
+            setCarrinho([]); // Limpar carrinho após sucesso
+            navigate("/vendas"); // Redireciona para a página de vendas
+        } catch (error) {
+            setAlertMessage("Erro ao criar/atualizar pedido");
+            setAlertColor("red");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
+            <CardHeader variant="gradient" color="gray" className="my-4 p-4">
+                <Typography variant="h6" color="white">
+                    {pedidoId ? `Editar Pedido - Venda #${vendaId}` : `Adicionar Pedido - Venda #${vendaId}`}
+                </Typography>
+            </CardHeader>
+
+            <CardBody className="px-4 pt-0 pb-6">
+                {/* Alert Message */}
+                <AlertMessage alertMessage={alertMessage} alertColor={alertColor} onClose={() => setAlertMessage(null)} />
+                <div className="flex flex-col space-y-4">
+                    {/* Seleção de Cliente */}
+                    <SelectField
+                        label="Selecione o Cliente"
+                        value={selectedCliente}
+                        onChange={setSelectedCliente}
+                        options={clientes.map(cliente => ({
+                            value: cliente.id,
+                            label: cliente.nome
+                        }))}
+                        placeholder="Clientes Disponíveis"
+                    />
+
+                    {/* Exibição de Produtos */}
+                    <div className="overflow-x-auto flex space-x-4 bg-gray-100 rounded-lg p-4">
+                        {produtos.map(produto => (
+                            <div key={produto.id} className="w-52 flex-shrink-0">
+                                <div className="bg-white p-4 rounded-lg">
+                                    <Typography variant="h6">{produto.nome}</Typography>
+                                    <Typography>{`R$ ${produto.preco.toFixed(2)}`}</Typography>
+                                    <Button onClick={() => handleAddToCarrinho(produto)} className="p-2">
+                                        <PlusSmallIcon className="h-5 w-5"/>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Carrinho */}
+                    <div className="mt-6">
+                        <Typography variant="h6">Carrinho</Typography>
+                        <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
+                            <table className="min-w-full table-auto">
+                                <thead>
+                                <tr>
+                                    <th className="px-4 py-2 border-b text-left">Produto</th>
+                                    <th className="px-4 py-2 border-b text-left">Quantidade</th>
+                                    <th className="px-4 py-2 border-b text-left">Total por Item</th>
+                                    <th className="px-4 py-2 border-b text-left">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {carrinho.map(item => (
+                                    <tr key={item.produto.id}>
+                                        <td className="px-4 py-2 border-b">{item.produto.nome}</td>
+                                        <td className="px-4 py-2 border-b">{item.quantidade}</td>
+                                        <td className="px-4 py-2 border-b">
+                                            R$ {item.produto.preco * item.quantidade}
+                                        </td>
+                                        <td className="px-4 py-2 border-b">
+                                            <Button
+                                                onClick={() => handleRemoveFromCarrinho(item.produto.id)}
+                                                className="p-2 bg-red-500 text-white"
+                                            >
+                                                <TrashIcon className="h-5 w-5"/>
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <Button
+                        color="green"
+                        onClick={handleSubmitPedido}
+                        className="mt-6"
+                        disabled={loading}
+                    >
+                        {loading ? "Processando..." : "Finalizar Pedido"}
+                    </Button>
+                </div>
+            </CardBody>
+        </Card>
+    );
+};
+
+export default PedidoForm;

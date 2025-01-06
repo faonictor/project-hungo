@@ -17,7 +17,8 @@ import ProdutosList from "@/pages/dashboard/produtos/produtosList.jsx";
 import EnderecoAddEdit from "@/pages/dashboard/enderecos/enderecoAddEdit.jsx";
 import InsumoAddEdit from "@/pages/dashboard/produtos/insumoAddEdit.jsx";
 import CategoriaAddEdit from "@/pages/dashboard/produtos/categoriaAddEdit.jsx";
-import PedidoForm from "@/widgets/forms/form-pedido.jsx";
+import VendaAddEdit from "@/pages/dashboard/pedidos/vendasAddEdit.jsx";
+import PedidoAddEdit from "@/pages/dashboard/pedidos/PedidoAddEdit.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -43,8 +44,20 @@ export const routes = [
         icon: <ShoppingCartIcon {...icon} />,
         name: "Vendas Aberta",
         path: "/vendas",  // **Nova Rota para listar todas as vendas em aberto**. O usuário poderá visualizar as vendas que estão em aberto.
-        element: <PedidoForm/>,   // **Componente** que será responsável por listar todas as vendas em aberto.
+        element: <VendaAddEdit/>,   // **Componente** que será responsável por listar todas as vendas em aberto.
       },
+      {
+        icon: <ShoppingCartIcon {...icon} />,
+        name: "Adicionar Pedido",
+        path: "/pedido/novo/:vendaId",  // Rota para adicionar pedido, com vendaId como parâmetro
+        element: <PedidoAddEdit />,  // Componente para adicionar pedido
+      },
+      {
+        icon: <ShoppingCartIcon {...icon} />,
+        name: "Adicionar Pedido",
+        path: "/pedido/:pedidoId",  // Rota para adicionar pedido, com pedidoId como parâmetro
+        element: <PedidoAddEdit />,  // Componente para adicionar pedido
+      }
     ],
   },
   {
