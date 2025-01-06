@@ -1,234 +1,215 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../../services/axiosConfig";
-import InputField from "../forms/input-field";
-import SelectField from "../forms/select-field";
-import { Alert, Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
-import { PlusIcon, XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
+import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
+import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
+import SelectField from "@/widgets/forms/select-field.jsx";
 
 const PedidoForm = () => {
-    const navigate = useNavigate();
-
-    // Estados para gerenciar o formulário
-    const [mesaId, setMesaId] = useState("");
-    const [clienteId, setClienteId] = useState("");
-    const [produtos, setProdutos] = useState([]);
-    const [carrinho, setCarrinho] = useState([]);
+    const [vendas, setVendas] = useState([]);
+    const [pedidos, setPedidos] = useState([]);
+    const [selectedVenda, setSelectedVenda] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [mesas, setMesas] = useState([]);
-    const [clientes, setClientes] = useState([]);
-    const [buscaProduto, setBuscaProduto] = useState("");
-    const [alertMessage, setAlertMessage] = useState(null);
-    const [alertColor, setAlertColor] = useState("green");
-    const [isLoading, setIsLoading] = useState(false);
+    const [mesaId, setMesaId] = useState("");
 
-    // Carregar mesas, clientes e produtos
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchMesas = async () => {
             try {
-                const [mesasRes, clientesRes, produtosRes] = await Promise.all([
-                    api.get("/mesas"),
-                    api.get("/clientes"),
-                    api.get("/produtos")
-                ]);
-
-                setMesas(mesasRes.data);
-                setClientes(clientesRes.data);
-                setProdutos(produtosRes.data);
+                const response = await api.get("/mesa");
+                setMesas(response.data);
             } catch (error) {
-                console.error("Erro ao carregar dados:", error);
-                setAlertMessage("Erro ao carregar dados. Tente novamente.");
-                setAlertColor("red");
+                console.error("Erro ao carregar mesas", error);
             }
         };
 
-        fetchData();
+        fetchMesas();
     }, []);
 
-    // Função para adicionar produto ao carrinho
-    const handleAddToCarrinho = (produto) => {
-        setCarrinho((prevCarrinho) => {
-            const produtoExistente = prevCarrinho.find((item) => item.id === produto.id);
-
-            if (produtoExistente) {
-                return prevCarrinho.map((item) =>
-                    item.id === produto.id ? { ...item, quantidade: item.quantidade + 1 } : item
-                );
-            }
-
-            return [...prevCarrinho, { ...produto, quantidade: 1 }];
-        });
+    const fetchVendas = async () => {
+        try {
+            setLoading(true);
+            const response = await api.get("/venda/emAberto");
+            setVendas(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Erro ao carregar vendas em aberto", error);
+            setLoading(false);
+        }
     };
 
-    // Função para remover produto do carrinho
-    const handleRemoveFromCarrinho = (produtoId) => {
-        setCarrinho((prevCarrinho) => prevCarrinho.filter((item) => item.id !== produtoId));
+    useEffect(() => {
+        fetchVendas();
+    }, []);
+
+    const handleVendaClick = (vendaId) => {
+        if (selectedVenda === vendaId) {
+            setSelectedVenda(null);
+            setPedidos([]);
+        } else {
+            setSelectedVenda(vendaId);
+            fetchPedidosByVenda(vendaId);
+        }
     };
 
-    // Função para alterar quantidade de um produto no carrinho
-    const handleQuantidadeChange = (produtoId, quantidade) => {
-        setCarrinho((prevCarrinho) =>
-            prevCarrinho.map((item) =>
-                item.id === produtoId ? { ...item, quantidade: parseInt(quantidade, 10) || 0 } : item
-            )
-        );
+    const fetchPedidosByVenda = async (vendaId) => {
+        try {
+            setLoading(true);
+            const response = await api.get(`/pedido/venda/${vendaId}`);
+            setPedidos(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Erro ao carregar pedidos", error);
+            setLoading(false);
+        }
     };
 
-    // Função para salvar o pedido
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (!mesaId || !clienteId || carrinho.length === 0) {
-            setAlertMessage("Por favor, preencha todos os campos obrigatórios.");
-            setAlertColor("red");
+    const handleCreateVenda = async () => {
+        if (!mesaId) {
+            alert("Selecione uma mesa!");
             return;
         }
 
-        setIsLoading(true);
-
         try {
-            const pedidoDTO = {
-                mesaId,
-                clienteId,
-                itens: carrinho.map((item) => ({
-                    produtoId: item.id,
-                    quantidade: item.quantidade,
-                    total: item.preco * item.quantidade,
-                })),
+            setLoading(true);
+
+            // Encontrar a mesa selecionada para obter o nome
+            const mesaSelecionada = mesas.find(mesa => mesa.id === parseInt(mesaId));
+
+            // Criar a data atual no formato ISO
+            const dataAtual = new Date().toISOString();
+
+            const vendaData = {
+                mesa: {
+                    id: parseInt(mesaId),
+                    nome: mesaSelecionada.nome
+                },
+                dataInicioVenda: dataAtual,
+                dataFimVenda: null,
+                total: 0.0
             };
 
-            await api.post("/pedidos", pedidoDTO);
-            setAlertMessage("Pedido cadastrado com sucesso!");
-            setAlertColor("green");
-            setTimeout(() => navigate("/dashboard/pedidos"), 1000);
+            await api.post("/venda", vendaData);
+            await fetchVendas();
+
+            setMesaId("");
+            setLoading(false);
         } catch (error) {
-            console.error("Erro ao salvar pedido:", error);
-            setAlertMessage("Erro ao salvar pedido. Tente novamente.");
-            setAlertColor("red");
-        } finally {
-            setIsLoading(false);
+            console.error("Erro ao criar venda", error);
+            setLoading(false);
         }
     };
 
-    // Produtos filtrados pela busca
-    const produtosFiltrados = produtos.filter((produto) =>
-        produto.nome.toLowerCase().includes(buscaProduto.toLowerCase())
-    );
+    const handleDeleteVenda = async (vendaId, event) => {
+        // Previne a propagação do clique para não acionar o handleVendaClick
+        event.stopPropagation();
+
+        if (window.confirm("Tem certeza que deseja excluir esta venda?")) {
+            try {
+                setLoading(true);
+                await api.delete(`/venda/${vendaId}`);
+                await fetchVendas();
+                if (selectedVenda === vendaId) {
+                    setSelectedVenda(null);
+                    setPedidos([]);
+                }
+                setLoading(false);
+            } catch (error) {
+                console.error("Erro ao excluir venda", error);
+                setLoading(false);
+            }
+        }
+    };
 
     return (
-        <Card className="bg-white w-full h-full flex-1 rounded-xl border border-blue-gray-100">
-            <CardHeader variant="gradient" color="gray" className="p-4">
+        <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
+            <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                 <Typography variant="h6" color="white">
-                    Cadastrar Pedido
+                    Vendas em Aberto
                 </Typography>
             </CardHeader>
+            <CardBody className="px-4 pt-0 pb-6">
+                <div className="max-w-screen-lg lg:w-full mx-auto">
+                    <div>
+                        <div>
+                            <SelectField
+                                label="Seleciona a Mesa"
+                                value={mesaId}
+                                onChange={setMesaId}
+                                options={mesas.map((mesa) => ({
+                                    value: mesa.id,
+                                    label: mesa.nome,
+                                }))}
+                                placeholder="Mesas Disponíveis"
+                            />
+                        </div>
 
-            <CardBody className="p-6">
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <SelectField
-                            label="Mesa"
-                            value={mesaId}
-                            onChange={setMesaId}
-                            options={mesas.map((mesa) => ({ value: mesa.id, label: mesa.nome }))}
-                            placeholder="Selecione a Mesa"
-                        />
-
-                        <SelectField
-                            label="Cliente"
-                            value={clienteId}
-                            onChange={setClienteId}
-                            options={clientes.map((cliente) => ({ value: cliente.id, label: cliente.nome }))}
-                            placeholder="Selecione o Cliente"
-                        />
-                    </div>
-
-                    <div className="mb-6">
-                        <InputField
-                            label="Buscar Produto"
-                            placeholder="Digite o nome do produto"
-                            value={buscaProduto}
-                            onChange={setBuscaProduto}
-                        />
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                            {produtosFiltrados.map((produto) => (
-                                <div
-                                    key={produto.id}
-                                    className="border p-4 rounded-md flex flex-col items-center"
-                                >
-                                    <Typography variant="small">{produto.nome}</Typography>
-                                    <Typography variant="small" className="text-gray-500">
-                                        R$ {produto.preco.toFixed(2)}
-                                    </Typography>
-                                    <Button
-                                        size="sm"
-                                        className="mt-2"
-                                        onClick={() => handleAddToCarrinho(produto)}
-                                    >
-                                        Adicionar
-                                    </Button>
-                                </div>
-                            ))}
+                        <div className="flex w-full justify-center">
+                            <Button
+                                onClick={handleCreateVenda}
+                                className={`mt-6 w-32 flex items-center justify-center mb-4`}
+                                disabled={loading}
+                            >
+                                {loading ? <ArrowPathIcon className="h-4 w-4 text-white animate-spin"/> : "Nova Venda"}
+                            </Button>
                         </div>
                     </div>
 
-                    <div className="mb-6">
-                        <Typography variant="h6" className="mb-2">
-                            Carrinho
-                        </Typography>
-                        {carrinho.map((item) => (
-                            <div key={item.id} className="flex items-center justify-between mb-2">
-                                <div>
-                                    <Typography variant="small">{item.nome}</Typography>
-                                    <Typography variant="small" className="text-gray-500">
-                                        R$ {item.preco.toFixed(2)}
-                                    </Typography>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <InputField
-                                        type="number"
-                                        min="1"
-                                        value={item.quantidade}
-                                        onChange={(e) =>
-                                            handleQuantidadeChange(item.id, e.target.value)
-                                        }
-                                        className="w-16 text-center"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveFromCarrinho(item.id)}
-                                        className="text-red-500"
+
+                    <div className="mb-1 grid grid-cols-1 sm:grid-cols-12 gap-4">
+                        {vendas.map((venda) => {
+                            const dataInicio = venda.dataInicioVenda ?
+                                new Date(venda.dataInicioVenda).toLocaleString() :
+                                "Data não disponível";
+                            return (
+                                <div
+                                    key={venda.id}
+                                    onClick={() => handleVendaClick(venda.id)}
+                                    className="flex col-span-1 lg:col-span-4 justify-center items-center p-4 space-x-4 border rounded-lg cursor-pointer hover:bg-blue-100 transition"
+                                >
+                                    <div className="flex flex-col">
+                                        <div className="font-medium">Venda {venda.id}</div>
+                                        <div>Mesa: {venda.mesa?.nome || "Indefinido"}</div>
+                                        <div>Data Início: {dataInicio}</div>
+                                    </div>
+
+                                    <Button
+                                        color="red"
+                                        className="p-2"
+                                        onClick={(e) => handleDeleteVenda(venda.id, e)}
                                     >
-                                        <XMarkIcon className="h-5 w-5" />
-                                    </button>
+                                        <TrashIcon className="h-4 w-4"/>
+                                    </Button>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
-                    <div className="flex justify-center">
-                        <Button
-                            type="submit"
-                            disabled={isLoading || carrinho.length === 0 || !mesaId || !clienteId}
-                        >
-                            {isLoading ? (
-                                <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                            ) : (
-                                "Salvar Pedido"
-                            )}
-                        </Button>
-                    </div>
-
-                    {alertMessage && (
-                        <Alert
-                            color={alertColor}
-                            className="mt-4"
-                            onClose={() => setAlertMessage(null)}
-                        >
-                            {alertMessage}
-                        </Alert>
+                    {selectedVenda && pedidos.length > 0 && (
+                        <div className="mt-6">
+                            <h2 className="text-lg font-semibold">Pedidos da Venda #{selectedVenda}</h2>
+                            <ul className="space-y-2">
+                                {pedidos.map((pedido) => {
+                                    const dataCriacao = new Date(pedido.dataCriacao).toLocaleString();
+                                    return (
+                                        <li key={pedido.id} className="p-2 border-b border-gray-200">
+                                            <div><strong>Pedido #{pedido.id}</strong></div>
+                                            <div>Tipo: {pedido.tipoPedido}</div>
+                                            <div>Status: {pedido.statusPedido}</div>
+                                            <div>Cliente: {pedido.cliente ? pedido.cliente.nome : "Cliente não informado"}</div>
+                                            <div>Data: {dataCriacao}</div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
                     )}
-                </form>
+
+                    {selectedVenda && pedidos.length === 0 && !loading && (
+                        <div className="mt-4 text-gray-500">Não há pedidos para esta venda.</div>
+                    )}
+
+                    {loading && <div className="mt-4">Carregando...</div>}
+                </div>
             </CardBody>
         </Card>
     );

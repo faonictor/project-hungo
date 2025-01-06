@@ -134,3 +134,22 @@
                     {/*        Adicionar Insumo*/}
                     {/*    </button>*/}
                     {/*</div>*/}
+
+                      // {
+                      //   title: "Pedidos",
+                      //   layout: "dashboard",
+                      //   pages: [
+                      //     {
+                      //       icon: <ShoppingCartIcon {...icon} />,
+                      //       name: "Pedidos",
+                      //       path: "/pedido",
+                      //       element: <PedidoForm/>,
+                      //     },
+                      //     {
+                      //       icon: <ShoppingCartIcon {...icon} />,
+                      //       name: "Pedidos por Venda",
+                      //       path: "/pedidos/:vendaId",  // **Nova Rota para listar pedidos por venda**. O `vendaId` será utilizado para buscar os pedidos associados à venda.
+                      //       element: <PedidoForm/>,   // **Componente** que será responsável por listar os pedidos associados a uma venda específica.
+                      //     },
+                      //   ],
+                      // },

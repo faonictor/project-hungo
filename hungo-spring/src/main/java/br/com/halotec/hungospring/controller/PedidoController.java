@@ -1,10 +1,13 @@
 package br.com.halotec.hungospring.controller;
 
+import br.com.halotec.hungospring.dto.PedidoDTO;
 import br.com.halotec.hungospring.entity.Pedido;
 import br.com.halotec.hungospring.service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 //@CrossOrigin(origins = "*")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -15,8 +18,8 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @PostMapping("/pedido")
-    public ResponseEntity<Pedido> salvar(@RequestBody Pedido pedido) {
-        return pedidoService.salvar(pedido);
+    public ResponseEntity<PedidoDTO> salvar(@RequestBody PedidoDTO pedidoDTO) {
+        return pedidoService.salvar(pedidoDTO);
     }
 
     @GetMapping("/pedido")
@@ -34,11 +37,8 @@ public class PedidoController {
         return pedidoService.deletar(id);
     }
 
-    @PutMapping("/pedido/{id}")
-    public ResponseEntity<Pedido> atualizar(
-            @PathVariable Long id,
-            @RequestBody Pedido pedido) {
-        pedido.setId(id);
-        return pedidoService.salvar(pedido);
+    @GetMapping("/pedido/venda/{vendaId}")
+    public List<Pedido> getPedidosByVenda(@PathVariable Long vendaId) {
+        return pedidoService.buscarPedidosPorVenda(vendaId);
     }
 }

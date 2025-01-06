@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 //@CrossOrigin(origins = "*")
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -20,8 +22,19 @@ public class VendaController {
     }
 
     @GetMapping("/venda")
-    public Iterable<Venda> listarTodos() {
-        return vendaService.listarTodos();
+    public ResponseEntity<List<Venda>> getVendas() {
+        List<Venda> vendas = vendaService.buscarVendasEmAberto();
+        return ResponseEntity.ok(vendas);
+    }
+
+    @GetMapping("/venda/emAberto")
+    public List<Venda> buscarVendasEmAberto() {
+        return vendaService.buscarVendasEmAberto();
+    }
+
+    @GetMapping("/venda/fechadas")
+    public List<Venda> buscarVendasFechadas() {
+        return vendaService.buscarVendasFechadas();
     }
 
     @GetMapping("/venda/{id}")

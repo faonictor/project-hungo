@@ -36,14 +36,14 @@ export const routes = [
     ],
   },
   {
-    title: "Pedidos",
+    title: "Vendas",
     layout: "dashboard",
     pages: [
       {
         icon: <ShoppingCartIcon {...icon} />,
-        name: "Pedidos",
-        path: "/pedido",
-        element: <PedidoForm/>,
+        name: "Vendas Aberta",
+        path: "/vendas",  // **Nova Rota para listar todas as vendas em aberto**. O usuário poderá visualizar as vendas que estão em aberto.
+        element: <PedidoForm/>,   // **Componente** que será responsável por listar todas as vendas em aberto.
       },
     ],
   },

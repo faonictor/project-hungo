@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class VendaService {
     @Autowired
@@ -27,6 +29,14 @@ public class VendaService {
     public ResponseEntity deletar(Long id) {
         vendaRepository.deleteById(id);
         return new ResponseEntity("{\"mensagem\":\"Venda Removida com Sucesso\"}", HttpStatus.OK);
+    }
+
+    public List<Venda> buscarVendasEmAberto() {
+        return vendaRepository.findByDataFimVendaIsNull();
+    }
+
+    public List<Venda> buscarVendasFechadas() {
+        return vendaRepository.findByDataFimVendaIsNotNull();
     }
 }
 

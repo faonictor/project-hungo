@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ItemPedidoDTO {
     private Long id;
-    private Long produtoId;  // Relacionamento com Produto
+    private Long produtoId;
     private int quantidade;
     private float total;
 }
