@@ -1,122 +1,113 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/axiosConfig";
-import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
-import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Button, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { PlusSmallIcon } from "@heroicons/react/24/solid";
 import SelectField from "@/widgets/forms/select-field.jsx";
+import AlertMessage from "@/widgets/alert-message.jsx";
+import { TrashIcon } from "@heroicons/react/24/outline/index.js";
 
 const PedidoForm = () => {
-    const [vendas, setVendas] = useState([]);
-    const [pedidos, setPedidos] = useState([]);
-    const [selectedVenda, setSelectedVenda] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [mesas, setMesas] = useState([]);
-    const [mesaId, setMesaId] = useState("");
+    const { vendaId } = useParams(); // Captura o ID da venda
+    const navigate = useNavigate();
 
+    const [clientes, setClientes] = useState([]);
+    const [produtos, setProdutos] = useState([]);
+    const [selectedCliente, setSelectedCliente] = useState(null);
+    const [selectedTipoPedido, setSelectedTipoPedido] = useState("Local"); // Default to "Local" as string
+    const [selectedStatusPedido, setSelectedStatusPedido] = useState("Aberto"); // Default to "Aberto" as string
+    const [carrinho, setCarrinho] = useState([]);
+    const [alertMessage, setAlertMessage] = useState(null);
+    const [alertColor, setAlertColor] = useState("green");
+    const [loading, setLoading] = useState(false);
+
+    // Carregar clientes
     useEffect(() => {
-        const fetchMesas = async () => {
+        const fetchClientes = async () => {
             try {
-                const response = await api.get("/mesa");
-                setMesas(response.data);
+                const response = await api.get("/cliente");
+                setClientes(response.data);
             } catch (error) {
-                console.error("Erro ao carregar mesas", error);
+                setAlertMessage("Erro ao carregar clientes");
+                setAlertColor("red");
             }
         };
 
-        fetchMesas();
+        fetchClientes();
     }, []);
 
-    const fetchVendas = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/venda/emAberto");
-            setVendas(response.data);
-            setLoading(false);
-        } catch (error) {
-            console.error("Erro ao carregar vendas em aberto", error);
-            setLoading(false);
-        }
-    };
-
+    // Carregar produtos
     useEffect(() => {
-        fetchVendas();
+        const fetchProdutos = async () => {
+            try {
+                const response = await api.get("/produtos");
+                setProdutos(response.data);
+            } catch (error) {
+                setAlertMessage("Erro ao carregar produtos");
+                setAlertColor("red");
+            }
+        };
+
+        fetchProdutos();
     }, []);
 
-    const handleVendaClick = (vendaId) => {
-        if (selectedVenda === vendaId) {
-            setSelectedVenda(null);
-            setPedidos([]);
+    // Função para adicionar um item ao carrinho
+    const handleAddToCarrinho = (produto) => {
+        const produtoExistente = carrinho.find((item) => item.produto.id === produto.id);
+        if (produtoExistente) {
+            produtoExistente.quantidade += 1;
+            setCarrinho([...carrinho]);
         } else {
-            setSelectedVenda(vendaId);
-            fetchPedidosByVenda(vendaId);
+            setCarrinho([...carrinho, { produto, quantidade: 1 }]);
         }
     };
 
-    const fetchPedidosByVenda = async (vendaId) => {
-        try {
-            setLoading(true);
-            const response = await api.get(`/pedido/venda/${vendaId}`);
-            setPedidos(response.data);
-            setLoading(false);
-        } catch (error) {
-            console.error("Erro ao carregar pedidos", error);
-            setLoading(false);
-        }
+    // Função para remover um item do carrinho
+    const handleRemoveFromCarrinho = (produtoId) => {
+        setCarrinho(carrinho.filter((item) => item.produto.id !== produtoId));
     };
 
-    const handleCreateVenda = async () => {
-        if (!mesaId) {
-            alert("Selecione uma mesa!");
+    // Função para enviar o pedido para a API
+    const handleSubmitPedido = async () => {
+        if (!selectedCliente) {
+            setAlertMessage("Por favor, selecione um cliente!");
+            setAlertColor("red");
             return;
         }
 
+        if (carrinho.length === 0) {
+            setAlertMessage("Carrinho vazio! Adicione produtos.");
+            setAlertColor("red");
+            return;
+        }
+
+        const pedidoData = {
+            clienteId: selectedCliente, // ID do cliente
+            vendaId: vendaId,           // ID da venda
+            tipoPedido: selectedTipoPedido,  // Tipo de pedido (string)
+            statusPedido: selectedStatusPedido,  // Status do pedido (string)
+            dataHora: new Date().toISOString(),  // Data e hora do pedido
+            itens: carrinho.map(item => ({
+                produtoId: item.produto.id,    // ID do produto
+                quantidade: item.quantidade   // Quantidade
+            }))
+        };
+
         try {
             setLoading(true);
-
-            // Encontrar a mesa selecionada para obter o nome
-            const mesaSelecionada = mesas.find(mesa => mesa.id === parseInt(mesaId));
-
-            // Criar a data atual no formato ISO
-            const dataAtual = new Date().toISOString();
-
-            const vendaData = {
-                mesa: {
-                    id: parseInt(mesaId),
-                    nome: mesaSelecionada.nome
-                },
-                dataInicioVenda: dataAtual,
-                dataFimVenda: null,
-                total: 0.0
-            };
-
-            await api.post("/venda", vendaData);
-            await fetchVendas();
-
-            setMesaId("");
-            setLoading(false);
+            // Enviar pedido via POST
+            const response = await api.post(`/pedido/novo/${vendaId}`, pedidoData);
+            setAlertMessage("Pedido criado com sucesso!");
+            setAlertColor("green");
+            setCarrinho([]); // Limpar carrinho após sucesso
+            navigate("/dashboard/vendas");
         } catch (error) {
-            console.error("Erro ao criar venda", error);
+            console.error("Erro ao criar pedido:", error);
+            setAlertMessage("Erro ao criar pedido");
+            setAlertColor("red");
+        } finally {
             setLoading(false);
-        }
-    };
-
-    const handleDeleteVenda = async (vendaId, event) => {
-        // Previne a propagação do clique para não acionar o handleVendaClick
-        event.stopPropagation();
-
-        if (window.confirm("Tem certeza que deseja excluir esta venda?")) {
-            try {
-                setLoading(true);
-                await api.delete(`/venda/${vendaId}`);
-                await fetchVendas();
-                if (selectedVenda === vendaId) {
-                    setSelectedVenda(null);
-                    setPedidos([]);
-                }
-                setLoading(false);
-            } catch (error) {
-                console.error("Erro ao excluir venda", error);
-                setLoading(false);
-            }
         }
     };
 
@@ -124,95 +115,124 @@ const PedidoForm = () => {
         <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
             <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                 <Typography variant="h6" color="white">
-                    Vendas em Aberto
+                    Adicionar Pedido - Venda #{vendaId}
                 </Typography>
             </CardHeader>
+
             <CardBody className="px-4 pt-0 pb-6">
-                <div className="max-w-screen-lg lg:w-full mx-auto">
-                    <div>
-                        <div>
-                            <SelectField
-                                label="Seleciona a Mesa"
-                                value={mesaId}
-                                onChange={setMesaId}
-                                options={mesas.map((mesa) => ({
-                                    value: mesa.id,
-                                    label: mesa.nome,
-                                }))}
-                                placeholder="Mesas Disponíveis"
-                            />
-                        </div>
+                {/* Alert Message */}
+                <AlertMessage alertMessage={alertMessage} alertColor={alertColor} onClose={() => setAlertMessage(null)} />
+                <div className="flex flex-col space-y-4">
+                    {/* Seleção de Cliente */}
+                    <SelectField
+                        label="Selecione o Cliente"
+                        value={selectedCliente}
+                        onChange={setSelectedCliente}
+                        options={clientes.map(cliente => ({
+                            value: cliente.id,
+                            label: cliente.nome
+                        }))}
+                        placeholder="Clientes Disponíveis"
+                    />
 
-                        <div className="flex w-full justify-center">
-                            <Button
-                                onClick={handleCreateVenda}
-                                className={`mt-6 w-32 flex items-center justify-center mb-4`}
-                                disabled={loading}
-                            >
-                                {loading ? <ArrowPathIcon className="h-4 w-4 text-white animate-spin"/> : "Nova Venda"}
-                            </Button>
-                        </div>
-                    </div>
+                    {/* Selecione o Tipo de Pedido */}
+                    <SelectField
+                        label="Tipo de Pedido"
+                        value={selectedTipoPedido}
+                        onChange={setSelectedTipoPedido}
+                        options={[
+                            { value: "Local", label: "Local" },
+                            { value: "Delivery", label: "Delivery" }
+                        ]}
+                    />
 
+                    {/* Selecione o Status do Pedido */}
+                    <SelectField
+                        label="Status do Pedido"
+                        value={selectedStatusPedido}
+                        onChange={setSelectedStatusPedido}
+                        options={[
+                            { value: "Aberto", label: "Aberto" },
+                            { value: "Em Andamento", label: "Em Andamento" },
+                            { value: "Finalizado", label: "Finalizado" },
+                            { value: "Rota de Entrega", label: "Rota de Entrega" },
+                            { value: "Pago", label: "Pago" }
+                        ]}
+                    />
 
-                    <div className="mb-1 grid grid-cols-1 sm:grid-cols-12 gap-4">
-                        {vendas.map((venda) => {
-                            const dataInicio = venda.dataInicioVenda ?
-                                new Date(venda.dataInicioVenda).toLocaleString() :
-                                "Data não disponível";
-                            return (
-                                <div
-                                    key={venda.id}
-                                    onClick={() => handleVendaClick(venda.id)}
-                                    className="flex col-span-1 lg:col-span-4 justify-center items-center p-4 space-x-4 border rounded-lg cursor-pointer hover:bg-blue-100 transition"
-                                >
-                                    <div className="flex flex-col">
-                                        <div className="font-medium">Venda {venda.id}</div>
-                                        <div>Mesa: {venda.mesa?.nome || "Indefinido"}</div>
-                                        <div>Data Início: {dataInicio}</div>
-                                    </div>
-
-                                    <Button
-                                        color="red"
-                                        className="p-2"
-                                        onClick={(e) => handleDeleteVenda(venda.id, e)}
-                                    >
-                                        <TrashIcon className="h-4 w-4"/>
+                    {/* Exibição de Produtos */}
+                    <div className="overflow-x-auto flex space-x-4 bg-gray-100 rounded-lg p-4">
+                        {produtos.map(produto => (
+                            <div key={produto.id} className="w-52 flex-shrink-0">
+                                <div className="bg-white p-4 rounded-lg">
+                                    <Typography variant="h6">{produto.nome}</Typography>
+                                    <Typography>{`R$ ${produto.preco.toFixed(2)}`}</Typography>
+                                    <Button onClick={() => handleAddToCarrinho(produto)} className="p-2">
+                                        <PlusSmallIcon className="h-5 w-5"/>
                                     </Button>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
 
-                    {selectedVenda && pedidos.length > 0 && (
-                        <div className="mt-6">
-                            <h2 className="text-lg font-semibold">Pedidos da Venda #{selectedVenda}</h2>
-                            <ul className="space-y-2">
-                                {pedidos.map((pedido) => {
-                                    const dataCriacao = new Date(pedido.dataCriacao).toLocaleString();
-                                    return (
-                                        <li key={pedido.id} className="p-2 border-b border-gray-200">
-                                            <div><strong>Pedido #{pedido.id}</strong></div>
-                                            <div>Tipo: {pedido.tipoPedido}</div>
-                                            <div>Status: {pedido.statusPedido}</div>
-                                            <div>Cliente: {pedido.cliente ? pedido.cliente.nome : "Cliente não informado"}</div>
-                                            <div>Data: {dataCriacao}</div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
+                    {/* Carrinho */}
+                    <div className="mt-6">
+                        <Typography variant="h6">Carrinho</Typography>
+                        <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
+                            <table className="min-w-full table-auto">
+                                <thead>
+                                <tr>
+                                    <th className="px-4 py-2 border-b text-left">Produto</th>
+                                    <th className="px-4 py-2 border-b text-left">Quantidade</th>
+                                    <th className="px-4 py-2 border-b text-left">Total por Item</th>
+                                    <th className="px-4 py-2 border-b text-left">Ações</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {carrinho.map(item => (
+                                    <tr key={item.produto.id}>
+                                        <td className="px-4 py-2 border-b">{item.produto.nome}</td>
+                                        <td className="px-4 py-2 border-b">{item.quantidade}</td>
+                                        <td className="px-4 py-2 border-b">
+                                            R$ {(item.produto.preco * item.quantidade).toFixed(2)}
+                                        </td>
+                                        <td className="px-4 py-2 border-b">
+                                            <Button onClick={() => handleRemoveFromCarrinho(item.produto.id)} color="red" className="p-2">
+                                                <TrashIcon className="h-5 w-5"/>
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+
+                            {/* Exibição do total geral */}
+                            <div className="mt-4 p-4 rounded-lg flex justify-between items-center bg-gray-100">
+                                <Typography variant="h4">Total:</Typography>
+                                <Typography variant="h5" color="blue-gray">{`R$ ${carrinho.reduce((total, item) => total + (item.produto.preco * item.quantidade), 0).toFixed(2)}`}</Typography>
+                            </div>
                         </div>
-                    )}
-
-                    {selectedVenda && pedidos.length === 0 && !loading && (
-                        <div className="mt-4 text-gray-500">Não há pedidos para esta venda.</div>
-                    )}
-
-                    {loading && <div className="mt-4">Carregando...</div>}
+                    </div>
                 </div>
+
+                {/* Botão de Submissão */}
+                <Button
+                    onClick={handleSubmitPedido}
+                    className="mt-4 w-full"
+                    disabled={loading}>
+                    {loading ? (
+                        <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                    ) : (
+                        "Criar Pedido"
+                    )}
+                </Button>
             </CardBody>
         </Card>
     );
 };
 
+
+
 export default PedidoForm;
+
+

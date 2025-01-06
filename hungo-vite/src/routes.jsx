@@ -43,20 +43,20 @@ export const routes = [
       {
         icon: <ShoppingCartIcon {...icon} />,
         name: "Vendas Aberta",
-        path: "/vendas",  // **Nova Rota para listar todas as vendas em aberto**. O usuário poderá visualizar as vendas que estão em aberto.
-        element: <VendaAddEdit/>,   // **Componente** que será responsável por listar todas as vendas em aberto.
+        path: "/vendas",
+        element: <VendaAddEdit/>,
       },
       {
         icon: <ShoppingCartIcon {...icon} />,
         name: "Adicionar Pedido",
-        path: "/pedido/novo/:vendaId",  // Rota para adicionar pedido, com vendaId como parâmetro
-        element: <PedidoAddEdit />,  // Componente para adicionar pedido
+        path: "/pedido/novo/:vendaId",
+        element: <PedidoAddEdit />,
       },
       {
         icon: <ShoppingCartIcon {...icon} />,
         name: "Adicionar Pedido",
-        path: "/pedido/:pedidoId",  // Rota para adicionar pedido, com pedidoId como parâmetro
-        element: <PedidoAddEdit />,  // Componente para adicionar pedido
+        path: "/pedido/:pedidoId",
+        element: <PedidoAddEdit />,
       }
     ],
   },
