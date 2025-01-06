@@ -5,7 +5,14 @@ import {
   RectangleStackIcon,
   UserPlusIcon,
   UserGroupIcon,
-  CubeIcon, ShoppingBagIcon, PencilIcon, ArchiveBoxArrowDownIcon, SquaresPlusIcon, MapPinIcon, ShoppingCartIcon,
+  CubeIcon,
+  ShoppingBagIcon,
+  PencilIcon,
+  ArchiveBoxArrowDownIcon,
+  SquaresPlusIcon,
+  MapPinIcon,
+  ShoppingCartIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
@@ -19,6 +26,7 @@ import InsumoAddEdit from "@/pages/dashboard/produtos/insumoAddEdit.jsx";
 import CategoriaAddEdit from "@/pages/dashboard/produtos/categoriaAddEdit.jsx";
 import VendaAddEdit from "@/pages/dashboard/pedidos/vendasAddEdit.jsx";
 import PedidoAddEdit from "@/pages/dashboard/pedidos/PedidoAddEdit.jsx";
+import VendasList from "@/pages/dashboard/pedidos/vendasList.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -42,9 +50,15 @@ export const routes = [
     pages: [
       {
         icon: <ShoppingCartIcon {...icon} />,
-        name: "Vendas Aberta",
+        name: "Abertas",
         path: "/vendas",
         element: <VendaAddEdit/>,
+      },
+      {
+        icon: <LockClosedIcon {...icon} />,
+        name: "Encerradas",
+        path: "/venda/fechadas",
+        element: <VendasList/>,
       },
       {
         icon: <ShoppingCartIcon {...icon} />,
@@ -133,24 +147,7 @@ export const routes = [
       },
     ],
   },
-  {
-    title: "Perfil",
-    layout: "auth",
-    pages: [
-      {
-        icon: <ServerStackIcon {...icon} />,
-        name: "Sign In",
-        path: "/sign-in",
-        element: <SignIn/>,
-      },
-      {
-        icon: <RectangleStackIcon {...icon} />,
-        name: "Sign Up",
-        path: "/sign-up",
-        element: <SignUp/>,
-      },
-    ],
-  },
+
   {
     title: "Endereços",
     layout: "dashboard",
@@ -172,6 +169,24 @@ export const routes = [
         name: "Editar Endereço",
         path: "endereco/editar/:id",
         element: <EnderecoAddEdit />,
+      },
+    ],
+  },
+  {
+    title: "Perfil",
+    layout: "auth",
+    pages: [
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "Sign In",
+        path: "/sign-in",
+        element: <SignIn/>,
+      },
+      {
+        icon: <RectangleStackIcon {...icon} />,
+        name: "Sign Up",
+        path: "/sign-up",
+        element: <SignUp/>,
       },
     ],
   },
