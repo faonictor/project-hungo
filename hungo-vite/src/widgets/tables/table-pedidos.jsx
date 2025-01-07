@@ -129,6 +129,7 @@ import { Card, CardBody, CardHeader, Typography } from "@material-tailwind/react
 import { useNavigate } from "react-router-dom";
 import { ShoppingCartIcon } from "@heroicons/react/24/solid/index.js";
 import { TrashIcon } from "@heroicons/react/24/solid";
+import Loading from "@/widgets/loading.jsx";
 
 const PedidoList = () => {
     const [pedidos, setPedidos] = useState([]);
@@ -176,12 +177,13 @@ const PedidoList = () => {
         setModalVisible(true);
     };
 
+    /* carregamento */
     if (loading) {
-        return <div>Carregando...</div>;
+        return <Loading text="Carregando Pedidos"/>;
     }
 
     if (pedidos.length === 0) {
-        return <div>Nenhum pedido encontrado.</div>;
+        return <Loading text="Pedidos Não Encontrados"/>;
     }
 
     return (

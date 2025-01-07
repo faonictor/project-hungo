@@ -46,6 +46,18 @@ export const routes = [
     ],
   },
   {
+    title: "Pedidos",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ShoppingBagIcon {...icon} />,
+        name: "Pedidos",
+        path: "/pedido",
+        element: <PedidoTable/>,
+      },
+    ],
+  },
+  {
     title: "Vendas",
     layout: "dashboard",
     pages: [
@@ -73,18 +85,6 @@ export const routes = [
         path: "/pedido/:pedidoId",
         element: <PedidoAddEdit />,
       }
-    ],
-  },
-  {
-    title: "Pedidos",
-    layout: "dashboard",
-    pages: [
-      {
-        icon: <ShoppingBagIcon {...icon} />,
-        name: "Pedidos",
-        path: "/pedido",
-        element: <PedidoTable/>,
-      },
     ],
   },
   {
