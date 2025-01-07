@@ -246,7 +246,14 @@ const PedidoList = () => {
                                                 {pedido.statusPedido}
                                             </span>
                                     </td>
-                                    <td className="py-2 px-4 border-b">R$ {pedido.venda?.total?.toFixed(2) || "0.00"}</td>
+                                    {/* <td className="py-2 px-4 border-b">R$ {pedido.venda?.total?.toFixed(2) }</td> */}
+                                    <td className="py-2 px-4 border-b">
+                                        {console.log(pedido)} {/* Verifica a estrutura de pedido */}
+                                        R$ {
+                                            pedido.itens ? pedido.itens.reduce((total, item) => total + (item.quantidade * item.precoUnitario), 0).toFixed(2) : '0.00'
+                                        }
+                                    </td>
+
                                     <td className="px-2 py-2 border-b space-x-2">
                                         <button
                                             onClick={() => navigate(`/dashboard/pedido/${pedido.id}`)}

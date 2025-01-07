@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -39,10 +40,24 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
+    //CleanCode
+    // estuda nas férias sobre SOLID
     @Transactional
     public ResponseEntity<PedidoDTO> salvar(Long vendaId, PedidoDTO pedidoDTO) {
-        Pedido pedido;
+        Pedido pedido=montarPedido(pedidoDTO);
 
+        // Salvar o pedido no banco
+        pedido = pedidoRepository.save(pedido);
+
+        // Salvar os itens do pedido
+        salvarItensPedido(pedidoDTO, pedido);
+
+        // Setar o ID do pedido no DTO e retornar a resposta
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
+    }
+
+    private Pedido montarPedido(PedidoDTO pedidoDTO){
+        Pedido pedido;
         // Se o pedido já existe, busca no banco; se não, cria um novo
         if (pedidoDTO.getId() != null) {
             pedido = pedidoRepository.findById(pedidoDTO.getId())
@@ -64,11 +79,10 @@ public class PedidoService {
         pedido.setTipoPedido(pedidoDTO.getTipoPedido());
         pedido.setStatusPedido(pedidoDTO.getStatusPedido());
         pedido.setDataHora(pedidoDTO.getDataHora());
+        return pedido;
+    }
 
-        // Salvar o pedido no banco
-        pedido = pedidoRepository.save(pedido);
-
-        // Salvar os itens do pedido
+    private void salvarItensPedido(PedidoDTO pedidoDTO, Pedido pedido){
         if (pedidoDTO.getItens() != null && !pedidoDTO.getItens().isEmpty()) {
             Pedido finalPedido = pedido;
             List<ItemPedido> itens = pedidoDTO.getItens().stream().map(itemDTO -> {
@@ -108,11 +122,8 @@ public class PedidoService {
                 pedidoDTO.getItens().get(i).setId(itensSalvosList.get(i).getId());
             }
         }
-
-        // Setar o ID do pedido no DTO e retornar a resposta
-        pedidoDTO.setId(pedido.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
     }
+
 
     @Transactional
     public ResponseEntity<PedidoDTO> atualizar(Long id, PedidoDTO pedidoDTO) {
