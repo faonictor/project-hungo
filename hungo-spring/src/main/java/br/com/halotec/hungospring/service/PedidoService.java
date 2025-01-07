@@ -116,6 +116,76 @@ public class PedidoService {
 
 
 
+//    @Transactional
+//    public ResponseEntity<PedidoDTO> atualizar(Long id, PedidoDTO pedidoDTO) {
+//        Pedido pedido = pedidoRepository.findById(id)
+//                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + id));
+//
+//        // Atualiza os dados básicos do pedido
+//        Cliente cliente = clienteRepository.findById(pedidoDTO.getClienteId())
+//                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID " + pedidoDTO.getClienteId()));
+//
+//        Venda venda = vendaRepository.findById(pedidoDTO.getVendaId())
+//                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID " + pedidoDTO.getVendaId()));
+//
+//        // Setar dados no pedido
+//        pedido.setCliente(cliente);
+//        pedido.setVenda(venda);
+//        pedido.setTipoPedido(pedidoDTO.getTipoPedido());
+//        pedido.setStatusPedido(pedidoDTO.getStatusPedido());
+//        pedido.setDataHora(pedidoDTO.getDataHora());
+//
+//        // Salvar o pedido no banco
+//        pedido = pedidoRepository.save(pedido);
+//
+//        // Adicionar novos itens, se existirem
+//        if (pedidoDTO.getItens() != null && !pedidoDTO.getItens().isEmpty()) {
+//            // Iterar sobre os itens do pedido e adicionar os novos
+//            List<ItemPedido> itensParaSalvar = new ArrayList<>();
+//            for (ItemPedidoDTO itemDTO : pedidoDTO.getItens()) {
+//                ItemPedido item;
+//
+//                // Se o item já existe, atualiza-o
+//                if (itemDTO.getId() != null) {
+//                    item = itemPedidoRepository.findById(itemDTO.getId())
+//                            .orElseThrow(() -> new EntityNotFoundException("Item de Pedido não encontrado com o ID " + itemDTO.getId()));
+//                    // Atualiza o item existente
+//                    item.setQuantidade(itemDTO.getQuantidade());
+//                } else {
+//                    // Caso contrário, cria um novo item
+//                    item = new ItemPedido();
+//                    item.setQuantidade(itemDTO.getQuantidade());
+//                }
+//
+//                // Relacionar o item com o pedido
+//                item.setPedido(pedido);
+//
+//                // Buscar o produto relacionado
+//                Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
+//                        .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + itemDTO.getProdutoId()));
+//                item.setProduto(produto);
+//                item.setTotal(item.getQuantidade() * produto.getPreco());
+//
+//                itensParaSalvar.add(item);
+//            }
+//
+//            // Salvar os itens no banco
+//            Iterable<ItemPedido> itensSalvos = itemPedidoRepository.saveAll(itensParaSalvar);
+//
+//            // Atualizar os IDs dos itens no PedidoDTO
+//            List<ItemPedido> itensSalvosList = StreamSupport.stream(itensSalvos.spliterator(), false)
+//                    .collect(Collectors.toList());
+//
+//            for (int i = 0; i < itensSalvosList.size(); i++) {
+//                pedidoDTO.getItens().get(i).setId(itensSalvosList.get(i).getId());
+//            }
+//        }
+//
+//        // Setar o ID do pedido no DTO e retornar a resposta
+//        pedidoDTO.setId(pedido.getId());
+//        return ResponseEntity.ok(pedidoDTO);  // 200 OK com o pedido atualizado
+//    }
+
     @Transactional
     public ResponseEntity<PedidoDTO> atualizar(Long id, PedidoDTO pedidoDTO) {
         Pedido pedido = pedidoRepository.findById(id)
@@ -138,24 +208,16 @@ public class PedidoService {
         // Salvar o pedido no banco
         pedido = pedidoRepository.save(pedido);
 
+        // Remover todos os itens antigos relacionados ao pedido
+        itemPedidoRepository.deleteByPedidoId(id);
+
         // Adicionar novos itens, se existirem
         if (pedidoDTO.getItens() != null && !pedidoDTO.getItens().isEmpty()) {
             // Iterar sobre os itens do pedido e adicionar os novos
             List<ItemPedido> itensParaSalvar = new ArrayList<>();
             for (ItemPedidoDTO itemDTO : pedidoDTO.getItens()) {
-                ItemPedido item;
-
-                // Se o item já existe, atualiza-o
-                if (itemDTO.getId() != null) {
-                    item = itemPedidoRepository.findById(itemDTO.getId())
-                            .orElseThrow(() -> new EntityNotFoundException("Item de Pedido não encontrado com o ID " + itemDTO.getId()));
-                    // Atualiza o item existente
-                    item.setQuantidade(itemDTO.getQuantidade());
-                } else {
-                    // Caso contrário, cria um novo item
-                    item = new ItemPedido();
-                    item.setQuantidade(itemDTO.getQuantidade());
-                }
+                ItemPedido item = new ItemPedido();
+                item.setQuantidade(itemDTO.getQuantidade());
 
                 // Relacionar o item com o pedido
                 item.setPedido(pedido);
@@ -169,7 +231,7 @@ public class PedidoService {
                 itensParaSalvar.add(item);
             }
 
-            // Salvar os itens no banco
+            // Salvar os novos itens no banco
             Iterable<ItemPedido> itensSalvos = itemPedidoRepository.saveAll(itensParaSalvar);
 
             // Atualizar os IDs dos itens no PedidoDTO
@@ -231,9 +293,9 @@ public class PedidoService {
         // Buscar os itens do Pedido
         List<ItemPedidoDTO> itens = itemPedidoRepository.findByPedidoId(pedidoId).stream()
                 .map(item -> new ItemPedidoDTO(
-                        item.getId(),               // id do ItemPedido
-                        item.getProduto().getId(),   // id do Produto associado
-                        item.getQuantidade()        // quantidade do ItemPedido
+                        item.getId(),
+                        item.getProduto().getId(),
+                        item.getQuantidade()
                 ))
                 .collect(Collectors.toList());
 

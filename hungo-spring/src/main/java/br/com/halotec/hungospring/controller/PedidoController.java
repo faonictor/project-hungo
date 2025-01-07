@@ -63,7 +63,7 @@ public class PedidoController {
         return pedidoService.buscarPedidosPorVenda(vendaId);
     }
 
-    @GetMapping("pedido/{id}")
+    @GetMapping("/pedido/{id}")
     public ResponseEntity<PedidoDTO> buscarPedidoPorId(@PathVariable Long id) {
         try {
             PedidoDTO pedidoDTO = pedidoService.buscarPedidoComItens(id);
