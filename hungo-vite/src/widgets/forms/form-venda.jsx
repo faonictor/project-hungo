@@ -120,39 +120,6 @@ const VendaForm = () => {
         }
     };
 
-
-    // const handleCreateVenda = async () => {
-    //     if (!mesaId) {
-    //         setAlertMessage("Por favor, selecione uma mesa!");
-    //         setAlertColor("red");
-    //         return;
-    //     }
-    //
-    //     try {
-    //         setLoading(true);
-    //         const mesaSelecionada = mesas.find((mesa) => mesa.id === parseInt(mesaId));
-    //         const dataAtual = new Date().toISOString();
-    //
-    //         const vendaData = {
-    //             mesa: {id: parseInt(mesaId), nome: mesaSelecionada.nome},
-    //             dataInicioVenda: dataAtual,
-    //             dataFimVenda: null,
-    //             total: 0.0,
-    //         };
-    //
-    //         await api.post("/venda", vendaData);
-    //         fetchVendas();
-    //         setMesaId("");
-    //         setAlertMessage("Venda criada com sucesso!");
-    //         setAlertColor("green");
-    //     } catch (error) {
-    //         setAlertMessage("Erro ao criar venda");
-    //         setAlertColor("red");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
-
     const handleCreateVenda = async () => {
         if (!mesaId) {
             setAlertMessage("Por favor, selecione uma mesa!");
@@ -212,35 +179,6 @@ const VendaForm = () => {
         }
     };
 
-    // const handleEndVenda = async () => {
-    //     try {
-    //         setLoading(true);
-    //         const dataAtual = new Date().toISOString();
-    //
-    //         // Requisição para finalizar a venda
-    //         await api.put(`/venda/${vendaToEnd}/fechar`, {
-    //             dataFimVenda: dataAtual
-    //         });
-    //
-    //         fetchVendas();
-    //
-    //         if (selectedVenda === vendaToEnd) {
-    //             setSelectedVenda(null);
-    //             setPedidos([]);
-    //         }
-    //
-    //         setAlertMessage("Venda encerrada com sucesso!");
-    //         setAlertColor("green");
-    //     } catch (error) {
-    //         setAlertMessage("Erro ao encerrar venda");
-    //         setAlertColor("red");
-    //     } finally {
-    //         setLoading(false);
-    //         setShowEndModal(false);
-    //         setVendaToEnd(null);
-    //     }
-    // };
-
     const handleEndVenda = async () => {
         try {
             setLoading(true);
@@ -278,8 +216,16 @@ const VendaForm = () => {
         setShowDeleteModal(true);
     };
 
+
     const openEndModal = (vendaId, event) => {
         event.stopPropagation();
+
+        if (pedidos.length === 0) {
+            setAlertMessage("Não é possível encerrar a venda sem pedidos!");
+            setAlertColor("red");
+            return;
+        }
+
         const pedidosNaoPagos = pedidos.filter(pedido => pedido.statusPedido !== "Pago");
 
         if (pedidosNaoPagos.length > 0) {
@@ -287,6 +233,7 @@ const VendaForm = () => {
             setAlertColor("red");
             return;
         }
+
         setVendaToEnd(vendaId);
         setShowEndModal(true);
     };
