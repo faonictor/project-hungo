@@ -185,10 +185,25 @@ public class PedidoService {
     }
 
     // Deletar um pedido
+    @Transactional
     public ResponseEntity<Void> deletar(Long id) {
-        pedidoRepository.deleteById(id);
+        // Verifica se o pedido existe
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + id));
+
+        // Deleta todos os itens do pedido
+        itemPedidoRepository.deleteByPedidoId(id);
+
+        // Deleta o pedido
+        pedidoRepository.delete(pedido);
+
+        // Retorna uma resposta HTTP 204 (sem conteúdo) após a exclusão
         return ResponseEntity.noContent().build();
     }
+//    public ResponseEntity<Void> deletar(Long id) {
+//        pedidoRepository.deleteById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
     // Buscar pedidos por vendaId
     public List<Pedido> buscarPedidosPorVenda(Long vendaId) {
