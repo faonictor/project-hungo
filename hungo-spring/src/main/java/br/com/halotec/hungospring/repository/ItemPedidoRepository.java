@@ -16,11 +16,13 @@ import java.util.Optional;
 public interface ItemPedidoRepository extends CrudRepository<ItemPedido, Long> {
     void deleteByPedido(Pedido pedido);
 
-    List<ItemPedido> findByPedido(Pedido pedido);
+//    List<ItemPedido> findByPedido(Pedido pedido);
 
-    Optional<Object> findByPedidoId(Long id);
+//    Optional<Object> findByPedidoId(Long id);
 
     @Query("SELECT SUM(i.total) FROM ItemPedido i WHERE i.pedido.venda.id = :vendaId")
     float somarTotalPorVendaId(@Param("vendaId") Long vendaId);
+
+    List<ItemPedido> findByPedidoId(Long pedidoId);
 }
 
