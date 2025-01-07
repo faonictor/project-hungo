@@ -1,8 +1,10 @@
 package br.com.halotec.hungospring.controller;
 
+import br.com.halotec.hungospring.entity.Mesa;
 import br.com.halotec.hungospring.entity.Venda;
 import br.com.halotec.hungospring.service.VendaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,11 +49,14 @@ public class VendaController {
         return vendaService.deletar(id);
     }
 
-    @PutMapping("/venda/{id}")
-    public ResponseEntity<Venda> atualizar(
-            @PathVariable Long id,
-            @RequestBody Venda venda) {
-        venda.setId(id);
-        return vendaService.salvar(venda);
+    @GetMapping("venda/mesas-disponiveis")
+    public ResponseEntity<List<Mesa>> obterMesasDisponiveis() {
+        List<Mesa> mesasDisponiveis = vendaService.obterMesasDisponiveis();
+        return new ResponseEntity<>(mesasDisponiveis, HttpStatus.OK);
+    }
+
+    @PutMapping("/venda/{id}/fechar")
+    public ResponseEntity<Venda> fecharVenda(@PathVariable Long id) {
+        return ResponseEntity.ok(vendaService.fecharVenda(id));
     }
 }

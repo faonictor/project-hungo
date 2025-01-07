@@ -37,7 +37,9 @@ const VendaForm = () => {
         const fetchMesas = async () => {
             try {
                 const response = await api.get("/mesa");
-                setMesas(response.data);
+                // Filtra as mesas que não estão ocupadas (status = false)
+                const mesasDisponiveis = response.data.filter(mesa => mesa.status === true);
+                setMesas(mesasDisponiveis);
             } catch (error) {
                 setAlertMessage("Erro ao carregar mesas");
                 setAlertColor("red");
@@ -45,6 +47,7 @@ const VendaForm = () => {
         };
         fetchMesas();
     }, []);
+
 
     const fetchVendas = async () => {
         try {
@@ -103,7 +106,7 @@ const VendaForm = () => {
 
         try {
             setLoading(true);
-            const response = await api.post("/mesa", {nome: newMesaNome});
+            const response = await api.post("/mesa", {nome: newMesaNome, status: true}); // Status 'true' para mesa livre
             setMesas([...mesas, response.data]);
             setAlertMessage("Mesa criada com sucesso!");
             setAlertColor("green");
@@ -117,6 +120,39 @@ const VendaForm = () => {
         }
     };
 
+
+    // const handleCreateVenda = async () => {
+    //     if (!mesaId) {
+    //         setAlertMessage("Por favor, selecione uma mesa!");
+    //         setAlertColor("red");
+    //         return;
+    //     }
+    //
+    //     try {
+    //         setLoading(true);
+    //         const mesaSelecionada = mesas.find((mesa) => mesa.id === parseInt(mesaId));
+    //         const dataAtual = new Date().toISOString();
+    //
+    //         const vendaData = {
+    //             mesa: {id: parseInt(mesaId), nome: mesaSelecionada.nome},
+    //             dataInicioVenda: dataAtual,
+    //             dataFimVenda: null,
+    //             total: 0.0,
+    //         };
+    //
+    //         await api.post("/venda", vendaData);
+    //         fetchVendas();
+    //         setMesaId("");
+    //         setAlertMessage("Venda criada com sucesso!");
+    //         setAlertColor("green");
+    //     } catch (error) {
+    //         setAlertMessage("Erro ao criar venda");
+    //         setAlertColor("red");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleCreateVenda = async () => {
         if (!mesaId) {
             setAlertMessage("Por favor, selecione uma mesa!");
@@ -128,6 +164,12 @@ const VendaForm = () => {
             setLoading(true);
             const mesaSelecionada = mesas.find((mesa) => mesa.id === parseInt(mesaId));
             const dataAtual = new Date().toISOString();
+
+            // Atualizando o status da mesa para 'false' (ocupada), preservando o nome da mesa
+            await api.put(`/mesa/${mesaId}`, {
+                status: false,
+                nome: mesaSelecionada.nome, // Garantindo que o nome não seja perdido
+            });
 
             const vendaData = {
                 mesa: {id: parseInt(mesaId), nome: mesaSelecionada.nome},
@@ -170,21 +212,56 @@ const VendaForm = () => {
         }
     };
 
+    // const handleEndVenda = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const dataAtual = new Date().toISOString();
+    //
+    //         // Requisição para finalizar a venda
+    //         await api.put(`/venda/${vendaToEnd}/fechar`, {
+    //             dataFimVenda: dataAtual
+    //         });
+    //
+    //         fetchVendas();
+    //
+    //         if (selectedVenda === vendaToEnd) {
+    //             setSelectedVenda(null);
+    //             setPedidos([]);
+    //         }
+    //
+    //         setAlertMessage("Venda encerrada com sucesso!");
+    //         setAlertColor("green");
+    //     } catch (error) {
+    //         setAlertMessage("Erro ao encerrar venda");
+    //         setAlertColor("red");
+    //     } finally {
+    //         setLoading(false);
+    //         setShowEndModal(false);
+    //         setVendaToEnd(null);
+    //     }
+    // };
+
     const handleEndVenda = async () => {
         try {
             setLoading(true);
             const dataAtual = new Date().toISOString();
 
-            await api.put(`/venda/${vendaToEnd}`, {dataFimVenda: dataAtual});
+            await api.put(`/venda/${vendaToEnd}/fechar`, {
+                dataFimVenda: dataAtual
+            });
+
+            const mesaId = vendas.find((venda) => venda.id === vendaToEnd)?.mesa.id;
+            const mesaNome = vendas.find((venda) => venda.id === vendaToEnd)?.mesa.nome;
+            if (mesaId) {
+                await api.put(`/mesa/${mesaId}`, {status: true, nome: mesaNome});
+            }
 
             fetchVendas();
 
-            if (selectedVenda === vendaToEnd) {
-                setSelectedVenda(null);
-                setPedidos([]);
-            }
             setAlertMessage("Venda encerrada com sucesso!");
             setAlertColor("green");
+
+            fetchMesas();
         } catch (error) {
             setAlertMessage("Erro ao encerrar venda");
             setAlertColor("red");

@@ -162,11 +162,13 @@ const ClienteForm = () => {
                         </div>
 
                         {/* Notificação */}
-                        <AlertMessage
-                            alertMessage={alertMessage}
-                            alertColor={alertColor}
-                            onClose={() => setAlertMessage(null)}
-                        />
+                        <div className="mt-4">
+                            <AlertMessage
+                                alertMessage={alertMessage}
+                                alertColor={alertColor}
+                                onClose={() => setAlertMessage(null)}
+                            />
+                        </div>
                     </form>
                 </CardBody>
             </Card>
