@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import api from "../../services/axiosConfig";
-import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
+import {Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
 
 const VendaTable = () => {
     const [vendas, setVendas] = useState([]);

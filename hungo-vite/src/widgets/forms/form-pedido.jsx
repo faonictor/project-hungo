@@ -154,7 +154,7 @@ const PedidoForm = () => {
             setAlertColor("green");
 
             setTimeout(() => {
-                navigate("/dashboard/vendas");
+                navigate("/dashboard/pedido");
             }, 1000);
         } catch (error) {
             console.error("Erro ao salvar pedido:", error);

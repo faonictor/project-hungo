@@ -25,8 +25,9 @@ import EnderecoAddEdit from "@/pages/dashboard/enderecos/enderecoAddEdit.jsx";
 import InsumoAddEdit from "@/pages/dashboard/produtos/insumoAddEdit.jsx";
 import CategoriaAddEdit from "@/pages/dashboard/produtos/categoriaAddEdit.jsx";
 import VendaAddEdit from "@/pages/dashboard/pedidos/vendasAddEdit.jsx";
-import PedidoAddEdit from "@/pages/dashboard/pedidos/PedidoAddEdit.jsx";
+import PedidoAddEdit from "@/pages/dashboard/pedidos/pedidoAddEdit.jsx";
 import VendasList from "@/pages/dashboard/pedidos/vendasList.jsx";
+import PedidoTable from "@/widgets/tables/table-pedidos.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -75,6 +76,18 @@ export const routes = [
     ],
   },
   {
+    title: "Pedidos",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ShoppingBagIcon {...icon} />,
+        name: "Pedidos",
+        path: "/pedido",
+        element: <PedidoTable/>,
+      },
+    ],
+  },
+  {
     title: "Clientes",
     layout: "dashboard",
     pages: [
@@ -110,7 +123,7 @@ export const routes = [
         element: <ProdutoAddEdit />,
       },
       {
-        icon: <ShoppingBagIcon {...icon} />,
+        icon: <RectangleStackIcon {...icon} />,
         name: "Listar Produtos",
         path: "/produtos",
         element: <ProdutosList />,
