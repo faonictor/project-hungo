@@ -588,7 +588,7 @@ const PedidoForm = () => {
     const [clientes, setClientes] = useState([]);
     const [produtos, setProdutos] = useState([]);
     const [pedido, setPedido] = useState(null); // Estado para o pedido carregado (caso de edição)
-    const [selectedCliente, setSelectedCliente] = useState(null);
+    const [selectedCliente, setSelectedCliente] = useState("");
     const [selectedTipoPedido, setSelectedTipoPedido] = useState("Local");
     const [selectedStatusPedido, setSelectedStatusPedido] = useState("Aberto");
     const [carrinho, setCarrinho] = useState([]);
