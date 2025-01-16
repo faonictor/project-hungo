@@ -232,7 +232,8 @@ public class PedidoService {
                 .map(item -> new ItemPedidoDTO(
                         item.getId(),
                         item.getProduto().getId(),
-                        item.getQuantidade()
+                        item.getQuantidade(),
+                        item.getTotal()
                 ))
                 .collect(Collectors.toList());
 
