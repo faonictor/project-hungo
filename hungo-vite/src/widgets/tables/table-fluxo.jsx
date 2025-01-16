@@ -7,63 +7,6 @@ import {ArrowDownIcon, ArrowUpTrayIcon} from "@heroicons/react/20/solid/index.js
 import {ArrowUpIcon} from "@heroicons/react/24/outline";
 import {BanknotesIcon} from "@heroicons/react/24/solid";
 
-// const FluxoTable = () => {
-//     const [vendas, setVendas] = useState([]);
-//     const [fluxos, setFluxos] = useState([]);
-//     const [loading, setLoading] = useState(false);
-//     const [totais, setTotais] = useState({
-//         totalVendas: 0,
-//         totalEntradas: 0,
-//         totalSaidas: 0,
-//         saldo: 0, // Saldo calculado
-//     });
-//
-//     useEffect(() => {
-//         const fetchData = async () => {
-//             try {
-//                 setLoading(true);
-//                 const [vendasResponse, fluxosResponse] = await Promise.all([
-//                     api.get("/venda/fechadas"),
-//                     api.get("/fluxo"),
-//                 ]);
-//                 setVendas(vendasResponse.data);
-//                 setFluxos(fluxosResponse.data);
-//
-//                 // Calcular totais
-//                 const totalVendas = vendasResponse.data.reduce((acc, venda) => acc + venda.total, 0);
-//                 const totalEntradas = fluxosResponse.data
-//                     .filter(fluxo => fluxo.transacao === "entrada")
-//                     .reduce((acc, fluxo) => acc + fluxo.fluxo, 0);
-//                 const totalSaidas = fluxosResponse.data
-//                     .filter(fluxo => fluxo.transacao === "saida")
-//                     .reduce((acc, fluxo) => acc + fluxo.fluxo, 0);
-//
-//                 // Calcular o saldo
-//                 const saldo = totalVendas + totalEntradas - totalSaidas;
-//
-//                 // Atualizar o estado com os totais
-//                 setTotais({
-//                     totalVendas,
-//                     totalEntradas,
-//                     totalSaidas,
-//                     saldo,
-//                 });
-//
-//             } catch (error) {
-//                 console.error("Erro ao carregar dados", error);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-//
-//         fetchData();
-//     }, []);
-//
-//     const handleAddFluxo = (novoFluxo) => {
-//         setFluxos((prev) => [...prev, novoFluxo]);
-//
-//     };
-
 const FluxoTable = () => {
     const [vendas, setVendas] = useState([]);
     const [fluxos, setFluxos] = useState([]);
@@ -140,7 +83,7 @@ const FluxoTable = () => {
                     <CardBody>
                         <div className="mb-4">
                             <div className="flex justify-between text-lg font-medium">
-                                <div className="py-8 px-24 bg-green-50 rounded-lg border-2 border-green-100">
+                                <div className="py-8 px-24 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200">
                                     <div className="flex justify-center gap-x-2 mb-2">
                                         <ArrowUpIcon className="h-7 w-7"/>
                                         <Typography variant="h5">
@@ -152,7 +95,7 @@ const FluxoTable = () => {
                                     </Typography>
                                 </div>
 
-                                <div className="py-8 px-24 bg-blue-50 rounded-lg border-2 border-blue-100">
+                                <div className="py-8 px-24 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200">
                                     <div className="flex justify-center gap-x-2 mb-2">
                                         <ArrowUpIcon className="h-7 w-7"/>
                                         <Typography variant="h5">
@@ -164,7 +107,7 @@ const FluxoTable = () => {
                                     </Typography>
                                 </div>
 
-                                <div className="py-8 px-24 bg-red-50 rounded-lg border-2 border-red-100">
+                                <div className="py-8 px-24 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200">
                                     <div className="flex justify-center gap-x-2 mb-2">
                                         <ArrowDownIcon className="h-7 w-7"/>
                                         <Typography variant="h5">
@@ -176,7 +119,7 @@ const FluxoTable = () => {
                                     </Typography>
                                 </div>
 
-                                <div className="py-8 px-24 rounded-lg bg-blue-gray-50 border-2 border-blue-gray-100">
+                                <div className="py-8 px-24 rounded-lg bg-blue-gray-50 hover:bg-blue-gray-100 border-2 border-blue-gray-200">
                                     <div className="flex justify-center gap-x-2 mb-2">
                                         <BanknotesIcon className="h-7 w-7"/>
                                         <Typography variant="h5">
@@ -217,9 +160,9 @@ const FluxoTable = () => {
                                         {/* Renderizando Fluxos Financeiros */}
                                         {fluxos.map((fluxo) => (
                                             <tr key={`fluxo-${fluxo.id}`}>
-                                                <td className="px-4 py-2 border-b">{fluxo.nome}</td>
-                                                <td className="px-4 py-2 border-b">{fluxo.descricao}</td>
-                                                <td className="px-4 py-2 border-b">
+                                                <td className="px-6 py-3 border-b">{fluxo.nome}</td>
+                                                <td className="px-6 py-3 border-b">{fluxo.descricao}</td>
+                                                <td className="px-6 py-3 border-b">
                                                         <span
                                                             className={`inline-flex items-center px-2 text-sm rounded-full 
                                                                 ${fluxo.transacao === "entrada" ? "bg-blue-400 text-white" : "bg-red-500 text-white"}`}
@@ -227,7 +170,7 @@ const FluxoTable = () => {
                                                             {fluxo.transacao === "entrada" ? "Entrada" : "Saída"}
                                                         </span>
                                                 </td>
-                                                <td className="px-4 py-2 border-b">
+                                                <td className="px-6 py-3 border-b">
                                                     {`R$ ${fluxo.fluxo.toFixed(2)}`}
                                                 </td>
                                                 <td className="px-4 py-2 border-b">
@@ -241,9 +184,9 @@ const FluxoTable = () => {
                                         {/* Renderizando Vendas */}
                                         {vendas.map((venda) => (
                                             <tr key={`venda-${venda.id}`}>
-                                                <td className="px-4 py-2 border-b">{venda.mesa.nome}</td>
-                                                <td className="px-4 py-2 border-b">Venda realizada</td>
-                                                <td className="px-4 py-2 border-b">
+                                                <td className="px-6 py-3 border-b">{venda.mesa.nome}</td>
+                                                <td className="px-6 py-3 border-b">Venda realizada</td>
+                                                <td className="px-6 py-3 border-b">
                                                         <span className="inline-flex items-center px-2 text-sm rounded-full bg-green-500 text-white">
                                                             Venda
                                                         </span>

@@ -48,8 +48,12 @@ const ClienteForm = () => {
     const isFormValid = () => {
         const emailRegex = /\S+@\S+\.\S+/;
         return (
-            nome && telefone && emailRegex.test(email) && senha && cpf && senha === confirmarSenha
+            nome && telefone && emailRegex.test(email) && cpf
         );
+        //recolocar quando a tela for pedir a senha
+        // return (
+        //     nome && telefone && emailRegex.test(email) && senha && cpf && senha === confirmarSenha
+        // );
     };
 
     {/* Função Cadastro ou Edição */
@@ -119,33 +123,35 @@ const ClienteForm = () => {
 
                             <div className="mt-4 border-b border-blue-gray-100 col-span-1 sm:col-span-8"/>
 
-                            <div className="col-span-1 sm:col-span-4">
-                                <InputField label="Senha" placeholder="Digite sua senha" type="password" value={senha}
-                                            onChange={setSenha}/>
-                            </div>
+                            {/*recolocar quando a tela for pedir a senha*/}
+                            {/*<div className="col-span-1 sm:col-span-4">*/}
+                            {/*    <InputField label="Senha" placeholder="Digite sua senha" type="password" value={senha}*/}
+                            {/*                onChange={setSenha}/>*/}
+                            {/*</div>*/}
 
-                            <div className="col-span-1 sm:col-span-4">
-                                <InputField label="Confirmar Senha" placeholder="Confirme sua senha" type="password"
-                                            value={confirmarSenha} onChange={setConfirmarSenha}/>
-                            </div>
+                            {/*<div className="col-span-1 sm:col-span-4">*/}
+                            {/*    <InputField label="Confirmar Senha" placeholder="Confirme sua senha" type="password"*/}
+                            {/*                value={confirmarSenha} onChange={setConfirmarSenha}/>*/}
+                            {/*</div>*/}
                         </div>
 
-                        {/* Validação de Senha */}
-                        {senha && confirmarSenha && senha !== confirmarSenha && (
-                            <div className="mt-4 w-full">
-                                <Alert open color="red"
-                                       className="relative flex items-center justify-between px-4 py-3 rounded-lg">
-                                    <span>As senhas precisam ser iguais. Digite de novo.</span>
-                                    <button
-                                        onClick={() => setAlertMessage(null)}
-                                        className="absolute top-1/2 right-4 transform -translate-y-1/2"
-                                    >
-                                        <XMarkIcon
-                                            className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md"/>
-                                    </button>
-                                </Alert>
-                            </div>
-                        )}
+                        {/*recolocar quando a tela for pedir a senha*/}
+                        {/*/!* Validação de Senha *!/*/}
+                        {/*{senha && confirmarSenha && senha !== confirmarSenha && (*/}
+                        {/*    <div className="mt-4 w-full">*/}
+                        {/*        <Alert open color="red"*/}
+                        {/*               className="relative flex items-center justify-between px-4 py-3 rounded-lg">*/}
+                        {/*            <span>As senhas precisam ser iguais. Digite de novo.</span>*/}
+                        {/*            <button*/}
+                        {/*                onClick={() => setAlertMessage(null)}*/}
+                        {/*                className="absolute top-1/2 right-4 transform -translate-y-1/2"*/}
+                        {/*            >*/}
+                        {/*                <XMarkIcon*/}
+                        {/*                    className="h-6 w-6 text-white hover:bg-white hover:bg-opacity-20 rounded-md"/>*/}
+                        {/*            </button>*/}
+                        {/*        </Alert>*/}
+                        {/*    </div>*/}
+                        {/*)}*/}
 
                         <div className="flex w-full justify-center">
                             <Button

@@ -8,7 +8,7 @@ import AlertMessage from "@/widgets/alert-message.jsx";
 const FluxoForm = ({ onAddFluxo }) => {
     const [nome, setNome] = useState("");
     const [descricao, setDescricao] = useState("");
-    const [transacao, setTransacao] = useState("entrada"); // entrada ou saída
+    const [transacao, setTransacao] = useState("saida"); // entrada ou saída
     const [fluxo, setFluxo] = useState(""); // valor da transação
     const [dataTransacao, setDataTransacao] = useState(getLocalDateTime()); // Hora local ajustada
     const [alertMessage, setAlertMessage] = useState(null);
@@ -105,22 +105,22 @@ const FluxoForm = ({ onAddFluxo }) => {
                                 <label>
                                     <input
                                         type="radio"
-                                        value="entrada"
-                                        checked={transacao === "entrada"}
-                                        onChange={(e) => setTransacao(e.target.value)}
-                                        className="mr-2"
-                                    />
-                                    Entrada
-                                </label>
-                                <label>
-                                    <input
-                                        type="radio"
                                         value="saida"
                                         checked={transacao === "saida"}
                                         onChange={(e) => setTransacao(e.target.value)}
                                         className="mr-2"
                                     />
                                     Saída
+                                </label>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        value="entrada"
+                                        checked={transacao === "entrada"}
+                                        onChange={(e) => setTransacao(e.target.value)}
+                                        className="mr-2"
+                                    />
+                                    Entrada
                                 </label>
                             </div>
                         </div>

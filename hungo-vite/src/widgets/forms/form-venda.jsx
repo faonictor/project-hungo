@@ -482,7 +482,7 @@ const VendaForm = () => {
                                                     <Button
                                                         onClick={() => navigate(`/dashboard/pedido/${pedido.id}`)}
                                                         className="p-2 bg-green-500 text-white"
-                                                        disabled={pedido.statusPedido === "Pago"} // Desabilita o botão de carrinho se o status for "Pago"
+                                                        disabled={pedido.statusPedido === "Pago"}
                                                     >
                                                         <ShoppingCartIcon className="h-5 w-5"/>
                                                     </Button>
