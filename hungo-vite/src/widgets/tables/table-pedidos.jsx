@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../../services/axiosConfig";
 import { Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCartIcon } from "@heroicons/react/24/solid/index.js";
+import {PlusIcon, ShoppingCartIcon} from "@heroicons/react/24/solid/index.js";
 import { TrashIcon } from "@heroicons/react/24/solid";
 import Loading from "@/widgets/loading.jsx";
 
@@ -78,10 +78,19 @@ const PedidoList = () => {
 
     return (
         <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100">
-            <CardHeader variant="gradient" color="gray" className="my-4 p-4">
+            <CardHeader variant="gradient" color="gray" className="my-4 p-4 flex space-x-6 items-center justify-between">
                 <Typography variant="h6" color="white">
                     Lista de Pedidos
                 </Typography>
+                <button
+                    onClick={() => navigate(`/dashboard/vendas`)}
+                    className="flex items-center bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
+                >
+                        <span className="flex p-1 justify-center items-center">
+                            <PlusIcon className="w-5 h-5 text-sm"/>
+                            <span className="text-sm">Novo Pedido</span>
+                        </span>
+                </button>
             </CardHeader>
 
             <CardBody className="px-4 pt-0 pb-6">
@@ -143,16 +152,17 @@ const PedidoList = () => {
                                     <td className="px-2 py-2 border-b space-x-2">
                                         <button
                                             onClick={() => navigate(`/dashboard/pedido/${pedido.id}`)}
-                                            className="p-1.5 hover:bg-green-100 hover:text-green-800 text-blue-gray-500 rounded-lg"
+                                            className={`p-1.5 text-blue-gray-500 rounded-lg ${pedido.statusPedido === "Pago" ? "cursor-not-allowed opacity-50" : "hover:bg-green-100 hover:text-green-800"}`}
+                                            disabled={pedido.statusPedido === "Pago"} // Desabilita o botão de carrinho se o status for "Pago"
                                         >
-                                            <ShoppingCartIcon className="h-5 w-5" />
+                                            <ShoppingCartIcon className="h-5 w-5"/>
                                         </button>
                                         <button
                                             onClick={() => openDeleteModal(pedido)}
-                                            className="p-1.5 hover:bg-red-100 text-blue-gray-500 rounded-lg"
+                                            className={`p-1.5 text-blue-gray-500 rounded-lg ${pedido.statusPedido === "Pago" ? "cursor-not-allowed opacity-50" : "hover:bg-red-100 text-red-500"}`}
                                             disabled={pedido.statusPedido === "Pago"} // Desabilita o botão de delete se o status for "Pago"
                                         >
-                                            <TrashIcon className="h-5 w-5" />
+                                            <TrashIcon className="h-5 w-5"/>
                                         </button>
                                     </td>
                                 </tr>

@@ -85,6 +85,12 @@ export const routes = [
         name: "Adicionar Pedido",
         path: "/pedido/:pedidoId",
         element: <PedidoAddEdit />,
+      },
+      {
+        icon: <CurrencyDollarIcon {...icon} />,
+        name: "Financeiro",
+        path: "/financeiro", // Rota Visível no Menu
+        element: <FluxoList />,
       }
     ],
   },
@@ -183,18 +189,6 @@ export const routes = [
         name: "Editar Endereço",
         path: "endereco/editar/:id",
         element: <EnderecoAddEdit />,
-      },
-    ],
-  },
-  {
-    title: "Financeiro",
-    layout: "dashboard",
-    pages: [
-      {
-        icon: <CurrencyDollarIcon {...icon} />,
-        name: "Financeiro",
-        path: "/financeiro", // Rota Visível no Menu
-        element: <FluxoList />,
       },
     ],
   },

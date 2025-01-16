@@ -32,6 +32,8 @@ const VendaForm = () => {
     const [showMesaModal, setShowMesaModal] = useState(false);
     const [newMesaNome, setNewMesaNome] = useState("");
     const navigate = useNavigate();
+    const [vendaFinalizada, setVendaFinalizada] = useState(null);
+    const [showVendaFinalizadaModal, setShowVendaFinalizadaModal] = useState(false);
 
     useEffect(() => {
         const fetchMesas = async () => {
@@ -179,29 +181,41 @@ const VendaForm = () => {
         }
     };
 
+
     // const handleEndVenda = async () => {
     //     try {
     //         setLoading(true);
     //         const dataAtual = new Date().toISOString();
     //
+    //         // Fechar a venda
     //         await api.put(`/venda/${vendaToEnd}/fechar`, {
-    //             dataFimVenda: dataAtual
+    //             dataFimVenda: dataAtual,
     //         });
     //
-    //         const mesaId = vendas.find((venda) => venda.id === vendaToEnd)?.mesa.id;
-    //         const mesaNome = vendas.find((venda) => venda.id === vendaToEnd)?.mesa.nome;
-    //         if (mesaId) {
-    //             await api.put(`/mesa/${mesaId}`, {status: true, nome: mesaNome});
+    //         // Encontrar a mesa associada à venda
+    //         const venda = vendas.find((venda) => venda.id === vendaToEnd);
+    //         const mesaId = venda?.mesa.id;
+    //         const mesaNome = venda?.mesa.nome;
+    //
+    //         // Verifique se a mesaId e mesaNome estão presentes
+    //         if (!mesaId || !mesaNome) {
+    //             throw new Error("Mesa não encontrada para esta venda");
     //         }
     //
-    //         fetchVendas();
+    //         // Atualizar o status da mesa para 'true' (livre)
+    //         const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
+    //         if (mesaResponse.status !== 200) {
+    //             throw new Error("Erro ao atualizar o status da mesa");
+    //         }
     //
+    //         // Atualizar as vendas e as mesas no front-end
+    //         await fetchVendas();
+    //
+    //         // Exibir mensagem de sucesso
     //         setAlertMessage("Venda encerrada com sucesso!");
     //         setAlertColor("green");
-    //
-    //         fetchMesas();
     //     } catch (error) {
-    //         setAlertMessage("Erro ao encerrar venda");
+    //         setAlertMessage(error.message || "Erro ao encerrar venda");
     //         setAlertColor("red");
     //     } finally {
     //         setLoading(false);
@@ -220,37 +234,55 @@ const VendaForm = () => {
                 dataFimVenda: dataAtual,
             });
 
-            // Encontrar a mesa associada à venda
-            const venda = vendas.find((venda) => venda.id === vendaToEnd);
-            const mesaId = venda?.mesa.id;
-            const mesaNome = venda?.mesa.nome;
+            // Buscar os dados da venda finalizada
+            const response = await api.get(`/venda/${vendaToEnd}`);
+            const vendaFechada = response.data;
 
-            // Verifique se a mesaId e mesaNome estão presentes
-            if (!mesaId || !mesaNome) {
-                throw new Error("Mesa não encontrada para esta venda");
-            }
+            // Atualizar o estado com as informações da venda finalizada
+            setVendaFinalizada({
+                valor: vendaFechada.total,
+                data: vendaFechada.dataFimVenda,
+                mesa: vendaFechada.mesa.nome,
+            });
 
-            // Atualizar o status da mesa para 'true' (livre)
+            // Atualizar o status da mesa para 'livre'
+            const mesaId = vendaFechada.mesa.id;
+            const mesaNome = vendaFechada.mesa.nome;
             const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
+
             if (mesaResponse.status !== 200) {
                 throw new Error("Erro ao atualizar o status da mesa");
             }
 
-            // Atualizar as vendas e as mesas no front-end
+            // Recarregar as mesas disponíveis (status: true)
+            const responseMesas = await api.get("/mesa");
+            const mesasDisponiveis = responseMesas.data.filter((mesa) => mesa.status === true);
+            setMesas(mesasDisponiveis);
+
+            // Atualizar as vendas no front-end
             await fetchVendas();
+
+            // Resetar os pedidos (como lista vazia)
+            setPedidos([]);
 
             // Exibir mensagem de sucesso
             setAlertMessage("Venda encerrada com sucesso!");
             setAlertColor("green");
+
+            // Fechar o modal de cancelamento e abrir o modal com os dados da venda
+            setShowEndModal(false); // Fechar o modal de cancelamento
+            setShowVendaFinalizadaModal(true); // Exibir o modal com os dados da venda
+
         } catch (error) {
             setAlertMessage(error.message || "Erro ao encerrar venda");
             setAlertColor("red");
         } finally {
             setLoading(false);
-            setShowEndModal(false);
-            setVendaToEnd(null);
+            setVendaToEnd(null); // Limpar a venda que foi encerrada
         }
     };
+
+
 
 
     const openDeleteModal = (vendaId, event) => {
@@ -258,7 +290,6 @@ const VendaForm = () => {
         setVendaToDelete(vendaId);
         setShowDeleteModal(true);
     };
-
 
     const openEndModal = (vendaId, event) => {
         event.stopPropagation();
@@ -283,6 +314,33 @@ const VendaForm = () => {
 
     return (
         <>
+            {showVendaFinalizadaModal && vendaFinalizada && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-1/3">
+                        <Typography variant="h4" color="gray" className="mb-4 flex items-center gap-x-2">
+                            <span>Venda Finalizada</span>
+                        </Typography>
+                        <p>
+                            <strong>Valor:</strong> R$ {vendaFinalizada.valor.toFixed(2)}
+                        </p>
+                        <p>
+                            <strong>Data:</strong> {new Date(vendaFinalizada.data).toLocaleString()}
+                        </p>
+                        <p>
+                            <strong>Mesa:</strong> {vendaFinalizada.mesa}
+                        </p>
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => setShowVendaFinalizadaModal(false)} // Fechar o modal
+                                className="mr-4 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 active:bg-gray-500"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
                 <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                     <Typography variant="h6" color="white">
