@@ -461,7 +461,19 @@ const VendaForm = () => {
                                             <tr key={pedido.id}>
                                                 <td className="px-4 py-2 border-b">{pedido.id}</td>
                                                 <td className="px-4 py-2 border-b">{pedido.tipoPedido}</td>
-                                                <td className="px-4 py-2 border-b">{pedido.statusPedido}</td>
+                                                <td className="px-4 py-2 border-b">
+                                                    <span
+                                                            className={`inline-flex cursor-pointer items-center px-2 text-sm rounded-full 
+                                                            ${pedido.statusPedido === 'Pago' ? 'bg-green-500 hover:bg-green-700 text-white' :
+                                                                pedido.statusPedido === 'Em Andamento' ? 'bg-blue-500 hover:bg-blue-700 text-white' :
+                                                                    pedido.statusPedido === 'Aberto' ? 'bg-indigo-500 hover:bg-indigo-700 text-white' :
+                                                                        pedido.statusPedido === 'Finalizado' ? 'bg-green-300 hover:bg-green-500 text-white' :
+                                                                            pedido.statusPedido === 'Rota de Entrega' ? 'bg-orange-500 hover:bg-orange-700 text-white' :
+                                                                                'bg-gray-300 text-white'}`}
+                                                        >
+                                                        {pedido.statusPedido}
+                                                    </span>
+                                                </td>
                                                 <td className="px-4 py-2 border-b">{pedido.cliente?.nome || "Não informado"}</td>
                                                 <td className="px-4 py-2 border-b">
                                                     {new Date(pedido.dataHora).toLocaleString()}
@@ -470,6 +482,7 @@ const VendaForm = () => {
                                                     <Button
                                                         onClick={() => navigate(`/dashboard/pedido/${pedido.id}`)}
                                                         className="p-2 bg-green-500 text-white"
+                                                        disabled={pedido.statusPedido === "Pago"} // Desabilita o botão de carrinho se o status for "Pago"
                                                     >
                                                         <ShoppingCartIcon className="h-5 w-5"/>
                                                     </Button>

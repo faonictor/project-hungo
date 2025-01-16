@@ -89,7 +89,7 @@ export const routes = [
       {
         icon: <CurrencyDollarIcon {...icon} />,
         name: "Financeiro",
-        path: "/financeiro", // Rota Visível no Menu
+        path: "/financeiro",
         element: <FluxoList />,
       }
     ],
@@ -100,23 +100,25 @@ export const routes = [
     pages: [
       {
         icon: <UserPlusIcon {...icon} />,
-        name: "Cliente Delivery",
+        name: "Novo Cliente",
         path: "/cliente-rapido",
         element: <ClienteEnderecoAdd/>,
       },
-      {
-        icon: <UserCircleIcon {...icon} />,
-        name: "Cadastrar Cliente",
-        path: "/cliente",
-        element: <ClienteAddEdit/>,
-      },
+
+        //implementação de cliente usuário somente depois
+      // {
+      //   icon: <UserCircleIcon {...icon} />,
+      //   name: "Cadastrar Cliente",
+      //   path: "/cliente",
+      //   element: <ClienteAddEdit/>,
+      // },
+
       {
         icon: <UserGroupIcon {...icon} />,
         name: "Listar Clientes",
         path: "/clientes",
         element: <ClientesList/>,
       },
-      // Removemos a rota de "Editar Cliente" do menu
     ],
   },
   {
@@ -167,7 +169,6 @@ export const routes = [
       },
     ],
   },
-
   {
     title: "Endereços",
     layout: "dashboard",
@@ -175,7 +176,7 @@ export const routes = [
       {
         icon: <MapPinIcon {...icon} />,
         name: "Cadastrar Endereço",
-        path: "/endereco/cadastro", // Rota Visível no Menu
+        path: "/endereco/cadastro",
         element: <EnderecoAddEdit />,
       },
       {
@@ -214,7 +215,7 @@ export const routes = [
     layout: "dashboard",
     pages: [
       {
-        path: "/cliente/:id", // Rota para edição de clientes
+        path: "/cliente/:id",
         element: <ClienteAddEdit />,
       },
     ],
