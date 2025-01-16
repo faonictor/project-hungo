@@ -12,7 +12,7 @@ import {
   SquaresPlusIcon,
   MapPinIcon,
   ShoppingCartIcon,
-  LockClosedIcon,
+  LockClosedIcon, CurrencyDollarIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
@@ -28,6 +28,7 @@ import VendaAddEdit from "@/pages/dashboard/pedidos/vendasAddEdit.jsx";
 import PedidoAddEdit from "@/pages/dashboard/pedidos/pedidoAddEdit.jsx";
 import VendasList from "@/pages/dashboard/pedidos/vendasList.jsx";
 import PedidoTable from "@/widgets/tables/table-pedidos.jsx";
+import FluxoList from "@/pages/dashboard/financeiro/financeiroList.jsx";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -186,23 +187,35 @@ export const routes = [
     ],
   },
   {
-    title: "Perfil",
-    layout: "auth",
+    title: "Financeiro",
+    layout: "dashboard",
     pages: [
       {
-        icon: <ServerStackIcon {...icon} />,
-        name: "Sign In",
-        path: "/sign-in",
-        element: <SignIn/>,
-      },
-      {
-        icon: <RectangleStackIcon {...icon} />,
-        name: "Sign Up",
-        path: "/sign-up",
-        element: <SignUp/>,
+        icon: <CurrencyDollarIcon {...icon} />,
+        name: "Financeiro",
+        path: "/financeiro", // Rota Visível no Menu
+        element: <FluxoList />,
       },
     ],
   },
+  // {
+  //   title: "Perfil",
+  //   layout: "auth",
+  //   pages: [
+  //     {
+  //       icon: <ServerStackIcon {...icon} />,
+  //       name: "Sign In",
+  //       path: "/sign-in",
+  //       element: <SignIn/>,
+  //     },
+  //     {
+  //       icon: <RectangleStackIcon {...icon} />,
+  //       name: "Sign Up",
+  //       path: "/sign-up",
+  //       element: <SignUp/>,
+  //     },
+  //   ],
+  // },
   {
     layout: "dashboard",
     pages: [
