@@ -258,20 +258,21 @@
 // export default Home;
 
 import React, { useState, useEffect } from "react";
-import {Button, Card, CardBody, CardHeader, Typography} from "@material-tailwind/react";
-import { StatisticsCard } from "@/widgets/cards"; // Seu componente
-import { ArrowUpIcon, ArrowDownIcon, BanknotesIcon } from "@heroicons/react/24/outline"; // Ícones
-import { CheckCircleIcon } from "@heroicons/react/24/solid"; // Ícone de saldo
+import { Button, Card, CardBody, Typography } from "@material-tailwind/react";
+import { StatisticsCard } from "@/widgets/cards";
+import { ArrowUpIcon, ArrowDownIcon, BanknotesIcon } from "@heroicons/react/24/outline";
+import {
+  ArchiveBoxArrowDownIcon,
+  CheckCircleIcon,
+  CurrencyDollarIcon, RectangleStackIcon, ShoppingCartIcon,
+  UserGroupIcon,
+  UserPlusIcon
+} from "@heroicons/react/24/solid";
 import api from "../../services/axiosConfig";
-import AlertMessage from "@/widgets/alert-message.jsx";
-import SelectField from "@/widgets/forms/select-field.jsx";
-import {LockOpenIcon, PlusCircleIcon, PlusSmallIcon, ShoppingCartIcon} from "@heroicons/react/24/solid/index.js";
-import {ArrowPathIcon, TrashIcon} from "@heroicons/react/24/outline/index.js";
-import InputField from "@/widgets/forms/input-field.jsx";
-import VendasList from "@/pages/dashboard/pedidos/vendasList.jsx";
-import FluxoList from "@/pages/dashboard/financeiro/financeiroList.jsx"; // Para buscar os dados de fluxo financeiro
+import { useNavigate } from "react-router-dom";
 
 export function Home() {
+  const navigate = useNavigate();
   const [totais, setTotais] = useState({
     totalVendas: 0,
     totalEntradas: 0,
@@ -320,14 +321,14 @@ export function Home() {
       icon: <ArrowUpIcon className="w-6 h-6 text-white" />,
       value: `R$ ${totais.totalEntradas.toFixed(2)}`,
       footer: { value: totais.totalEntradas.toFixed(2), label: "Entradas registradas", color: "text-blue-600" },
-      color: "blue", // Cor do card
+      color: "blue",
     },
     {
       title: "Total de Saídas",
       icon: <ArrowDownIcon className="w-6 h-6 text-white" />,
       value: `R$ ${totais.totalSaidas.toFixed(2)}`,
       footer: { value: totais.totalSaidas.toFixed(2), label: "Saídas registradas", color: "text-red-600" },
-      color: "red", // Cor do card
+      color: "red",
     },
     {
       title: "Saldo",
@@ -339,36 +340,89 @@ export function Home() {
   ];
 
   return (
-    <>
-      <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
-        <CardBody className="px-10 pt-0 pb-6 h-full flex flex-col flex-1">
-          <div className="mt-12">
-            <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-              {statisticsCardsData.map(({icon, title, footer, color, value}, index) => (
-                  <StatisticsCard
-                      key={title}
-                      title={title}
-                      icon={icon} // Passando o ícone
-                      value={value}
-                      footer={
-                        <Typography className={`font-normal ${footer.color}`}>
-                          <strong>{footer.value}</strong>&nbsp;{footer.label}
-                        </Typography>
-                      }
-                      color={color} // Cor do card
-                  />
-              ))}
+      <>
+        <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
+          <CardBody className="px-10 pt-0 pb-6 h-full flex flex-col flex-1">
+            <div className="mt-12">
+              <div className="mb-10 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
+                {statisticsCardsData.map(({icon, title, footer, color, value}, index) => (
+                    <StatisticsCard
+                        key={title}
+                        title={title}
+                        icon={icon} // Passando o ícone
+                        value={value}
+                        footer={
+                          <Typography className={`font-normal ${footer.color}`}>
+                            <strong>{footer.value}</strong>&nbsp;{footer.label}
+                          </Typography>
+                        }
+                        color={color} // Cor do card
+                    />
+                ))}
+              </div>
             </div>
-          </div>
-        </CardBody>
+            <div
+                className="flex justify-center items-center flex-wrap gap-y-4 gap-x-8 lg:gap-x-16 mt-8 p-24 overflow-x-auto">
+              <div className="flex flex-col  h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">+ Pedido</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/vendas`)}
+                >
+                  <ShoppingCartIcon className="h-7 w-7"/>
+                </Button>
+              </div>
+              <div className="flex flex-col h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">Novo Produto</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/produto`)}
+                >
+                  <ArchiveBoxArrowDownIcon className="h-7 w-7"/>
+                </Button>
+              </div>
+              <div className="flex flex-col h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">Listar Produto</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/produto`)}
+                >
+                  <RectangleStackIcon className="h-7 w-7"/>
+                </Button>
+              </div>
 
-
-      </Card>
-    </>
-
+              <div className="flex flex-col h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">Novo Cliente</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/cliente-rapido`)}
+                >
+                  <UserPlusIcon className="h-7 w-7"/>
+                </Button>
+              </div>
+              <div className="flex flex-col h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">Listar Clientes</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/clientes`)}
+                >
+                  <UserGroupIcon className="h-7 w-7"/>
+                </Button>
+              </div>
+              <div className="flex flex-col h-full justify-between items-center space-y-2">
+                <span className="text-sm whitespace-nowrap">Financeiro</span>
+                <Button
+                    className="p-8 hover:bg-blue-600"
+                    onClick={() => navigate(`/dashboard/financeiro`)}
+                >
+                  <CurrencyDollarIcon className="h-7 w-7"/>
+                </Button>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </>
   );
 }
 
 export default Home;
-
-

@@ -31,9 +31,9 @@ const VendaForm = () => {
     const [vendaToEnd, setVendaToEnd] = useState(null);
     const [showMesaModal, setShowMesaModal] = useState(false);
     const [newMesaNome, setNewMesaNome] = useState("");
-    const navigate = useNavigate();
     const [vendaFinalizada, setVendaFinalizada] = useState(null);
     const [showVendaFinalizadaModal, setShowVendaFinalizadaModal] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMesas = async () => {
