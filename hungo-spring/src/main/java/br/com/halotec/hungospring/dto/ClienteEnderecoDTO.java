@@ -15,4 +15,5 @@ public class ClienteEnderecoDTO {
     private String bairro;
     private String cidade;
     private String cep;
+    private Boolean status;
 }

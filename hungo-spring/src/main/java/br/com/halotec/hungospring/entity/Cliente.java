@@ -20,4 +20,5 @@ public class Cliente {
     private String senha;
     private String cpf;
     private LocalDateTime dataCadastro;
+    private Boolean status;
 }
