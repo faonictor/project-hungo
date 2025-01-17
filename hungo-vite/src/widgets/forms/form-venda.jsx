@@ -314,33 +314,6 @@ const VendaForm = () => {
 
     return (
         <>
-            {showVendaFinalizadaModal && vendaFinalizada && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-1/3">
-                        <Typography variant="h4" color="gray" className="mb-4 flex items-center gap-x-2">
-                            <span>Venda Finalizada</span>
-                        </Typography>
-                        <p>
-                            <strong>Valor:</strong> R$ {vendaFinalizada.valor.toFixed(2)}
-                        </p>
-                        <p>
-                            <strong>Data:</strong> {new Date(vendaFinalizada.data).toLocaleString()}
-                        </p>
-                        <p>
-                            <strong>Mesa:</strong> {vendaFinalizada.mesa}
-                        </p>
-                        <div className="mt-4 flex justify-end">
-                            <button
-                                onClick={() => setShowVendaFinalizadaModal(false)} // Fechar o modal
-                                className="mr-4 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 active:bg-gray-500"
-                            >
-                                Fechar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
                 <CardHeader variant="gradient" color="gray" className="my-4 p-4">
                     <Typography variant="h6" color="white">
@@ -509,6 +482,33 @@ const VendaForm = () => {
                     </div>
                 </CardBody>
             </Card>
+
+            {showVendaFinalizadaModal && vendaFinalizada && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-1/3">
+                        <Typography variant="h4" color="gray" className="mb-4 flex items-center gap-x-2">
+                            <span>Venda Finalizada</span>
+                        </Typography>
+                        <p>
+                            <strong>Valor:</strong> R$ {vendaFinalizada.valor.toFixed(2)}
+                        </p>
+                        <p>
+                            <strong>Data:</strong> {new Date(vendaFinalizada.data).toLocaleString()}
+                        </p>
+                        <p>
+                            <strong>Mesa:</strong> {vendaFinalizada.mesa}
+                        </p>
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={() => setShowVendaFinalizadaModal(false)} // Fechar o modal
+                                className="mr-4 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400 active:bg-gray-500"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de Exclusão */}
             {showDeleteModal && (
