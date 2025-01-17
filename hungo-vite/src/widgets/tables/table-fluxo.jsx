@@ -132,58 +132,6 @@ const FluxoTable = () => {
                                 />
                             ))}
                         </div>
-                        {/*<div className="mb-4">*/}
-                        {/*    <div className="flex justify-between text-lg font-medium">*/}
-                        {/*        <div className="py-8 px-24 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200">*/}
-                        {/*            <div className="flex justify-center gap-x-2 mb-2">*/}
-                        {/*                <ArrowUpIcon className="h-7 w-7"/>*/}
-                        {/*                <Typography variant="h5">*/}
-                        {/*                    Total de Vendas:*/}
-                        {/*                </Typography>*/}
-                        {/*            </div>*/}
-                        {/*            <Typography variant="h3" className="text-green-600">*/}
-                        {/*                {`R$ ${totais.totalVendas.toFixed(2)}`}*/}
-                        {/*            </Typography>*/}
-                        {/*        </div>*/}
-
-                        {/*        <div className="py-8 px-24 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200">*/}
-                        {/*            <div className="flex justify-center gap-x-2 mb-2">*/}
-                        {/*                <ArrowUpIcon className="h-7 w-7"/>*/}
-                        {/*                <Typography variant="h5">*/}
-                        {/*                    Outras Entradas:*/}
-                        {/*                </Typography>*/}
-                        {/*            </div>*/}
-                        {/*            <Typography variant="h3" className="text-blue-600">*/}
-                        {/*                {`R$ ${totais.totalEntradas.toFixed(2)}`}*/}
-                        {/*            </Typography>*/}
-                        {/*        </div>*/}
-
-                        {/*        <div className="py-8 px-24 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200">*/}
-                        {/*            <div className="flex justify-center gap-x-2 mb-2">*/}
-                        {/*                <ArrowDownIcon className="h-7 w-7"/>*/}
-                        {/*                <Typography variant="h5">*/}
-                        {/*                    Total Saídas:*/}
-                        {/*                </Typography>*/}
-                        {/*            </div>*/}
-                        {/*            <Typography variant="h3" className="text-red-600">*/}
-                        {/*                {`R$ ${totais.totalSaidas.toFixed(2)}`}*/}
-                        {/*            </Typography>*/}
-                        {/*        </div>*/}
-
-                        {/*        <div className="py-8 px-24 rounded-lg bg-blue-gray-50 hover:bg-blue-gray-100 border-2 border-blue-gray-200">*/}
-                        {/*            <div className="flex justify-center gap-x-2 mb-2">*/}
-                        {/*                <BanknotesIcon className="h-7 w-7"/>*/}
-                        {/*                <Typography variant="h5">*/}
-                        {/*                    Saldo:*/}
-                        {/*                </Typography>*/}
-                        {/*            </div>*/}
-                        {/*            <Typography variant="h3"*/}
-                        {/*                        className={`text-${totais.saldo >= 0 ? "green" : "red"}-600`}>*/}
-                        {/*                {`R$ ${totais.saldo.toFixed(2)}`}*/}
-                        {/*            </Typography>*/}
-                        {/*        </div>*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
                     </CardBody>
 
 
