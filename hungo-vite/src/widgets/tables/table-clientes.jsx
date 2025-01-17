@@ -465,46 +465,45 @@ const ClientesTable = () => {
             <Card className="overflow-x-auto bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
                 <CardHeader variant="gradient" color="gray"
                             className="my-4 p-4 flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
-                    <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-x-6">
-                        <Typography variant="h6" color="white">
-                            Lista de Clientes
-                        </Typography>
 
-                        <div className="flex items-center space-x-4">
-                            <label className={`flex items-center space-x-2 cursor-pointer`}>
-                                <input
-                                    type="radio"
-                                    className={`form-radio h-4 w-4 text-blue-500 transition duration-150 ease-in-out`}
-                                    checked={statusFiltro === 'todos'}
-                                    onChange={() => setStatusFiltro('todos')}
-                                    name="status"
-                                />
-                                <span className={`ml-2 text-white text-sm`}>Todos</span>
-                            </label>
+                    <Typography variant="h6" color="white">
+                        Lista de Clientes
+                    </Typography>
+                    <div className="flex bg-gray-900 px-4 py-1 rounded-lg space-x-8">
+                        <label className={`flex items-center space-x-2 cursor-pointer`}>
+                            <input
+                                type="radio"
+                                className="mr-2"
+                                checked={statusFiltro === 'todos'}
+                                onChange={() => setStatusFiltro('todos')}
+                                name="status"
+                            />
+                            <span>Todos</span>
+                        </label>
 
-                            <label className={`flex items-center space-x-2 cursor-pointer`}>
-                                <input
-                                    type="radio"
-                                    className={`form-radio h-4 w-4 text-blue-500 transition duration-150 ease-in-out`}
-                                    checked={statusFiltro === 'ativos'}
-                                    onChange={() => setStatusFiltro('ativos')}
-                                    name="status"
-                                />
-                                <span className={`ml-2 text-white text-sm`}>Ativos</span>
-                            </label>
+                        <label className={`flex items-center space-x-2 cursor-pointer`}>
+                            <input
+                                type="radio"
+                                className="mr-2"
+                                checked={statusFiltro === 'ativos'}
+                                onChange={() => setStatusFiltro('ativos')}
+                                name="status"
+                            />
+                            <span>Ativos</span>
+                        </label>
 
-                            <label className={`flex items-center space-x-2 cursor-pointer`}>
-                                <input
-                                    type="radio"
-                                    className={`form-radio h-4 w-4 text-blue-500 transition duration-150 ease-in-out`}
-                                    checked={statusFiltro === 'inativos'}
-                                    onChange={() => setStatusFiltro('inativos')}
-                                    name="status"
-                                />
-                                <span className={`ml-2 text-white text-sm`}>Inativos</span>
-                            </label>
-                        </div>
+                        <label className={`flex items-center space-x-2 cursor-pointer`}>
+                            <input
+                                type="radio"
+                                className="mr-2"
+                                checked={statusFiltro === 'inativos'}
+                                onChange={() => setStatusFiltro('inativos')}
+                                name="status"
+                            />
+                            <span>Inativos</span>
+                        </label>
                     </div>
+
 
                     <button
                         onClick={handleCreateCliente}
@@ -526,7 +525,7 @@ const ClientesTable = () => {
 
                     <div className="overflow-x-auto bg-white shadow-md rounded-lg">
                         <table className="min-w-full table-auto">
-                            <thead>
+                        <thead>
                             <tr>
                                 <th className="px-4 py-2 border-b text-left">ID</th>
                                 <th className="px-4 py-2 border-b text-left">Nome</th>
