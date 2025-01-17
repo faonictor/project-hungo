@@ -61,95 +61,157 @@
 //   ],
 // },
 
+{/*/!* Campo Categoria *!/*/}
+{/*<div className="mb-6">*/}
+{/*    <label className="block text-sm font-medium text-gray-700">Categoria</label>*/}
+{/*    <select*/}
+{/*        value={categoriaId}*/}
+{/*        onChange={(e) => setCategoriaId(e.target.value)}*/}
+{/*        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
+{/*    >*/}
+{/*        <option value="">Selecione uma categoria</option>*/}
+{/*        {categorias.map(categoria => (*/}
+{/*            <option key={categoria.id} value={categoria.id}>*/}
+{/*                {categoria.nome}*/}
+{/*            </option>*/}
+{/*        ))}*/}
+{/*    </select>*/}
+{/*</div>*/}
 
-                    {/*/!* Campo Categoria *!/*/}
-                    {/*<div className="mb-6">*/}
-                    {/*    <label className="block text-sm font-medium text-gray-700">Categoria</label>*/}
-                    {/*    <select*/}
-                    {/*        value={categoriaId}*/}
-                    {/*        onChange={(e) => setCategoriaId(e.target.value)}*/}
-                    {/*        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
-                    {/*    >*/}
-                    {/*        <option value="">Selecione uma categoria</option>*/}
-                    {/*        {categorias.map(categoria => (*/}
-                    {/*            <option key={categoria.id} value={categoria.id}>*/}
-                    {/*                {categoria.nome}*/}
-                    {/*            </option>*/}
-                    {/*        ))}*/}
-                    {/*    </select>*/}
-                    {/*</div>*/}
+{/*/!* Campo Tipo (Ativo / Inativo) *!/*/}
+{/*<div className="mb-6">*/}
+{/*    <label className="block text-sm font-medium text-gray-700">Tipo</label>*/}
+{/*    <select*/}
+{/*        value={tipo}*/}
+{/*        onChange={(e) => setTipo(e.target.value === 'true')}*/}
+{/*        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
+{/*    >*/}
+{/*        <option value={true}>Ativo</option>*/}
+{/*        <option value={false}>Inativo</option>*/}
+{/*    </select>*/}
+{/*</div>*/}
 
-                    {/*/!* Campo Tipo (Ativo / Inativo) *!/*/}
-                    {/*<div className="mb-6">*/}
-                    {/*    <label className="block text-sm font-medium text-gray-700">Tipo</label>*/}
-                    {/*    <select*/}
-                    {/*        value={tipo}*/}
-                    {/*        onChange={(e) => setTipo(e.target.value === 'true')}*/}
-                    {/*        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
-                    {/*    >*/}
-                    {/*        <option value={true}>Ativo</option>*/}
-                    {/*        <option value={false}>Inativo</option>*/}
-                    {/*    </select>*/}
-                    {/*</div>*/}
+{/*/!* Campo Insumos *!/*/}
+{/*<div className="mb-6">*/}
+{/*    <label className="block text-sm font-medium text-gray-700">Insumos</label>*/}
+{/*    {selectedInsumos.map((insumo, index) => (*/}
+{/*        <div key={index} className="flex space-x-4 mb-2">*/}
+{/*            <select*/}
+{/*                value={insumo.insumoId}*/}
+{/*                onChange={(e) => handleInsumoChange(index, 'insumoId', e.target.value)}*/}
+{/*                className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
+{/*            >*/}
+{/*                <option value="">Selecione um insumo</option>*/}
+{/*                {insumos.map(ins => (*/}
+{/*                    <option key={ins.id} value={ins.id}>*/}
+{/*                        {ins.nome}*/}
+{/*                    </option>*/}
+{/*                ))}*/}
+{/*            </select>*/}
+{/*            <input*/}
+{/*                type="number"*/}
+{/*                className="w-24 px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
+{/*                value={insumo.quantidade}*/}
+{/*                onChange={(e) => handleInsumoChange(index, 'quantidade', e.target.value)}*/}
+{/*                min="0"*/}
+{/*                step="0.01"*/}
+{/*            />*/}
+{/*            <button*/}
+{/*                type="button"*/}
+{/*                onClick={() => handleRemoveInsumo(index)}*/}
+{/*                className="text-red-500 ml-2"*/}
+{/*            >*/}
+{/*                <XMarkIcon className="h-6 w-6" />*/}
+{/*            </button>*/}
+{/*        </div>*/}
+{/*    ))}*/}
+{/*    <button*/}
+{/*        type="button"*/}
+{/*        onClick={handleAddInsumo}*/}
+{/*        className="mt-2 text-blue-500"*/}
+{/*    >*/}
+{/*        Adicionar Insumo*/}
+{/*    </button>*/}
+{/*</div>*/}
 
-                    {/*/!* Campo Insumos *!/*/}
-                    {/*<div className="mb-6">*/}
-                    {/*    <label className="block text-sm font-medium text-gray-700">Insumos</label>*/}
-                    {/*    {selectedInsumos.map((insumo, index) => (*/}
-                    {/*        <div key={index} className="flex space-x-4 mb-2">*/}
-                    {/*            <select*/}
-                    {/*                value={insumo.insumoId}*/}
-                    {/*                onChange={(e) => handleInsumoChange(index, 'insumoId', e.target.value)}*/}
-                    {/*                className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
-                    {/*            >*/}
-                    {/*                <option value="">Selecione um insumo</option>*/}
-                    {/*                {insumos.map(ins => (*/}
-                    {/*                    <option key={ins.id} value={ins.id}>*/}
-                    {/*                        {ins.nome}*/}
-                    {/*                    </option>*/}
-                    {/*                ))}*/}
-                    {/*            </select>*/}
-                    {/*            <input*/}
-                    {/*                type="number"*/}
-                    {/*                className="w-24 px-4 py-2 mt-2 border border-gray-300 rounded-md"*/}
-                    {/*                value={insumo.quantidade}*/}
-                    {/*                onChange={(e) => handleInsumoChange(index, 'quantidade', e.target.value)}*/}
-                    {/*                min="0"*/}
-                    {/*                step="0.01"*/}
-                    {/*            />*/}
-                    {/*            <button*/}
-                    {/*                type="button"*/}
-                    {/*                onClick={() => handleRemoveInsumo(index)}*/}
-                    {/*                className="text-red-500 ml-2"*/}
-                    {/*            >*/}
-                    {/*                <XMarkIcon className="h-6 w-6" />*/}
-                    {/*            </button>*/}
-                    {/*        </div>*/}
-                    {/*    ))}*/}
-                    {/*    <button*/}
-                    {/*        type="button"*/}
-                    {/*        onClick={handleAddInsumo}*/}
-                    {/*        className="mt-2 text-blue-500"*/}
-                    {/*    >*/}
-                    {/*        Adicionar Insumo*/}
-                    {/*    </button>*/}
-                    {/*</div>*/}
+// {
+//   title: "Pedidos",
+//   layout: "dashboard",
+//   pages: [
+//     {
+//       icon: <ShoppingCartIcon {...icon} />,
+//       name: "Pedidos",
+//       path: "/pedido",
+//       element: <PedidoForm/>,
+//     },
+//     {
+//       icon: <ShoppingCartIcon {...icon} />,
+//       name: "Pedidos por Venda",
+//       path: "/pedidos/:vendaId",  // **Nova Rota para listar pedidos por venda**. O `vendaId` será utilizado para buscar os pedidos associados à venda.
+//       element: <PedidoForm/>,   // **Componente** que será responsável por listar os pedidos associados a uma venda específica.
+//     },
+//   ],
+// },
 
-                      // {
-                      //   title: "Pedidos",
-                      //   layout: "dashboard",
-                      //   pages: [
-                      //     {
-                      //       icon: <ShoppingCartIcon {...icon} />,
-                      //       name: "Pedidos",
-                      //       path: "/pedido",
-                      //       element: <PedidoForm/>,
-                      //     },
-                      //     {
-                      //       icon: <ShoppingCartIcon {...icon} />,
-                      //       name: "Pedidos por Venda",
-                      //       path: "/pedidos/:vendaId",  // **Nova Rota para listar pedidos por venda**. O `vendaId` será utilizado para buscar os pedidos associados à venda.
-                      //       element: <PedidoForm/>,   // **Componente** que será responsável por listar os pedidos associados a uma venda específica.
-                      //     },
-                      //   ],
-                      // },
+// const handleEndVenda = async () => {
+//     try {
+//         setLoading(true);
+//         const dataAtual = new Date().toISOString();
+//
+//         // Fechar a venda
+//         await api.put(`/venda/${vendaToEnd}/fechar`, {
+//             dataFimVenda: dataAtual,
+//         });
+//
+//         // Encontrar a mesa associada à venda
+//         const venda = vendas.find((venda) => venda.id === vendaToEnd);
+//         const mesaId = venda?.mesa.id;
+//         const mesaNome = venda?.mesa.nome;
+//
+//         // Verifique se a mesaId e mesaNome estão presentes
+//         if (!mesaId || !mesaNome) {
+//             throw new Error("Mesa não encontrada para esta venda");
+//         }
+//
+//         // Atualizar o status da mesa para 'true' (livre)
+//         const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
+//         if (mesaResponse.status !== 200) {
+//             throw new Error("Erro ao atualizar o status da mesa");
+//         }
+//
+//         // Atualizar as vendas e as mesas no front-end
+//         await fetchVendas();
+//
+//         // Exibir mensagem de sucesso
+//         setAlertMessage("Venda encerrada com sucesso!");
+//         setAlertColor("green");
+//     } catch (error) {
+//         setAlertMessage(error.message || "Erro ao encerrar venda");
+//         setAlertColor("red");
+//     } finally {
+//         setLoading(false);
+//         setShowEndModal(false);
+//         setVendaToEnd(null);
+//     }
+// };
+
+// const handleDeleteVenda = async () => {
+    //     try {
+    //         setLoading(true);
+    //         await api.delete(`/venda/${vendaToDelete}`);
+    //         fetchVendas();
+    //         if (selectedVenda === vendaToDelete) {
+    //             setSelectedVenda(null);
+    //             setPedidos([]);
+    //         }
+    //         setAlertMessage("Venda excluída com sucesso!");
+    //         setAlertColor("green");
+    //     } catch (error) {
+    //         setAlertMessage("Não é possível excluir vendas com pedidos");
+    //         setAlertColor("red");
+    //     } finally {
+    //         setLoading(false);
+    //         setShowDeleteModal(false);
+    //         setVendaToDelete(null);
+    //     }
+    // };

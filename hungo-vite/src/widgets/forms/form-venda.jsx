@@ -35,19 +35,37 @@ const VendaForm = () => {
     const [showVendaFinalizadaModal, setShowVendaFinalizadaModal] = useState(false);
     const navigate = useNavigate();
 
+    // useEffect(() => {
+    //     const fetchMesas = async () => {
+    //         try {
+    //             const response = await api.get("/mesa");
+    //             // Filtra as mesas que não estão ocupadas (status = false)
+    //             const mesasDisponiveis = response.data.filter(mesa => mesa.status === true);
+    //             setMesas(mesasDisponiveis);
+    //         } catch (error) {
+    //             setAlertMessage("Erro ao carregar mesas");
+    //             setAlertColor("red");
+    //         }
+    //     };
+    //     fetchMesas();
+    // }, []);
+
+    // Fetch mesas (centralizado)
+    // Fetch mesas (centralizado)
+    const fetchMesas = async () => {
+        try {
+            const response = await api.get("/mesa");
+            const mesasDisponiveis = response.data.filter((mesa) => mesa.status === true);
+            setMesas(mesasDisponiveis);
+        } catch (error) {
+            setAlertMessage("Erro ao carregar mesas");
+            setAlertColor("red");
+        }
+    };
+
     useEffect(() => {
-        const fetchMesas = async () => {
-            try {
-                const response = await api.get("/mesa");
-                // Filtra as mesas que não estão ocupadas (status = false)
-                const mesasDisponiveis = response.data.filter(mesa => mesa.status === true);
-                setMesas(mesasDisponiveis);
-            } catch (error) {
-                setAlertMessage("Erro ao carregar mesas");
-                setAlertColor("red");
-            }
-        };
         fetchMesas();
+        fetchVendas();
     }, []);
 
 
@@ -134,21 +152,23 @@ const VendaForm = () => {
             const mesaSelecionada = mesas.find((mesa) => mesa.id === parseInt(mesaId));
             const dataAtual = new Date().toISOString();
 
-            // Atualizando o status da mesa para 'false' (ocupada), preservando o nome da mesa
+            // Atualizar o status da mesa
             await api.put(`/mesa/${mesaId}`, {
                 status: false,
-                nome: mesaSelecionada.nome, // Garantindo que o nome não seja perdido
+                nome: mesaSelecionada.nome,
             });
 
+            // Criar nova venda
             const vendaData = {
-                mesa: {id: parseInt(mesaId), nome: mesaSelecionada.nome},
+                mesa: { id: parseInt(mesaId), nome: mesaSelecionada.nome },
                 dataInicioVenda: dataAtual,
                 dataFimVenda: null,
                 total: 0.0,
             };
 
             await api.post("/venda", vendaData);
-            fetchVendas();
+            await fetchVendas();
+            await fetchMesas(); // Atualizar mesas
             setMesaId("");
             setAlertMessage("Venda criada com sucesso!");
             setAlertColor("green");
@@ -160,15 +180,66 @@ const VendaForm = () => {
         }
     };
 
+    // const handleCreateVenda = async () => {
+    //     if (!mesaId) {
+    //         setAlertMessage("Por favor, selecione uma mesa!");
+    //         setAlertColor("red");
+    //         return;
+    //     }
+    //
+    //     try {
+    //         setLoading(true);
+    //         const mesaSelecionada = mesas.find((mesa) => mesa.id === parseInt(mesaId));
+    //         const dataAtual = new Date().toISOString();
+    //
+    //         // Atualizando o status da mesa para 'false' (ocupada), preservando o nome da mesa
+    //         await api.put(`/mesa/${mesaId}`, {
+    //             status: false,
+    //             nome: mesaSelecionada.nome, // Garantindo que o nome não seja perdido
+    //         });
+    //
+    //         const vendaData = {
+    //             mesa: {id: parseInt(mesaId), nome: mesaSelecionada.nome},
+    //             dataInicioVenda: dataAtual,
+    //             dataFimVenda: null,
+    //             total: 0.0,
+    //         };
+    //
+    //         await api.post("/venda", vendaData);
+    //         fetchVendas();
+    //         setMesaId("");
+    //         setAlertMessage("Venda criada com sucesso!");
+    //         setAlertColor("green");
+    //     } catch (error) {
+    //         setAlertMessage("Erro ao criar venda");
+    //         setAlertColor("red");
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
     const handleDeleteVenda = async () => {
         try {
             setLoading(true);
+            const response = await api.get(`/venda/${vendaToDelete}`);
+            const venda = response.data;
+
             await api.delete(`/venda/${vendaToDelete}`);
-            fetchVendas();
+
+            // Liberar a mesa
+            await api.put(`/mesa/${venda.mesa.id}`, {
+                status: true,
+                nome: venda.mesa.nome,
+            });
+
+            await fetchMesas(); // Atualizar mesas
+            await fetchVendas(); // Atualizar vendas
+
             if (selectedVenda === vendaToDelete) {
                 setSelectedVenda(null);
                 setPedidos([]);
             }
+
             setAlertMessage("Venda excluída com sucesso!");
             setAlertColor("green");
         } catch (error) {
@@ -178,6 +249,91 @@ const VendaForm = () => {
             setLoading(false);
             setShowDeleteModal(false);
             setVendaToDelete(null);
+        }
+    };
+
+    // const handleDeleteVenda = async () => {
+    //     try {
+    //         setLoading(true);
+    //
+    //         // Buscar os dados da venda que será deletada
+    //         const response = await api.get(`/venda/${vendaToDelete}`);
+    //         const venda = response.data;
+    //
+    //         // Deletar a venda
+    //         await api.delete(`/venda/${vendaToDelete}`);
+    //
+    //         // Atualizar o status da mesa para 'livre'
+    //         const mesaId = venda.mesa.id;
+    //         const mesaNome = venda.mesa.nome;
+    //         const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
+    //
+    //         if (mesaResponse.status !== 200) {
+    //             throw new Error("Erro ao atualizar o status da mesa");
+    //         }
+    //
+    //         // Recarregar as mesas disponíveis
+    //         const responseMesas = await api.get("/mesa");
+    //         const mesasDisponiveis = responseMesas.data.filter((mesa) => mesa.status === true);
+    //         setMesas(mesasDisponiveis);
+    //
+    //         // Atualizar as vendas no front-end
+    //         fetchVendas();
+    //
+    //         // Resetar seleção de venda e pedidos se necessário
+    //         if (selectedVenda === vendaToDelete) {
+    //             setSelectedVenda(null);
+    //             setPedidos([]);
+    //         }
+    //
+    //         // Exibir mensagem de sucesso
+    //         setAlertMessage("Venda excluída com sucesso!");
+    //         setAlertColor("green");
+    //     } catch (error) {
+    //         setAlertMessage("Não é possível excluir vendas com pedidos");
+    //         setAlertColor("red");
+    //     } finally {
+    //         setLoading(false);
+    //         setShowDeleteModal(false);
+    //         setVendaToDelete(null);
+    //     }
+    // };
+
+    const handleEndVenda = async () => {
+        try {
+            setLoading(true);
+            const dataAtual = new Date().toISOString();
+
+            await api.put(`/venda/${vendaToEnd}/fechar`, { dataFimVenda: dataAtual });
+
+            const response = await api.get(`/venda/${vendaToEnd}`);
+            const vendaFechada = response.data;
+
+            await api.put(`/mesa/${vendaFechada.mesa.id}`, {
+                status: true,
+                nome: vendaFechada.mesa.nome,
+            });
+
+            await fetchMesas(); // Atualizar mesas
+            await fetchVendas(); // Atualizar vendas
+            setPedidos([]);
+
+            setVendaFinalizada({
+                valor: vendaFechada.total,
+                data: vendaFechada.dataFimVenda,
+                mesa: vendaFechada.mesa.nome,
+            });
+
+            setAlertMessage("Venda encerrada com sucesso!");
+            setAlertColor("green");
+            setShowEndModal(false);
+            setShowVendaFinalizadaModal(true);
+        } catch (error) {
+            setAlertMessage(error.message || "Erro ao encerrar venda");
+            setAlertColor("red");
+        } finally {
+            setLoading(false);
+            setVendaToEnd(null);
         }
     };
 
@@ -192,98 +348,53 @@ const VendaForm = () => {
     //             dataFimVenda: dataAtual,
     //         });
     //
-    //         // Encontrar a mesa associada à venda
-    //         const venda = vendas.find((venda) => venda.id === vendaToEnd);
-    //         const mesaId = venda?.mesa.id;
-    //         const mesaNome = venda?.mesa.nome;
+    //         // Buscar os dados da venda finalizada
+    //         const response = await api.get(`/venda/${vendaToEnd}`);
+    //         const vendaFechada = response.data;
     //
-    //         // Verifique se a mesaId e mesaNome estão presentes
-    //         if (!mesaId || !mesaNome) {
-    //             throw new Error("Mesa não encontrada para esta venda");
-    //         }
+    //         // Atualizar o estado com as informações da venda finalizada
+    //         setVendaFinalizada({
+    //             valor: vendaFechada.total,
+    //             data: vendaFechada.dataFimVenda,
+    //             mesa: vendaFechada.mesa.nome,
+    //         });
     //
-    //         // Atualizar o status da mesa para 'true' (livre)
+    //         // Atualizar o status da mesa para 'livre'
+    //         const mesaId = vendaFechada.mesa.id;
+    //         const mesaNome = vendaFechada.mesa.nome;
     //         const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
+    //
     //         if (mesaResponse.status !== 200) {
     //             throw new Error("Erro ao atualizar o status da mesa");
     //         }
     //
-    //         // Atualizar as vendas e as mesas no front-end
+    //         // Recarregar as mesas disponíveis (status: true)
+    //         const responseMesas = await api.get("/mesa");
+    //         const mesasDisponiveis = responseMesas.data.filter((mesa) => mesa.status === true);
+    //         setMesas(mesasDisponiveis);
+    //
+    //         // Atualizar as vendas no front-end
     //         await fetchVendas();
+    //
+    //         // Resetar os pedidos (como lista vazia)
+    //         setPedidos([]);
     //
     //         // Exibir mensagem de sucesso
     //         setAlertMessage("Venda encerrada com sucesso!");
     //         setAlertColor("green");
+    //
+    //         // Fechar o modal de cancelamento e abrir o modal com os dados da venda
+    //         setShowEndModal(false); // Fechar o modal de cancelamento
+    //         setShowVendaFinalizadaModal(true); // Exibir o modal com os dados da venda
+    //
     //     } catch (error) {
     //         setAlertMessage(error.message || "Erro ao encerrar venda");
     //         setAlertColor("red");
     //     } finally {
     //         setLoading(false);
-    //         setShowEndModal(false);
-    //         setVendaToEnd(null);
+    //         setVendaToEnd(null); // Limpar a venda que foi encerrada
     //     }
     // };
-
-    const handleEndVenda = async () => {
-        try {
-            setLoading(true);
-            const dataAtual = new Date().toISOString();
-
-            // Fechar a venda
-            await api.put(`/venda/${vendaToEnd}/fechar`, {
-                dataFimVenda: dataAtual,
-            });
-
-            // Buscar os dados da venda finalizada
-            const response = await api.get(`/venda/${vendaToEnd}`);
-            const vendaFechada = response.data;
-
-            // Atualizar o estado com as informações da venda finalizada
-            setVendaFinalizada({
-                valor: vendaFechada.total,
-                data: vendaFechada.dataFimVenda,
-                mesa: vendaFechada.mesa.nome,
-            });
-
-            // Atualizar o status da mesa para 'livre'
-            const mesaId = vendaFechada.mesa.id;
-            const mesaNome = vendaFechada.mesa.nome;
-            const mesaResponse = await api.put(`/mesa/${mesaId}`, { status: true, nome: mesaNome });
-
-            if (mesaResponse.status !== 200) {
-                throw new Error("Erro ao atualizar o status da mesa");
-            }
-
-            // Recarregar as mesas disponíveis (status: true)
-            const responseMesas = await api.get("/mesa");
-            const mesasDisponiveis = responseMesas.data.filter((mesa) => mesa.status === true);
-            setMesas(mesasDisponiveis);
-
-            // Atualizar as vendas no front-end
-            await fetchVendas();
-
-            // Resetar os pedidos (como lista vazia)
-            setPedidos([]);
-
-            // Exibir mensagem de sucesso
-            setAlertMessage("Venda encerrada com sucesso!");
-            setAlertColor("green");
-
-            // Fechar o modal de cancelamento e abrir o modal com os dados da venda
-            setShowEndModal(false); // Fechar o modal de cancelamento
-            setShowVendaFinalizadaModal(true); // Exibir o modal com os dados da venda
-
-        } catch (error) {
-            setAlertMessage(error.message || "Erro ao encerrar venda");
-            setAlertColor("red");
-        } finally {
-            setLoading(false);
-            setVendaToEnd(null); // Limpar a venda que foi encerrada
-        }
-    };
-
-
-
 
     const openDeleteModal = (vendaId, event) => {
         event.stopPropagation();
