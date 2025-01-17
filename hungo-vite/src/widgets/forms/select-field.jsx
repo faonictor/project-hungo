@@ -14,7 +14,7 @@ const SelectField = ({ label, value, onChange, options, placeholder = '', disabl
             }`}
             disabled={disabled} // Adiciona suporte para a propriedade "disabled"
         >
-            <option value="">{placeholder}</option>
+            <option className="text-blue-gray-300" value="" disabled={value !== ""}>{placeholder}</option> {/* Impede a seleção do placeholder */}
             {options.map((option) => (
                 <option key={option.value} value={option.value}>
                     {option.label}

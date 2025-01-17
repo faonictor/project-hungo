@@ -296,9 +296,10 @@ const PedidoForm = () => {
                                 value={selectedTipoPedido}
                                 onChange={setSelectedTipoPedido}
                                 options={[
-                                    { value: "Local", label: "Local" },
-                                    { value: "Delivery", label: "Delivery" }
+                                    {value: "Local", label: "Local"},
+                                    {value: "Delivery", label: "Delivery"}
                                 ]}
+                                placeholder="Selecione o tipo de pedido" // Placeholder adicionado
                             />
                         </div>
 
@@ -308,24 +309,27 @@ const PedidoForm = () => {
                                 value={selectedStatusPedido}
                                 onChange={setSelectedStatusPedido}
                                 options={[
-                                    { value: "Aberto", label: "Aberto" },
-                                    { value: "Em Andamento", label: "Em Andamento" },
-                                    { value: "Finalizado", label: "Finalizado" },
-                                    { value: "Rota de Entrega", label: "Rota de Entrega" },
-                                    { value: "Pago", label: "Pago" }
+                                    {value: "Aberto", label: "Aberto"},
+                                    {value: "Em Andamento", label: "Em Andamento"},
+                                    {value: "Finalizado", label: "Finalizado"},
+                                    {value: "Rota de Entrega", label: "Rota de Entrega"},
+                                    {value: "Pago", label: "Pago"}
                                 ]}
+                                placeholder="Selecione o status do pedido" // Placeholder adicionado
                             />
                         </div>
+
                     </div>
 
                     {/* Exibição de Produtos */}
                     <div className="overflow-x-auto flex space-x-4 bg-gray-100 rounded-lg p-4">
                         {produtos.map(produto => (
-                            <div key={produto.id} className="flex bg-white justify-center items-center space-x-4 p-4 rounded-lg">
+                            <div key={produto.id}
+                                 className="flex bg-white justify-center items-center space-x-4 p-4 rounded-lg">
                                 <Typography variant="h6">{produto.nome}</Typography>
                                 <Typography>{`R$ ${produto.preco.toFixed(2)}`}</Typography>
                                 <Button onClick={() => handleAddToCarrinho(produto)} className="p-2">
-                                    <PlusSmallIcon className="h-5 w-5" />
+                                    <PlusSmallIcon className="h-5 w-5"/>
                                 </Button>
                             </div>
                         ))}
