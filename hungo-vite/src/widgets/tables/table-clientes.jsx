@@ -351,7 +351,7 @@ import {PlusIcon} from "@heroicons/react/24/solid/index.js";
 const ClientesTable = () => {
     const [clientes, setClientes] = useState([]);
     const [filteredClientes, setFilteredClientes] = useState([]);
-    const [statusFiltro, setStatusFiltro] = useState('todos');
+    const [statusFiltro, setStatusFiltro] = useState('ativos');
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [clienteSelecionado, setClienteSelecionado] = useState(null);
@@ -437,8 +437,10 @@ const ClientesTable = () => {
                 setAlertColor('green');
             } catch (error) {
                 console.error('Erro ao remover cliente:', error);
-                setAlertMessage(`Ocorreu um erro ao excluir o cliente "${clienteSelecionado.nome}".`);
+                // setAlertMessage(`Ocorreu um erro ao excluir o cliente "${clienteSelecionado.nome}".`);
+                setAlertMessage(`Não é possível excluir clientes com pedidos finalizados`);
                 setAlertColor('red');
+                setModalVisible(false);
             }
         }
     };
