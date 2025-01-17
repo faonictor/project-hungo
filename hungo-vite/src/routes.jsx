@@ -12,7 +12,7 @@ import {
   SquaresPlusIcon,
   MapPinIcon,
   ShoppingCartIcon,
-  LockClosedIcon, CurrencyDollarIcon,
+  LockClosedIcon, CurrencyDollarIcon, KeyIcon,
 } from "@heroicons/react/24/solid";
 import {Home} from "@/pages/dashboard";
 import {SignIn, SignUp} from "@/pages/auth";
