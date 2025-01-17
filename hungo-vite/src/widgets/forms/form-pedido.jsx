@@ -24,12 +24,29 @@ const PedidoForm = () => {
     const [loading, setLoading] = useState(false);
     const [selectedVendaId, setSelectedVendaId] = useState(vendaId || null);
 
+    // // Carregar clientes
+    // useEffect(() => {
+    //     const fetchClientes = async () => {
+    //         try {
+    //             const response = await api.get("/cliente");
+    //             setClientes(response.data);
+    //         } catch (error) {
+    //             setAlertMessage("Erro ao carregar clientes");
+    //             setAlertColor("red");
+    //         }
+    //     };
+    //
+    //     fetchClientes();
+    // }, []);
+
     // Carregar clientes
     useEffect(() => {
         const fetchClientes = async () => {
             try {
                 const response = await api.get("/cliente");
-                setClientes(response.data);
+                // Filtrar apenas clientes com status true
+                const clientesAtivos = response.data.filter(cliente => cliente.status);
+                setClientes(clientesAtivos);
             } catch (error) {
                 setAlertMessage("Erro ao carregar clientes");
                 setAlertColor("red");
@@ -38,6 +55,7 @@ const PedidoForm = () => {
 
         fetchClientes();
     }, []);
+
 
     // Carregar produtos
     useEffect(() => {
