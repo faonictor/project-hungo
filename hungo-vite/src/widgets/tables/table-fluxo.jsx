@@ -3,9 +3,11 @@ import api from "../../services/axiosConfig";
 import { Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
 import FluxoForm from "../forms/form-fluxo.jsx";
 import Loading from "@/widgets/loading.jsx";
-import {ArrowDownIcon, ArrowUpTrayIcon} from "@heroicons/react/20/solid/index.js";
+import {ArrowDownIcon} from "@heroicons/react/20/solid/index.js";
 import {ArrowUpIcon} from "@heroicons/react/24/outline";
 import {BanknotesIcon} from "@heroicons/react/24/solid";
+import {StatisticsCard} from "@/widgets/cards/index.js";
+import {CheckCircleIcon} from "@heroicons/react/24/solid/index.js";
 
 const FluxoTable = () => {
     const [vendas, setVendas] = useState([]);
@@ -68,6 +70,37 @@ const FluxoTable = () => {
         calculateTotals(vendas, novosFluxos);
     };
 
+    // Criar os dados dinâmicos para os Statistic Cards com ícones
+    const statisticsCardsDataF = [
+        {
+            title: "Total de Vendas",
+            icon: <BanknotesIcon className="w-6 h-6 text-white" />,
+            value: `R$ ${totais.totalVendas.toFixed(2)}`,
+            footer: { value: totais.totalVendas.toFixed(2), label: "Vendas realizadas", color: "text-green-600" },
+            color: "green", // Cor do card
+        },
+        {
+            title: "Total de Entradas",
+            icon: <ArrowUpIcon className="w-6 h-6 text-white" />,
+            value: `R$ ${totais.totalEntradas.toFixed(2)}`,
+            footer: { value: totais.totalEntradas.toFixed(2), label: "Entradas registradas", color: "text-blue-600" },
+            color: "blue", // Cor do card
+        },
+        {
+            title: "Total de Saídas",
+            icon: <ArrowDownIcon className="w-6 h-6 text-white" />,
+            value: `R$ ${totais.totalSaidas.toFixed(2)}`,
+            footer: { value: totais.totalSaidas.toFixed(2), label: "Saídas registradas", color: "text-red-600" },
+            color: "red", // Cor do card
+        },
+        {
+            title: "Saldo",
+            icon: <CheckCircleIcon className="w-6 h-6 text-white" />,
+            value: `R$ ${totais.saldo.toFixed(2)}`,
+            footer: { value: totais.saldo.toFixed(2), label: "Saldo total", color: totais.saldo >= 0 ? "text-green-600" : "text-red-600" },
+            color: totais.saldo >= 0 ? "green" : "red", // Cor do card baseado no saldo
+        },
+    ];
     return (
         <>
             <Card className="bg-white w-full h-full flex-1 min-h-0 rounded-xl border border-blue-gray-100 lg:flex">
@@ -81,57 +114,21 @@ const FluxoTable = () => {
 
                     {/* Exibindo Totais */}
                     <CardBody>
-                        <div className="mb-4">
-                            <div className="flex justify-between text-lg font-medium">
-                                <div className="py-8 px-24 bg-green-50 hover:bg-green-100 rounded-lg border-2 border-green-200">
-                                    <div className="flex justify-center gap-x-2 mb-2">
-                                        <ArrowUpIcon className="h-7 w-7"/>
-                                        <Typography variant="h5">
-                                            Total de Vendas:
+                        <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
+                            {statisticsCardsDataF.map(({icon, title, footer, color, value}, index) => (
+                                <StatisticsCard
+                                    key={title}
+                                    title={title}
+                                    icon={icon} // Passando o ícone
+                                    value={value}
+                                    footer={
+                                        <Typography className={`font-normal ${footer.color}`}>
+                                            <strong>{footer.value}</strong>&nbsp;{footer.label}
                                         </Typography>
-                                    </div>
-                                    <Typography variant="h3" className="text-green-600">
-                                        {`R$ ${totais.totalVendas.toFixed(2)}`}
-                                    </Typography>
-                                </div>
-
-                                <div className="py-8 px-24 bg-blue-50 hover:bg-blue-100 rounded-lg border-2 border-blue-200">
-                                    <div className="flex justify-center gap-x-2 mb-2">
-                                        <ArrowUpIcon className="h-7 w-7"/>
-                                        <Typography variant="h5">
-                                            Outras Entradas:
-                                        </Typography>
-                                    </div>
-                                    <Typography variant="h3" className="text-blue-600">
-                                        {`R$ ${totais.totalEntradas.toFixed(2)}`}
-                                    </Typography>
-                                </div>
-
-                                <div className="py-8 px-24 bg-red-50 hover:bg-red-100 rounded-lg border-2 border-red-200">
-                                    <div className="flex justify-center gap-x-2 mb-2">
-                                        <ArrowDownIcon className="h-7 w-7"/>
-                                        <Typography variant="h5">
-                                            Total Saídas:
-                                        </Typography>
-                                    </div>
-                                    <Typography variant="h3" className="text-red-600">
-                                        {`R$ ${totais.totalSaidas.toFixed(2)}`}
-                                    </Typography>
-                                </div>
-
-                                <div className="py-8 px-24 rounded-lg bg-blue-gray-50 hover:bg-blue-gray-100 border-2 border-blue-gray-200">
-                                    <div className="flex justify-center gap-x-2 mb-2">
-                                        <BanknotesIcon className="h-7 w-7"/>
-                                        <Typography variant="h5">
-                                            Saldo:
-                                        </Typography>
-                                    </div>
-                                    <Typography variant="h3"
-                                                className={`text-${totais.saldo >= 0 ? "green" : "red"}-600`}>
-                                        {`R$ ${totais.saldo.toFixed(2)}`}
-                                    </Typography>
-                                </div>
-                            </div>
+                                    }
+                                    color={color} // Cor do card
+                                />
+                            ))}
                         </div>
                     </CardBody>
 
