@@ -4,6 +4,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import api from '../../services/axiosConfig';
 import InputField from '../forms/input-field';
 import AlertMessage from "@/widgets/alert-message.jsx";
+import {useNavigate} from 'react-router-dom';
 
 const ClienteDeliveryForm = () => {
     const [nome, setNome] = useState('');
@@ -19,6 +20,7 @@ const ClienteDeliveryForm = () => {
     const [alertMessage, setAlertMessage] = useState(null);
     const [alertColor, setAlertColor] = useState('green');
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     {/* Função Validar Formulário */}
     const isFormValid = () => {
@@ -52,8 +54,12 @@ const ClienteDeliveryForm = () => {
 
             setAlertMessage('Cliente cadastrado com sucesso!');
             setAlertColor('green');
+            setTimeout(() => {
+                navigate('/dashboard/clientes');
+            }, 1000);
             resetFields();
             console.log('Resposta do servidor:', response.data);
+
         } catch (error) {
             setAlertMessage('Erro ao cadastrar cliente. Tente novamente.');
             setAlertColor('red');
@@ -124,11 +130,13 @@ const ClienteDeliveryForm = () => {
                         </div>
 
                         {/* Notificação */}
-                        <AlertMessage
-                            alertMessage={alertMessage}
-                            alertColor={alertColor}
-                            onClose={() => setAlertMessage(null)}
-                        />
+                        <div className="mt-4">
+                            <AlertMessage
+                                alertMessage={alertMessage}
+                                alertColor={alertColor}
+                                onClose={() => setAlertMessage(null)}
+                            />
+                        </div>
                     </form>
                 </CardBody>
             </Card>

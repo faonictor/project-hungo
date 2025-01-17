@@ -1,4 +1,3 @@
-// components/AlertMessage.js
 import React from 'react';
 import { Alert } from '@material-tailwind/react';
 import { CheckBadgeIcon, ExclamationCircleIcon, XMarkIcon } from '@heroicons/react/24/solid';

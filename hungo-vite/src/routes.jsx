@@ -127,7 +127,7 @@ export const routes = [
     pages: [
       {
         icon: <ArchiveBoxArrowDownIcon {...icon} />,
-        name: "Cadastrar Produto",
+        name: "Novo Produto",
         path: "/produto",
         element: <ProdutoAddEdit />,
       },
@@ -151,7 +151,7 @@ export const routes = [
       },
       {
         icon: <PencilIcon {...icon} />,
-        name: "Editar Categoriao",
+        name: "Editar Categoria",
         path: "/insumo/:id",
         element: <InsumoAddEdit />,
       },
@@ -175,7 +175,7 @@ export const routes = [
     pages: [
       {
         icon: <MapPinIcon {...icon} />,
-        name: "Cadastrar Endereço",
+        name: "Novo Endereço",
         path: "/endereco/cadastro",
         element: <EnderecoAddEdit />,
       },
