@@ -22,7 +22,7 @@ start "Hungo - Backend" cmd /k "cd /d "%ROOT%hungo-spring" && echo =============
 
 echo.
 echo [3/3] Iniciando o Frontend (Vite / React)...
-start "Hungo - Frontend" cmd /k "cd /d "%ROOT%hungo-front" && echo ======================================== && echo   FRONTEND VITE (REACT) && echo ======================================== && npm run dev -- --open"
+start "Hungo - Frontend" cmd /k "cd /d "%ROOT%hungo-front" && echo ======================================== && echo   FRONTEND VITE (REACT) && echo ======================================== && npm run dev -- --host --open"
 
 echo.
 echo =======================================================

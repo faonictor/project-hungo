@@ -1,7 +1,15 @@
-const API_BASE_URL = (import.meta.env["VITE_API_URL"] as string) || "http://localhost:8080";
+function getApiBaseUrl(): string {
+  if (import.meta.env["VITE_API_URL"]) {
+    return import.meta.env["VITE_API_URL"] as string;
+  }
+  if (typeof window !== "undefined" && window.location?.hostname) {
+    return `http://${window.location.hostname}:8080`;
+  }
+  return "http://localhost:8080";
+}
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
   const headers = {
     "Content-Type": "application/json",
     ...(options?.headers || {}),
