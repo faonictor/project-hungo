@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends CrudRepository<Pedido, Long> {
     List<Pedido> findByVendaId(Long vendaId);
+    List<Pedido> findByVendaIdAndStatusPedidoNot(Long vendaId, String statusPedido);
 }
-

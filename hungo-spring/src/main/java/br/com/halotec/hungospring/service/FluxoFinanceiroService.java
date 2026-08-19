@@ -17,6 +17,9 @@ public class FluxoFinanceiroService {
     }
 
     public ResponseEntity<FluxoFinanceiro> salvar(FluxoFinanceiro fluxoFinanceiro) {
+        if (fluxoFinanceiro.getDataTransacao() == null) {
+            fluxoFinanceiro.setDataTransacao(java.time.LocalDateTime.now());
+        }
         return new ResponseEntity<>(fluxoFinanceiroRepository.save(fluxoFinanceiro), HttpStatus.OK);
     }
 

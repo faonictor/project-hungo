@@ -60,40 +60,42 @@ public class ProdutoService {
         return new ResponseEntity("{\"mensagem\":\"Produto e registros relacionados removidos com sucesso\"}", HttpStatus.OK);
     }
 
-
     @Transactional
     public ResponseEntity<Produto> salvarOuAtualizarProduto(ProdutoDTO produtoDTO) {
         Produto produto;
 
         // Verificar se o produto já existe (atualização) ou criar um novo
         if (produtoDTO.getId() != null) {
-            // Atualizar produto existente
             produto = produtoRepository.findById(produtoDTO.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + produtoDTO.getId()));
         } else {
-            // Criar novo produto
             produto = new Produto();
         }
 
         produto.setNome(produtoDTO.getNome());
         produto.setPreco(produtoDTO.getPreco());
-        produto.setTipo(produtoDTO.getTipo());
+        produto.setTipo(produtoDTO.getTipo() != null ? produtoDTO.getTipo() : true);
+        produto.setFavorito(produtoDTO.getFavorito() != null ? produtoDTO.getFavorito() : false);
 
-        Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
-        produto.setCategoria(categoria);
+        // Se uma categoria foi informada, usa ela; caso contrario, atribui/cria a categoria "Geral"
+        if (produtoDTO.getCategoriaId() != null) {
+            Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId()).orElse(null);
+            if (categoria == null) {
+                categoria = obterOuCriarCategoriaGeral();
+            }
+            produto.setCategoria(categoria);
+        } else {
+            produto.setCategoria(obterOuCriarCategoriaGeral());
+        }
 
         produto = produtoRepository.save(produto);
 
-        // 4. Gerenciar os insumos associados
+        // Gerenciar os insumos associados
         if (produtoDTO.getInsumos() == null || produtoDTO.getInsumos().isEmpty()) {
-            // Caso a lista de insumos esteja vazia ou nula, remover todos os insumos associados ao produto
             produtoInsumoRepository.deleteByProduto(produto);
         } else {
-            // Remover os insumos antigos antes de adicionar os novos
             produtoInsumoRepository.deleteByProduto(produto);
 
-            // Adicionar os novos insumos
             for (ProdutoInsumoDTO insumoDTO : produtoDTO.getInsumos()) {
                 ProdutoInsumo produtoInsumo = new ProdutoInsumo();
                 Insumo insumo = insumoRepository.findById(insumoDTO.getInsumoId())
@@ -103,34 +105,37 @@ public class ProdutoService {
                 produtoInsumo.setInsumo(insumo);
                 produtoInsumo.setQuantidade(insumoDTO.getQuantidade());
 
-                // Salvar o insumo associado ao produto
                 produtoInsumoRepository.save(produtoInsumo);
             }
         }
 
-        // Retornar o produto atualizado ou criado
         return new ResponseEntity<>(produto, HttpStatus.OK);
     }
 
+    private Categoria obterOuCriarCategoriaGeral() {
+        return categoriaRepository.findByNomeIgnoreCase("Geral")
+                .orElseGet(() -> {
+                    Categoria novaGeral = new Categoria();
+                    novaGeral.setNome("Geral");
+                    return categoriaRepository.save(novaGeral);
+                });
+    }
 
     public ResponseEntity<ProdutoDTO> buscarProdutoPorId(Long id) {
-        // 1. Buscar o Produto
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + id));
 
-        // 2. Criar o ProdutoDTO
         ProdutoDTO produtoDTO = new ProdutoDTO();
         produtoDTO.setId(produto.getId());
         produtoDTO.setNome(produto.getNome());
         produtoDTO.setPreco(produto.getPreco());
-        produtoDTO.setTipo(produto.getTipo());  // Garantindo que o 'tipo' seja transferido
+        produtoDTO.setTipo(produto.getTipo());
+        produtoDTO.setFavorito(produto.getFavorito() != null ? produto.getFavorito() : false);
 
-        // 3. Verificar e adicionar a categoria
         if (produto.getCategoria() != null) {
             produtoDTO.setCategoriaId(produto.getCategoria().getId());
         }
 
-        // 4. Preencher a lista de insumos (ProdutoInsumoDTO)
         List<ProdutoInsumoDTO> insumosDTO = new ArrayList<>();
         List<ProdutoInsumo> produtoInsumos = produtoInsumoRepository.findByProduto(produto);
 
@@ -142,7 +147,6 @@ public class ProdutoService {
         }
         produtoDTO.setInsumos(insumosDTO);
 
-        // 5. Retornar a resposta com o ProdutoDTO
         return new ResponseEntity<>(produtoDTO, HttpStatus.OK);
     }
 }

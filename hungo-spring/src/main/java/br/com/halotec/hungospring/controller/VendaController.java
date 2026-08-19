@@ -9,9 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
-//@CrossOrigin(origins = "*")
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 public class VendaController {
 
@@ -44,9 +43,14 @@ public class VendaController {
         return vendaService.buscarPorId(id);
     }
 
+    @PutMapping("/venda/{id}")
+    public ResponseEntity<Venda> atualizar(@PathVariable Long id, @RequestBody Venda venda) {
+        return vendaService.atualizar(id, venda);
+    }
+
     @DeleteMapping("/venda/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return vendaService.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id, @RequestParam(required = false) String motivo) {
+        return vendaService.deletar(id, motivo);
     }
 
     @GetMapping("venda/mesas-disponiveis")
@@ -56,7 +60,16 @@ public class VendaController {
     }
 
     @PutMapping("/venda/{id}/fechar")
-    public ResponseEntity<Venda> fecharVenda(@PathVariable Long id) {
-        return ResponseEntity.ok(vendaService.fecharVenda(id));
+    public ResponseEntity<?> fecharVenda(@PathVariable Long id) {
+        try {
+            Venda vendaFechada = vendaService.fecharVenda(id);
+            return ResponseEntity.ok(vendaFechada);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }

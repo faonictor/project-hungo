@@ -10,5 +10,6 @@ import java.util.List;
 public interface VendaRepository extends CrudRepository<Venda, Long> {
     List<Venda> findByDataFimVendaIsNull();
     List<Venda> findByDataFimVendaIsNotNull();
+    List<Venda> findByValorPagoGreaterThanAndDataFimVendaIsNull(Float valorPago);
+    List<Venda> findByMesaIdAndDataFimVendaIsNull(Long mesaId);
 }
-

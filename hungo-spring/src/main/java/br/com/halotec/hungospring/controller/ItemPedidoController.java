@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "*")
 @RestController
 public class ItemPedidoController {
 
@@ -33,6 +32,13 @@ public class ItemPedidoController {
         return itemPedidoService.deletar(id);
     }
 
+    @RequestMapping(value = {"/item-pedido/{id}/cancelar", "/item-pedido/cancelar/{id}"}, method = {RequestMethod.PUT, RequestMethod.POST})
+    public ResponseEntity<Void> cancelarItem(
+            @PathVariable Long id,
+            @RequestParam(required = false) String motivo) {
+        return itemPedidoService.cancelarItem(id, motivo);
+    }
+
     @PutMapping("/item-pedido/{id}")
     public ResponseEntity<ItemPedido> atualizar(
             @PathVariable Long id,
@@ -42,5 +48,3 @@ public class ItemPedidoController {
     }
 
 }
-
-
