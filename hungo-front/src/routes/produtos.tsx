@@ -74,25 +74,21 @@ function ProdutosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filtros
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("TODOS"); // TODOS, ATIVOS, INATIVOS, FAVORITOS
+  const [statusFilter, setStatusFilter] = useState<string>("TODOS");
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProdutoId, setEditingProdutoId] = useState<number | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form Fields
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("");
-  const [tipo, setTipo] = useState<boolean>(true); // true = Ativo
+  const [tipo, setTipo] = useState<boolean>(true);
   const [favorito, setFavorito] = useState<boolean>(false);
   const [selectedInsumos, setSelectedInsumos] = useState<ProdutoInsumoDTO[]>([]);
 
-  // Delete State
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -428,8 +424,8 @@ function ProdutosPage() {
                             variant="outline"
                             className={
                               isAtivo
-                                ? "border-success/25 bg-success/12 text-success"
-                                : "border-destructive/25 bg-destructive/10 text-destructive"
+                                ? "border-success/25 bg-success/12 text-success whitespace-nowrap"
+                                : "border-destructive/25 bg-destructive/10 text-destructive whitespace-nowrap"
                             }
                           >
                             {isAtivo ? "Ativo" : "Indisponível"}
@@ -467,7 +463,6 @@ function ProdutosPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Criar / Editar Produto */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -560,7 +555,6 @@ function ProdutosPage() {
                 </div>
               </div>
 
-              {/* Ficha Técnica / Insumos */}
               <div className="space-y-3 border-t pt-3">
                 <div className="flex justify-between items-center">
                   <div>
@@ -651,7 +645,6 @@ function ProdutosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog Confirmar Exclusão */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

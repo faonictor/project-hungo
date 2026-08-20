@@ -117,7 +117,6 @@ const channelBadge: Record<string, { label: string; style: string }> = {
   DELIVERY: { label: "Delivery", style: "border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold" },
 };
 
-// Verifica se o nome segue o padrão numérico "Mesa 01", "Mesa 02", "Mesa 10", etc.
 const isMesaNumerica = (nome: string) => {
   return /^Mesa\s*\d+$/i.test(nome.trim());
 };
@@ -132,9 +131,8 @@ function VendasPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("TODOS");
 
-  // Gerenciador de Mesas Físicas Modal State
-  const [isGerenciarMesasOpen, setIsGerenciarMesasOpen] = useState(false);
-  const [categoriaMesaTab, setCategoriaMesaTab] = useState<string>("todas"); // todas, numericas, especiais
+const [isGerenciarMesasOpen, setIsGerenciarMesasOpen] = useState(false);
+  const [categoriaMesaTab, setCategoriaMesaTab] = useState<string>("todas"); 
   const [mesasList, setMesasList] = useState<Mesa[]>([]);
   const [loadingMesas, setLoadingMesas] = useState(false);
   const [modoCriacaoMesa, setModoCriacaoMesa] = useState<"individual" | "lote">("lote");
@@ -143,36 +141,29 @@ function VendasPage() {
   const [prefixoLote, setPrefixoLote] = useState<string>("Mesa");
   const [generatingLote, setGeneratingLote] = useState(false);
 
-  // Modal Ver Comandas da Mesa Selecionada
-  const [verComandasMesaModal, setVerComandasMesaModal] = useState<Mesa | null>(null);
+const [verComandasMesaModal, setVerComandasMesaModal] = useState<Mesa | null>(null);
 
-  // Modo de Exibição (COMANDAS x MESAS)
-  const [modoExibicao, setModoExibicao] = useState<"COMANDAS" | "MESAS">("COMANDAS");
+const [modoExibicao, setModoExibicao] = useState<"COMANDAS" | "MESAS">("COMANDAS");
 
-  // Modal Ver Itens Lançados da Comanda
-  const [verItensComandaModal, setVerItensComandaModal] = useState<Venda | null>(null);
+const [verItensComandaModal, setVerItensComandaModal] = useState<Venda | null>(null);
   const [itensLancadosDaComanda, setItensLancadosDaComanda] = useState<ItemPedido[]>([]);
   const [loadingItensComanda, setLoadingItensComanda] = useState(false);
   const [cancelingItemId, setCancelingItemId] = useState<number | null>(null);
 
-  // Motivo de Cancelamento Modal State (para itens em preparo)
-  const [cancelItemTarget, setCancelItemTarget] = useState<ItemPedido | null>(null);
+const [cancelItemTarget, setCancelItemTarget] = useState<ItemPedido | null>(null);
   const [motivoOpcao, setMotivoOpcao] = useState<string>("Cliente desistiu");
   const [motivoObservacao, setMotivoObservacao] = useState<string>("");
   const [mostrarItensCancelados, setMostrarItensCancelados] = useState<boolean>(false);
 
-  // Modal Editar Apelido/Nome da Mesa
-  const [editingMesa, setEditingMesa] = useState<Mesa | null>(null);
+const [editingMesa, setEditingMesa] = useState<Mesa | null>(null);
   const [editMesaNome, setEditMesaNome] = useState("");
   const [savingEditMesa, setSavingEditMesa] = useState(false);
 
-  // Modal Abrir Comanda
-  const [isNovaVendaModalOpen, setIsNovaVendaModalOpen] = useState(false);
-  const [tipoAtendimento, setTipoAtendimento] = useState<string>("LOCAL"); // LOCAL, RETIRADA, DELIVERY
+const [isNovaVendaModalOpen, setIsNovaVendaModalOpen] = useState(false);
+  const [tipoAtendimento, setTipoAtendimento] = useState<string>("LOCAL"); 
   const [selectedMesaId, setSelectedMesaId] = useState<string>("");
 
-  // Campos para Cliente e Delivery
-  const [clientesList, setClientesList] = useState<Cliente[]>([]);
+const [clientesList, setClientesList] = useState<Cliente[]>([]);
   const [selectedClienteId, setSelectedClienteId] = useState<string>("");
   const [nomeClienteRetirada, setNomeClienteRetirada] = useState<string>("");
   const [nomeClienteConsumoLocal, setNomeClienteConsumoLocal] = useState<string>("");
@@ -183,8 +174,7 @@ function VendasPage() {
   const [taxaEntrega, setTaxaEntrega] = useState<string>("0.00");
   const [submittingVenda, setSubmittingVenda] = useState(false);
 
-  // Modal Fechar Venda (Lançamento Financeiro, Desconto e Pagamento Parcial)
-  const [vendaParaFechar, setVendaParaFechar] = useState<Venda | null>(null);
+const [vendaParaFechar, setVendaParaFechar] = useState<Venda | null>(null);
   const [pedidosDaVendaParaFechar, setPedidosDaVendaParaFechar] = useState<Pedido[]>([]);
   const [tipoFechamento, setTipoFechamento] = useState<"TOTAL" | "PARCIAL">("TOTAL");
   const [formaPagamento, setFormaPagamento] = useState<string>("Pix");
@@ -258,14 +248,12 @@ function VendasPage() {
     }
   };
 
-  // Modal Excluir Venda/Comanda (Sem Lançamento Financeiro - Trava de Segurança & Auditoria)
-  const [comandaParaExcluir, setComandaParaExcluir] = useState<Venda | null>(null);
+const [comandaParaExcluir, setComandaParaExcluir] = useState<Venda | null>(null);
   const [confirmacaoNumero, setConfirmacaoNumero] = useState<string>("");
   const [motivoExclusaoOpcao, setMotivoExclusaoOpcao] = useState<string>("Cliente desistiu");
   const [motivoExclusaoObs, setMotivoExclusaoObs] = useState<string>("");
 
-  // Modal Editar Dados da Comanda (Tipo de Atendimento, Mesa e Cliente)
-  const [editingComandaDados, setEditingComandaDados] = useState<Venda | null>(null);
+const [editingComandaDados, setEditingComandaDados] = useState<Venda | null>(null);
   const [editTipoAtendimento, setEditTipoAtendimento] = useState<string>("LOCAL");
   const [editMesaId, setEditMesaId] = useState<string>("");
   const [editSelectedClienteId, setEditSelectedClienteId] = useState<string>("");
@@ -376,8 +364,7 @@ function VendasPage() {
     fetchMesasFisicas();
   }, []);
 
-  // Visualizar Itens Lançados na Comanda em Modal sem fechar ou alterar nada
-  const handleOpenVerItensComanda = async (venda: Venda) => {
+const handleOpenVerItensComanda = async (venda: Venda) => {
     if (!venda || !venda.id) return;
     setVerItensComandaModal(venda);
     setItensLancadosDaComanda([]);
@@ -430,8 +417,7 @@ function VendasPage() {
     await handleExecutarCancelamentoItem(cancelItemTarget, motivoTexto);
   };
 
-  // Função auxiliar para ordenação das mesas (primeiro normais/numéricas em sequência, depois especiais)
-  const sortMesas = (list: Mesa[]) => {
+const sortMesas = (list: Mesa[]) => {
     const numericas = list.filter((m) => isMesaNumerica(m.nome || ""));
     const especiais = list.filter((m) => !isMesaNumerica(m.nome || ""));
 
@@ -448,8 +434,7 @@ function VendasPage() {
     return [...numericas, ...especiais];
   };
 
-  // --- GERENCIADOR DE MAPA DE MESAS FÍSICAS ---
-  const fetchMesasFisicas = async () => {
+const fetchMesasFisicas = async () => {
     try {
       setLoadingMesas(true);
       const ms = await apiMesas.listar();
@@ -470,12 +455,10 @@ function VendasPage() {
     setIsGerenciarMesasOpen(true);
   };
 
-  // Reorganiza a numeração sequencial das mesas numéricas restantes
-  const reorganizarMesasNumericas = async (currentList: Mesa[]) => {
+const reorganizarMesasNumericas = async (currentList: Mesa[]) => {
     const numericas = currentList.filter((m) => isMesaNumerica(m.nome));
 
-    // Ordena numericamente pelo número extraído do nome
-    numericas.sort((a, b) => {
+numericas.sort((a, b) => {
       const numA = parseInt(a.nome.replace(/\D/g, ""), 10) || 0;
       const numB = parseInt(b.nome.replace(/\D/g, ""), 10) || 0;
       return numA - numB;
@@ -502,8 +485,7 @@ function VendasPage() {
     }
   };
 
-  // Criação Individual de Mesa Especial
-  const handleCreateMesaIndividual = async (e: React.FormEvent) => {
+const handleCreateMesaIndividual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!novaMesaFisicaNome.trim()) {
       toast.warning("Informe o nome/apelido da mesa.");
@@ -519,8 +501,7 @@ function VendasPage() {
     }
   };
 
-  // Geração em Lote Numérico de Mesas Sequencial (Ex: 10 mesas "Mesa 01", "Mesa 02", ...)
-  const handleGenerateMesasLote = async (e: React.FormEvent) => {
+const handleGenerateMesasLote = async (e: React.FormEvent) => {
     e.preventDefault();
     const qty = parseInt(quantidadeLote, 10);
     if (isNaN(qty) || qty <= 0) {
@@ -532,11 +513,10 @@ function VendasPage() {
       setGeneratingLote(true);
       const prefix = prefixoLote.trim() || "Mesa";
 
-      // Calcula o maior número existente com esse prefixo para dar continuidade sequencial
-      const existingNumbers = mesasList
+const existingNumbers = mesasList
         .map((m) => {
           if (!m.nome) return 0;
-          const escapedPrefix = prefix.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+          const escapedPrefix = prefix.replace(/[-\/\\^$*+?.()|[\]]/g, "\\$&");
           const match = m.nome.match(new RegExp(`^${escapedPrefix}\\s*(\\d+)`, "i"));
           return match && match[1] ? parseInt(match[1], 10) : 0;
         })
@@ -544,8 +524,7 @@ function VendasPage() {
 
       const startNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
 
-      // Cria o lote de mesas em ordem sequencial estrita
-      for (let i = 0; i < qty; i++) {
+for (let i = 0; i < qty; i++) {
         const numFormatted = String(startNum + i).padStart(2, "0");
         const nomeMesa = `${prefix} ${numFormatted}`;
         await apiMesas.salvar({ nome: nomeMesa, status: true });
@@ -560,8 +539,7 @@ function VendasPage() {
     }
   };
 
-  // Editar Nome / Apelido da Mesa
-  const handleOpenEditMesa = (mesa: Mesa) => {
+const handleOpenEditMesa = (mesa: Mesa) => {
     setEditingMesa(mesa);
     setEditMesaNome(mesa.nome);
   };
@@ -576,8 +554,7 @@ function VendasPage() {
         nome: editMesaNome.trim(),
       });
 
-      // Atualiza a lista e reorganiza o sequencial se necessário
-      const updatedList = mesasList.map((m) =>
+const updatedList = mesasList.map((m) =>
         m.id === editingMesa.id ? { ...m, nome: editMesaNome.trim() } : m
       );
       await reorganizarMesasNumericas(updatedList);
@@ -596,7 +573,7 @@ function VendasPage() {
     try {
       await apiMesas.deletar(mesaId);
       const remainingList = mesasList.filter((m) => m.id !== mesaId);
-      // Reorganiza a sequência numérica automaticamente (ex: 01, 03 vira 01, 02)
+      
       await reorganizarMesasNumericas(remainingList);
 
       toast.success("Mesa removida e sequência numérica reorganizada!");
@@ -606,8 +583,7 @@ function VendasPage() {
     }
   };
 
-  // --- ABRIR COMANDA / VENDA ---
-  const handleOpenNovaVendaModal = async (presetMesaId?: string, presetTipoAtendimento?: string) => {
+const handleOpenNovaVendaModal = async (presetMesaId?: string, presetTipoAtendimento?: string) => {
     const targetTipo = presetTipoAtendimento || (activeTab !== "TODOS" ? activeTab : "LOCAL");
     setTipoAtendimento(targetTipo);
     setSelectedMesaId(presetMesaId || "");
@@ -629,15 +605,14 @@ function VendasPage() {
       if (!presetMesaId && mesas.length > 0 && mesas[0]?.id) {
         setSelectedMesaId(mesas[0].id.toString());
       }
-      // selectedClienteId permanece vazio ("") para exibir o placeholder "Selecionar Cliente"
+      
       setIsNovaVendaModalOpen(true);
     } catch (err: any) {
       toast.error("Erro ao preparar abertura de comanda.");
     }
   };
 
-  // Carrega endereços ao mudar cliente no Delivery
-  useEffect(() => {
+useEffect(() => {
     if (selectedClienteId) {
       const cid = parseInt(selectedClienteId, 10);
       if (!isNaN(cid)) {
@@ -671,8 +646,7 @@ function VendasPage() {
     try {
       setSubmittingVenda(true);
 
-      // Tratamento Salão (Mesa Física cadastrada no salão)
-      if (tipoAtendimento === "LOCAL") {
+if (tipoAtendimento === "LOCAL") {
         if (!selectedMesaId) {
           toast.warning("Selecione uma mesa física.");
           setSubmittingVenda(false);
@@ -681,13 +655,12 @@ function VendasPage() {
         const found = mesasList.find((m) => m.id?.toString() === selectedMesaId);
         if (found && found.id) {
           mesaObj = found;
-          // Marca a mesa como ocupada ao adicionar comanda
+          
           await apiMesas.atualizar(found.id, { ...found, status: false });
         }
       }
 
-      // Tratamento Cliente e Delivery (Nome temporário descartável sem salvar no banco de clientes)
-      let nomeClienteTemp: string | null = null;
+let nomeClienteTemp: string | null = null;
 
       if (selectedClienteId) {
         const foundCli = clientesList.find((c) => c.id?.toString() === selectedClienteId);
@@ -721,8 +694,7 @@ function VendasPage() {
       setVerComandasMesaModal(null);
       fetchVendasAbertas();
 
-      // Redireciona diretamente para a página de lançamento da nova comanda
-      if (vendaCriada && vendaCriada.id) {
+if (vendaCriada && vendaCriada.id) {
         navigate({ to: "/vendas/$vendaId/lancar", params: { vendaId: vendaCriada.id.toString() } });
       }
     } catch (err: any) {
@@ -756,15 +728,14 @@ function VendasPage() {
       setDeletingVenda(false);
     }
   };
-  // --- NAVEGAÇÃO PARA PÁGINA DEDICADA DE LANÇAR ITENS ---
+  
   const handleOpenLancarPedidoPage = (venda: Venda) => {
     if (venda.id) {
       navigate({ to: "/vendas/$vendaId/lancar", params: { vendaId: venda.id.toString() } });
     }
   };
 
-  // --- FECHAR VENDA (SUPORTE A DESCONTO E PAGAMENTO PARCIAL) ---
-  const handleFecharVenda = async () => {
+const handleFecharVenda = async () => {
     if (!vendaParaFechar || !vendaParaFechar.id) return;
 
     const { totalConsumido, disponivelParaPagar: maximoPermitidoParcial } = getVendaCalculos(vendaParaFechar);
@@ -788,8 +759,7 @@ function VendasPage() {
         return;
       }
 
-      // Trava para encerramento total com pedidos pendentes
-      if (tipoFechamento === "TOTAL") {
+if (tipoFechamento === "TOTAL") {
         const pedidosPendentes = pedidosDaVendaParaFechar.filter((p) => {
           const status = p.statusPedido ? p.statusPedido.toLowerCase() : "";
           return status === "aberto" || status === "em preparo";
@@ -805,16 +775,14 @@ function VendasPage() {
         const valorPagoTotal = maximoPagamentoPermitido;
         const novoValorPagoTotalDinheiro = round2((vendaParaFechar.valorPago || 0) + valorPagoTotal);
 
-        // 1. Atualiza valor pago acumulado e fecha a comanda integralmente
-        await apiVendas.atualizar(vendaParaFechar.id, {
+await apiVendas.atualizar(vendaParaFechar.id, {
           ...vendaParaFechar,
           valorPago: novoValorPagoTotalDinheiro,
         });
 
         await apiVendas.fecharVenda(vendaParaFechar.id);
 
-        // 2. Registra auditoria no histórico
-        try {
+try {
           await apiPagamentosComanda.salvar({
             venda: { id: vendaParaFechar.id } as Venda,
             valorPago: valorPagoTotal,
@@ -829,8 +797,7 @@ function VendasPage() {
           console.error("Erro ao registrar histórico de encerramento:", e);
         }
 
-        // 3. Registra lançamento de receita no Módulo de Fluxo Financeiro (apenas no encerramento com valor líquido total)
-        try {
+try {
           const nomeCliente = vendaParaFechar.cliente?.nome || vendaParaFechar.nomeCliente || (vendaParaFechar.mesa?.nome ? `Mesa ${vendaParaFechar.mesa.nome}` : "Balcão");
           await apiFluxoFinanceiro.salvar({
             nome: `Encerramento Comanda #${vendaParaFechar.id}`,
@@ -873,8 +840,7 @@ function VendasPage() {
         const novoValorPagoApenasDinheiro = round2((vendaParaFechar.valorPago || 0) + valorPago);
         const novoTotalComanda = round2(Math.max(0, (vendaParaFechar.total || 0) - abatimentoTotalNoAto));
 
-        // Se a comanda for quitada por completo sem saldo e sem pedidos abertos
-        if (novoTotalComanda <= 0) {
+if (novoTotalComanda <= 0) {
           await apiVendas.atualizar(vendaParaFechar.id, {
             ...vendaParaFechar,
             valorPago: novoValorPagoApenasDinheiro,
@@ -897,8 +863,7 @@ function VendasPage() {
             console.error("Erro ao registrar histórico do pagamento final:", e);
           }
 
-          // Registra lançamento de receita no Módulo de Fluxo Financeiro (apenas no encerramento com valor líquido total)
-          try {
+try {
             const nomeCliente = vendaParaFechar.cliente?.nome || vendaParaFechar.nomeCliente || (vendaParaFechar.mesa?.nome ? `Mesa ${vendaParaFechar.mesa.nome}` : "Balcão");
             await apiFluxoFinanceiro.salvar({
               nome: `Encerramento Comanda #${vendaParaFechar.id}`,
@@ -918,15 +883,13 @@ function VendasPage() {
           return;
         }
 
-        // 1. Atualiza comanda no backend (pagamento parcial mantendo aberta)
-        await apiVendas.atualizar(vendaParaFechar.id, {
+await apiVendas.atualizar(vendaParaFechar.id, {
           ...vendaParaFechar,
           total: novoTotalComanda,
           valorPago: novoValorPagoApenasDinheiro,
         });
 
-        // 2. Lança auditoria de pagamento parcial no histórico
-        try {
+try {
           await apiPagamentosComanda.salvar({
             venda: { id: vendaParaFechar.id } as Venda,
             valorPago: valorPago,
@@ -954,8 +917,7 @@ function VendasPage() {
     }
   };
 
-  // Filtragem de comandas por abas (TODOS, LOCAL, RETIRADA, DELIVERY)
-  const filteredVendas = vendasAbertas.filter((v) => {
+const filteredVendas = vendasAbertas.filter((v) => {
     if (activeTab === "TODOS") return true;
     if (activeTab === "RETIRADA") return v.tipoAtendimento === "RETIRADA" || v.tipoAtendimento === "BALCAO";
     if (activeTab === "LOCAL") return !v.tipoAtendimento || v.tipoAtendimento === "LOCAL";
@@ -964,8 +926,7 @@ function VendasPage() {
 
   const valorTotalAberto = vendasAbertas.reduce((acc, v) => acc + (v.total || 0), 0);
 
-  // Divisão das Mesas Físicas em Numéricas e Especiais (Sempre Ordenadas Numericamente)
-  const sortedMesasList = sortMesas(mesasList);
+const sortedMesasList = sortMesas(mesasList);
   const mesasNumericas = sortedMesasList.filter((m) => isMesaNumerica(m.nome));
   const mesasEspeciais = sortedMesasList.filter((m) => !isMesaNumerica(m.nome));
 
@@ -975,8 +936,7 @@ function VendasPage() {
     return true;
   });
 
-  // Comandas ativas da mesa selecionada no modal "Ver Comandas"
-  const comandasDaMesaSelecionada = verComandasMesaModal
+const comandasDaMesaSelecionada = verComandasMesaModal
     ? vendasAbertas.filter((v) => v.mesa?.id === verComandasMesaModal.id)
     : [];
 
@@ -986,7 +946,7 @@ function VendasPage() {
       description="Gerenciamento de comandas e mesas."
       actions={
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto flex-1">
-          {/* TOTAL EM ABERTO RESUMO NO CABEÇALHO */}
+          
           <div className="h-10 px-4 rounded-lg border border-brand/30 bg-brand/10 flex items-center justify-between gap-3 shadow-xs flex-1 w-full sm:w-auto min-w-[180px]">
             <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Total em Aberto:</span>
             <span className="font-extrabold text-foreground text-sm font-mono tracking-tight shrink-0">
@@ -1021,11 +981,11 @@ function VendasPage() {
         </div>
       }
     >
-      {/* CARD PRINCIPAL CONTENDO OS FILTROS E CONTEÚDO */}
+      
       <Card className="p-4 sm:p-6 shadow-sm border bg-card">
-        {/* BARRA DE FERRAMENTAS DE FILTROS (ESQUERDA) E SELETOR DE EXIBIÇÃO (DIREITA) */}
+        
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
-          {/* ESQUERDA: ABAS DE FILTRO DA VISÃO ATIVA */}
+          
           {modoExibicao === "COMANDAS" ? (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
               <TabsList className="w-full sm:w-auto overflow-x-auto justify-start">
@@ -1080,8 +1040,7 @@ function VendasPage() {
             </Tabs>
           )}
 
-          {/* DIREITA: SELETOR DE MODO DE EXIBIÇÃO (COMANDAS vs MESAS) */}
-          <Tabs
+<Tabs
             value={modoExibicao}
             onValueChange={(val: any) => {
               setModoExibicao(val);
@@ -1106,8 +1065,7 @@ function VendasPage() {
           </Tabs>
         </div>
 
-        {/* MODO COMANDAS: GRADE PRINCIPAL DE COMANDAS ABERTAS */}
-        {modoExibicao === "COMANDAS" ? (
+{modoExibicao === "COMANDAS" ? (
         <div className="space-y-6">
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {loading ? (
@@ -1176,7 +1134,7 @@ function VendasPage() {
                     onClick={() => handleOpenVerItensComanda(v)}
                   >
                     <CardHeader className="space-y-1.5 pb-2">
-                      {/* LINHA 1: NOME DA COMANDA E BADGE NA MESMA LINHA */}
+                      
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className={`text-base font-bold flex items-center gap-2 transition-colors ${titleHoverColor}`}>
                           {isDelivery ? (
@@ -1200,8 +1158,7 @@ function VendasPage() {
                         )}
                       </div>
 
-                      {/* LINHA 2: NOME DO CLIENTE EM LINHA NOVA */}
-                      {(() => {
+{(() => {
                         const nomeExibicao = v.cliente?.nome || v.nomeCliente || "Cliente não identificado";
                         const isCadastrado = Boolean(
                           v.cliente?.id && (v.cliente.telefone || clientesList.some((c) => c.id === v.cliente?.id))
@@ -1216,7 +1173,7 @@ function VendasPage() {
                     </CardHeader>
 
                     <CardContent className="space-y-2.5 pt-2">
-                      {/* 1. HORÁRIO DE ABERTURA COM ÍCONE DE RELÓGIO */}
+                      
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <Clock className="size-3.5 text-muted-foreground shrink-0" />
@@ -1232,8 +1189,7 @@ function VendasPage() {
                         </span>
                       </div>
 
-                      {/* 2. ENDEREÇO (SE TIVER) COM ÍCONE DE PIN */}
-                      {v.endereco && (
+{v.endereco && (
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5">
                             <MapPin className="size-3.5 text-muted-foreground shrink-0" />
@@ -1274,8 +1230,7 @@ function VendasPage() {
                         );
                       })()}
 
-                      {/* BOTÕES DE AÇÃO NA COMANDA: OLHO | LANÇAR ITENS | FECHAR */}
-                      <div
+<div
                         className="flex flex-wrap gap-1.5 pt-2 mt-2 border-t items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -1323,7 +1278,7 @@ function VendasPage() {
           </div>
         </div>
       ) : (
-        /* MODO MESAS: VISUALIZAÇÃO INTERATIVA DAS MESAS E COMANDAS */
+        
         <div className="space-y-6">
           <div className="grid gap-3 sm:gap-4 grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {loadingMesas ? (
@@ -1366,7 +1321,7 @@ function VendasPage() {
                     }`}
                   >
                     <CardHeader className="space-y-1.5 pb-2">
-                      {/* LINHA 1: NOME DA MESA E BADGE NA MESMA LINHA */}
+                      
                       <div className="flex items-center justify-between gap-2">
                         <CardTitle className="text-base font-bold flex items-center gap-2 group-hover:text-primary transition-colors">
                           {isNum ? (
@@ -1389,8 +1344,7 @@ function VendasPage() {
                         </Badge>
                       </div>
 
-                      {/* LINHA 2: QUANTIDADE DE COMANDAS EM NOVA LINHA */}
-                      <p className="text-xs text-muted-foreground font-medium truncate flex items-center gap-1.5 pt-0.5">
+<p className="text-xs text-muted-foreground font-medium truncate flex items-center gap-1.5 pt-0.5">
                         <Receipt className="size-3.5 shrink-0 text-muted-foreground" />
                         <span className="truncate">
                           {countComandas === 0
@@ -1403,8 +1357,7 @@ function VendasPage() {
                     <CardContent className="space-y-3 pt-2">
                       <Separator />
 
-                      {/* TOTAL ACUMULADO DA MESA COM MESMO TAMANHO DO CARD DE COMANDA */}
-                      <div className="flex items-center justify-between">
+<div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
                           Total acumulado mesa
                         </span>
@@ -1444,8 +1397,7 @@ function VendasPage() {
       )}
       </Card>
 
-      {/* BOTÃO FLUTUANTE FAB (+) DE ABRIR NOVA COMANDA */}
-      <Button
+<Button
         onClick={() => handleOpenNovaVendaModal()}
         className="fixed bottom-6 right-6 z-40 size-14 rounded-full bg-brand text-primary-foreground hover:opacity-95 shadow-xl hover:scale-105 active:scale-95 transition-all p-0 flex items-center justify-center border border-brand/20 cursor-pointer"
         title="Abrir Nova Comanda"
@@ -1454,8 +1406,7 @@ function VendasPage() {
         <Plus className="size-7 stroke-[2.5]" />
       </Button>
 
-      {/* MODAL VER ITENS LANÇADOS NA COMANDA */}
-      <Dialog
+<Dialog
         open={verItensComandaModal !== null}
         onOpenChange={(open) => !open && setVerItensComandaModal(null)}
       >
@@ -1484,7 +1435,7 @@ function VendasPage() {
                 );
               })()}
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                {/* BADGE DE LOCAL / TIPO DE ATENDIMENTO */}
+                
                 {(() => {
                   const isDelivery = verItensComandaModal?.tipoAtendimento === "DELIVERY";
                   const isRetirada = verItensComandaModal?.tipoAtendimento === "RETIRADA" || verItensComandaModal?.tipoAtendimento === "BALCAO";
@@ -1513,8 +1464,7 @@ function VendasPage() {
                   );
                 })()}
 
-                {/* BADGE DO CLIENTE */}
-                {(() => {
+{(() => {
                   const nomeExibicao = verItensComandaModal?.cliente?.nome || verItensComandaModal?.nomeCliente || "Sem cliente";
                   const isCadastrado = Boolean(
                     verItensComandaModal?.cliente?.id &&
@@ -1626,8 +1576,7 @@ function VendasPage() {
                     </div>
                   )}
 
-                  {/* SEÇÃO AUDITORIA DE ITENS CANCELADOS */}
-                  {itensCancelados.length > 0 && (
+{itensCancelados.length > 0 && (
                     <div className="pt-2 border-t border-dashed">
                       <Button
                         variant="outline"
@@ -1776,8 +1725,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Editar Dados da Comanda (Tipo de Atendimento, Mesa e Cliente) */}
-      <Dialog
+<Dialog
         open={editingComandaDados !== null}
         onOpenChange={(open) => !open && setEditingComandaDados(null)}
       >
@@ -1793,7 +1741,7 @@ function VendasPage() {
           </DialogHeader>
 
           <form onSubmit={handleSaveEditarComandaDados} className="space-y-4 py-2">
-            {/* TIPO DE ATENDIMENTO */}
+            
             <div className="space-y-2">
               <Label>Tipo de Atendimento</Label>
               <Tabs value={editTipoAtendimento} onValueChange={setEditTipoAtendimento}>
@@ -1823,8 +1771,7 @@ function VendasPage() {
               </Tabs>
             </div>
 
-            {/* SELECIONAR / MOVER PARA OUTRA MESA (se LOCAL - OBRIGATÓRIO) */}
-            {editTipoAtendimento === "LOCAL" && (
+{editTipoAtendimento === "LOCAL" && (
               <div className="space-y-2">
                 <Label htmlFor="editMesa" className="flex items-center gap-1">
                   Mesa Vinculada <span className="text-destructive font-bold">*</span>
@@ -1844,8 +1791,7 @@ function VendasPage() {
               </div>
             )}
 
-            {/* CLIENTE (BUSCA CADASTRADOS OU NOME TEMPORÁRIO) */}
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label htmlFor="editClienteSearch">Cliente</Label>
               {editSelectedClienteId ? (
                 <div className="flex items-center justify-between p-2.5 rounded-lg border bg-accent/40 text-xs">
@@ -1905,8 +1851,7 @@ function VendasPage() {
                     )}
                   </div>
 
-                  {/* Dropdown de Clientes Cadastrados */}
-                  {isEditClienteDropdownOpen && editClienteSearchTerm.trim().length > 0 && (
+{isEditClienteDropdownOpen && editClienteSearchTerm.trim().length > 0 && (
                     <div className="border rounded-md bg-popover text-popover-foreground shadow-lg max-h-44 overflow-y-auto divide-y text-xs z-50">
                       {(() => {
                         const list = clientesList.filter((c) => {
@@ -1984,8 +1929,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Gerenciamento de Mesas Físicas (Criação, Edição e Exclusão) */}
-      <Dialog open={isGerenciarMesasOpen} onOpenChange={setIsGerenciarMesasOpen}>
+<Dialog open={isGerenciarMesasOpen} onOpenChange={setIsGerenciarMesasOpen}>
         <DialogContent className="sm:max-w-2xl sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-2 border-b">
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
@@ -1997,8 +1941,7 @@ function VendasPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {/* PAINEL ADMINISTRATIVO (CADASTRO/GERENCIAMENTO) */}
-          <div className="space-y-4 py-2 pt-3">
+<div className="space-y-4 py-2 pt-3">
             <div>
               <Tabs
                 value={modoCriacaoMesa}
@@ -2094,8 +2037,7 @@ function VendasPage() {
 
             <Separator />
 
-            {/* LISTA DE MESAS EM TABELA COM EDIÇÃO / EXCLUSÃO */}
-            {loadingMesas ? (
+{loadingMesas ? (
               <div className="flex h-32 items-center justify-center text-muted-foreground">
                 <Loader2 className="size-5 animate-spin mr-2" />
                 Carregando mesas...
@@ -2184,8 +2126,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Ver Comandas da Mesa Selecionada */}
-      <Dialog
+<Dialog
         open={verComandasMesaModal !== null}
         onOpenChange={(open) => !open && setVerComandasMesaModal(null)}
       >
@@ -2276,12 +2217,11 @@ function VendasPage() {
                       );
                     })()}
 
-                    {/* BOTÕES DE AÇÃO NA COMANDA (2 LINHAS PADRONIZADAS) */}
-                    <div
+<div
                       className="flex flex-col gap-2 pt-2 mt-2 border-t"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {/* LINHA 01: EDITAR & REMOVER (ÍCONES DO MESMO TAMANHO) & LANÇAR ITENS */}
+                      
                       <div className="flex items-center gap-2 w-full">
                         <Button
                           variant="outline"
@@ -2321,8 +2261,7 @@ function VendasPage() {
                         </Button>
                       </div>
 
-                      {/* LINHA 02: VISUALIZAR (ÍCONE) & FECHAR */}
-                      <div className="flex items-center gap-2 w-full">
+<div className="flex items-center gap-2 w-full">
                         <Button
                           variant="outline"
                           size="icon"
@@ -2364,8 +2303,7 @@ function VendasPage() {
             )}
           </div>
 
-          {/* BOTÃO BLOCK ABRIR NOVA COMANDA NO RODAPÉ DO MODAL */}
-          {verComandasMesaModal?.id && (
+{verComandasMesaModal?.id && (
             <div className="pt-3 border-t mt-2">
               <Button
                 onClick={() => {
@@ -2386,8 +2324,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Editar Apelido/Nome da Mesa */}
-      <Dialog open={editingMesa !== null} onOpenChange={(open) => !open && setEditingMesa(null)}>
+<Dialog open={editingMesa !== null} onOpenChange={(open) => !open && setEditingMesa(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Editar Apelido da Mesa</DialogTitle>
@@ -2423,8 +2360,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Abrir Nova Comanda */}
-      <Dialog open={isNovaVendaModalOpen} onOpenChange={setIsNovaVendaModalOpen}>
+<Dialog open={isNovaVendaModalOpen} onOpenChange={setIsNovaVendaModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Abrir Nova Comanda</DialogTitle>
@@ -2463,8 +2399,7 @@ function VendasPage() {
               </Tabs>
             </div>
 
-            {/* SEÇÃO CONSUMO LOCAL (MESA FÍSICA) */}
-            {tipoAtendimento === "LOCAL" && (
+{tipoAtendimento === "LOCAL" && (
               <div className="space-y-3 border-t pt-3">
                 {mesasList.length > 0 ? (
                   <div className="space-y-2">
@@ -2508,8 +2443,7 @@ function VendasPage() {
               </div>
             )}
 
-            {/* CAMPO UNIFICADO DE CLIENTE (PARA LOCAL, RETIRADA E DELIVERY) */}
-            <div className="space-y-2 border-t pt-3">
+<div className="space-y-2 border-t pt-3">
               <Label htmlFor="cliSearchUnified">
                 {tipoAtendimento === "DELIVERY" ? "Cliente" : "Nome do Cliente / Identificação (Opcional)"}
               </Label>
@@ -2583,8 +2517,7 @@ function VendasPage() {
                     )}
                   </div>
 
-                  {/* Dropdown de Clientes Cadastrados */}
-                  {isClienteDropdownOpen && clienteSearchTerm.trim().length > 0 && (
+{isClienteDropdownOpen && clienteSearchTerm.trim().length > 0 && (
                     <div className="border rounded-md bg-popover text-popover-foreground shadow-lg max-h-44 overflow-y-auto divide-y text-xs z-50">
                       {(() => {
                         const list = clientesList.filter((c) => {
@@ -2644,8 +2577,7 @@ function VendasPage() {
               )}
             </div>
 
-            {/* SEÇÃO DELIVERY (ENDEREÇO E TAXA DE ENTREGA) */}
-            {tipoAtendimento === "DELIVERY" && (
+{tipoAtendimento === "DELIVERY" && (
               <div className="space-y-3 border-t pt-3 text-xs">
                 <div className="space-y-2 pb-1">
                   <Label htmlFor="endSelect">Endereço de Entrega</Label>
@@ -2717,8 +2649,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Fechar Comanda com Suporte a Desconto e Pagamento Parcial */}
-      <Dialog
+<Dialog
         open={vendaParaFechar !== null}
         onOpenChange={(open) => !open && setVendaParaFechar(null)}
       >
@@ -2769,7 +2700,7 @@ function VendasPage() {
 
             return (
               <div className="space-y-4 py-2 text-xs">
-                {/* AVISO SE HOUVER PEDIDOS EM PREPARO NA COZINHA */}
+                
                 {temPedidosEmAberto && (
                   <div className="p-2.5 bg-amber-500/10 border border-amber-500/25 rounded-lg text-[11px] text-amber-700 dark:text-amber-400 flex items-center gap-2">
                     <AlertTriangle className="size-4 shrink-0 text-amber-600" />
@@ -2779,8 +2710,7 @@ function VendasPage() {
                   </div>
                 )}
 
-                {/* TIPO DE PAGAMENTO: TOTAL OU PARCIAL */}
-                <div>
+<div>
                   <Tabs value={tipoFechamento} onValueChange={(v) => setTipoFechamento(v as "TOTAL" | "PARCIAL")}>
                     <TabsList className="grid grid-cols-2 w-full h-auto p-1">
                       <TabsTrigger
@@ -2803,8 +2733,7 @@ function VendasPage() {
                   </Tabs>
                 </div>
 
-                {/* FORMA DE PAGAMENTO */}
-                <div className="space-y-1.5">
+<div className="space-y-1.5">
                   <Label htmlFor="formaPgto" className="font-semibold">Forma de Pagamento</Label>
                   <Select value={formaPagamento} onValueChange={setFormaPagamento}>
                     <SelectTrigger id="formaPgto" className="h-9 text-xs">
@@ -2839,8 +2768,7 @@ function VendasPage() {
                   </Select>
                 </div>
 
-                {/* VALOR PAGO PARCIAL (SE SELECIONADO PARCIAL) */}
-                {tipoFechamento === "PARCIAL" && (
+{tipoFechamento === "PARCIAL" && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
                       <Label htmlFor="valorParcialInp" className="font-semibold">Valor à Pagar (R$)</Label>
@@ -2870,8 +2798,7 @@ function VendasPage() {
                   </div>
                 )}
 
-                {/* CHECKBOX E INPUT DE DESCONTO */}
-                <div className="pt-1">
+<div className="pt-1">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="chkDesconto"
@@ -2920,8 +2847,7 @@ function VendasPage() {
 
                 <Separator />
 
-                {/* RESUMO FINANCEIRO DO FECHAMENTO */}
-                <div className="p-3 border rounded-lg bg-muted/40 space-y-1.5 text-xs">
+<div className="p-3 border rounded-lg bg-muted/40 space-y-1.5 text-xs">
                   <div className="flex justify-between font-semibold text-foreground">
                     <span>Total Consumido</span>
                     <span className="font-mono font-bold">{brl(totalConsumidoCalc)}</span>
@@ -2957,8 +2883,7 @@ function VendasPage() {
                   )}
                 </div>
 
-                {/* BOTÕES DE AÇÃO NO RODAPÉ */}
-                <DialogFooter className="pt-3 flex flex-row items-center justify-between gap-2 border-t">
+<DialogFooter className="pt-3 flex flex-row items-center justify-between gap-2 border-t">
                   <Button
                     type="button"
                     variant="outline"
@@ -2997,8 +2922,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Excluir Comanda (Com trava de segurança e motivo) */}
-      <Dialog
+<Dialog
         open={comandaParaExcluir !== null}
         onOpenChange={(open) => !open && setComandaParaExcluir(null)}
       >
@@ -3098,8 +3022,7 @@ function VendasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Motivo do Cancelamento do Item (Apenas para pedidos Em Preparo) */}
-      <Dialog open={cancelItemTarget !== null} onOpenChange={(open) => !open && setCancelItemTarget(null)}>
+<Dialog open={cancelItemTarget !== null} onOpenChange={(open) => !open && setCancelItemTarget(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive font-bold">

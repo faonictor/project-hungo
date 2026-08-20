@@ -45,13 +45,11 @@ function CategoriasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(null);
   const [nome, setNome] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Delete Alert State
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -201,7 +199,6 @@ function CategoriasPage() {
         </div>
       )}
 
-      {/* Modal (Criar / Editar) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -242,7 +239,6 @@ function CategoriasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog (Deletar) */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

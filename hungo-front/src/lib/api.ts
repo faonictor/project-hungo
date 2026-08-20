@@ -29,9 +29,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
       } else if (typeof errorData === "string") {
         errorMessage = errorData;
       }
-    } catch {
-      // Falha ao obter json de erro
-    }
+    } catch {}
     throw new Error(errorMessage);
   }
 
@@ -46,8 +44,6 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     return text as unknown as T;
   }
 }
-
-// --- INTERFACES ---
 
 export interface Insumo {
   id?: number;
@@ -126,7 +122,7 @@ export interface ClienteEnderecoDTO {
 export interface Mesa {
   id?: number;
   nome: string;
-  status?: boolean; // true = Livre, false = Ocupada
+  status?: boolean;
 }
 
 export interface Venda {
@@ -161,8 +157,8 @@ export interface PedidoDTO {
   clienteId?: number | null;
   enderecoId?: number | null;
   vendaId: number;
-  tipoPedido: string; // ex: "Mesa", "Delivery", "Balcão"
-  statusPedido: string; // ex: "Aberto", "Em preparo", "Concluído", "Cancelado"
+  tipoPedido: string;
+  statusPedido: string;
   dataHora?: string;
   dataInicioPreparo?: string | null;
   dataFimPreparo?: string | null;
@@ -188,13 +184,11 @@ export interface FluxoFinanceiro {
   id?: number;
   nome: string;
   descricao?: string;
-  transacao: string; // "Entrada" ou "Saída"
+  transacao: string;
   dataTransacao?: string;
   venda?: Venda | null;
-  fluxo: number; // valor monetário
+  fluxo: number;
 }
-
-// --- SERVIÇOS ---
 
 export const apiInsumos = {
   listar: () => request<Insumo[]>("/insumo"),

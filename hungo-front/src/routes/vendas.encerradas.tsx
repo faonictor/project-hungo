@@ -8,11 +8,8 @@ import {
   ShoppingBag,
   Utensils,
   History,
-  Clock,
   User,
-  CheckCircle2,
   Receipt,
-  DollarSign,
   Info,
   AlertCircle,
 } from "lucide-react";
@@ -38,13 +35,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { apiVendas, apiPagamentosComanda, Venda, PagamentoComanda } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { brl } from "@/lib/mock-data";
 
 const round2 = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
-import { brl } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/vendas/encerradas")({
   head: () => ({
@@ -74,7 +70,6 @@ function VendasEncerradasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todas");
 
-  // Modal Histórico de Pagamentos
   const [historicoModalVenda, setHistoricoModalVenda] = useState<Venda | null>(null);
   const [motivoModalVenda, setMotivoModalVenda] = useState<Venda | null>(null);
   const [pagamentosList, setPagamentosList] = useState<PagamentoComanda[]>([]);
@@ -253,7 +248,7 @@ function VendasEncerradasPage() {
                           #{v.id}
                         </TableCell>
 
-                        <TableCell className="text-foreground text-xs">
+                        <TableCell className="text-foreground text-xs whitespace-nowrap">
                           {(() => {
                             const clienteNome = v.cliente?.nome || v.nomeCliente || "";
                             if (v.mesa?.nome) {
@@ -270,12 +265,12 @@ function VendasEncerradasPage() {
                         </TableCell>
 
                         <TableCell>
-                          <Badge variant="outline" className={`${badge.style} text-xs flex items-center gap-1 w-fit border-border/50`}>
-                            <IconComp className="size-3" /> {badge.label}
+                          <Badge variant="outline" className={`${badge.style} text-xs flex items-center gap-1 w-fit border-border/50 whitespace-nowrap`}>
+                            <IconComp className="size-3 shrink-0" /> {badge.label}
                           </Badge>
                         </TableCell>
 
-                        <TableCell className="text-muted-foreground text-xs font-mono">
+                        <TableCell className="text-muted-foreground text-xs font-mono whitespace-nowrap">
                           {v.dataInicioVenda
                             ? new Date(v.dataInicioVenda).toLocaleString("pt-BR", {
                                 dateStyle: "short",
@@ -284,7 +279,7 @@ function VendasEncerradasPage() {
                             : "-"}
                         </TableCell>
 
-                        <TableCell className="text-muted-foreground text-xs font-mono">
+                        <TableCell className="text-muted-foreground text-xs font-mono whitespace-nowrap">
                           {v.dataFimVenda
                             ? new Date(v.dataFimVenda).toLocaleString("pt-BR", {
                                 dateStyle: "short",
@@ -297,21 +292,21 @@ function VendasEncerradasPage() {
                           {v.status === "CANCELADA" ? (
                             <Badge
                               variant="outline"
-                              className="border-destructive/25 bg-destructive/10 text-destructive text-xs"
+                              className="border-destructive/25 bg-destructive/10 text-destructive text-xs whitespace-nowrap"
                             >
                               Cancelada
                             </Badge>
                           ) : isEncerrada ? (
                             <Badge
                               variant="outline"
-                              className="border-emerald-500/25 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 text-xs"
+                              className="border-emerald-500/25 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 text-xs whitespace-nowrap"
                             >
                               Encerrada
                             </Badge>
                           ) : (
                             <Badge
                               variant="outline"
-                              className="border-amber-500/30 bg-amber-500/12 text-amber-600 dark:text-amber-400 text-xs"
+                              className="border-amber-500/30 bg-amber-500/12 text-amber-600 dark:text-amber-400 text-xs whitespace-nowrap"
                             >
                               Parcial
                             </Badge>
@@ -369,7 +364,6 @@ function VendasEncerradasPage() {
         </CardContent>
       </Card>
 
-      {/* MODAL HISTÓRICO DE PAGAMENTOS DA COMANDA */}
       <Dialog open={historicoModalVenda !== null} onOpenChange={(open) => !open && setHistoricoModalVenda(null)}>
         <DialogContent className="sm:max-w-3xl sm:max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-3 border-b">
@@ -407,7 +401,6 @@ function VendasEncerradasPage() {
 
             return (
               <div className="space-y-4 pt-2 text-xs">
-                {/* RESUMO DE RASTREABILIDADE DA COMANDA */}
                 <div className="p-3.5 border rounded-xl bg-card space-y-2.5 shadow-2xs">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-foreground flex items-center gap-1.5 text-sm">
@@ -451,7 +444,6 @@ function VendasEncerradasPage() {
                   </div>
                 </div>
 
-              {/* LISTA / TABELA DE PAGAMENTOS REGISTRADOS */}
               {loadingPagamentos ? (
                 <div className="flex h-32 items-center justify-center text-muted-foreground">
                   <Loader2 className="size-5 animate-spin mr-2" />
@@ -534,7 +526,7 @@ function VendasEncerradasPage() {
           })()}
         </DialogContent>
       </Dialog>
-      {/* MODAL MOTIVO DO CANCELAMENTO DA COMANDA */}
+
       <Dialog open={motivoModalVenda !== null} onOpenChange={(open) => !open && setMotivoModalVenda(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

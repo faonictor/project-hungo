@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Loader2, RefreshCw, Eye, EyeOff, Pencil, Trash2, ShoppingBag, X, Clock, CheckCircle2, XCircle, AlertTriangle, MapPin, User, Truck, FileText, Printer, Save, Utensils } from "lucide-react";
+import { Loader2, RefreshCw, Eye, EyeOff, Trash2, ShoppingBag, Clock, CheckCircle2, XCircle, AlertTriangle, MapPin, User, Truck, FileText, Printer, Utensils } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,7 +48,6 @@ import {
   Pedido,
   PedidoDTO,
   Produto,
-  ItemPedidoDTO,
 } from "@/lib/api";
 import { brl } from "@/lib/mock-data";
 
@@ -127,7 +126,6 @@ function PedidosPage() {
 
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
 
-  // Detalhes / Editar Pedido Modal State
   const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null);
   const [pedidoDetalhe, setPedidoDetalhe] = useState<PedidoDTO | null>(null);
   const [loadingDetalhes, setLoadingDetalhes] = useState(false);
@@ -135,13 +133,11 @@ function PedidosPage() {
   const [savingStatus, setSavingStatus] = useState(false);
   const [mostrarItensCancelados, setMostrarItensCancelados] = useState<boolean>(false);
 
-  // Modal de Motivo do Cancelamento do Pedido
   const [cancelPedidoTarget, setCancelPedidoTarget] = useState<Pedido | null>(null);
   const [motivoOpcao, setMotivoOpcao] = useState<string>("Item indisponível no estoque");
   const [motivoObservacao, setMotivoObservacao] = useState<string>("");
   const [cancelingPedido, setCancelingPedido] = useState(false);
 
-  // Modal e Função de Impressão de Via de Cozinha / Produção
   const [pedidoParaImprimir, setPedidoParaImprimir] = useState<Pedido | null>(null);
 
   const handleImprimirViaCozinha = async (pedidoInput: Pedido | PedidoDTO | null) => {
@@ -150,7 +146,6 @@ function PedidosPage() {
     let fullPedido: any = pedidoInput;
     let fullItens: any[] = (pedidoInput as any).itens || [];
 
-    // Garantir produtos carregados
     let prods = produtosList;
     if (prods.length === 0) {
       try {
@@ -161,7 +156,6 @@ function PedidosPage() {
       }
     }
 
-    // Se itens estiverem vazios, busca da API por ID
     if (!fullItens || fullItens.length === 0) {
       try {
         const dto = await apiPedidos.buscarPorId(pedidoInput.id);
@@ -351,9 +345,6 @@ function PedidosPage() {
     apiProdutos.listar().then(setProdutosList).catch(console.error);
   }, []);
 
-
-
-  // --- DETALHES / ALTERAR STATUS DO PEDIDO ---
   const handleOpenDetalhesModal = async (pedidoId: number) => {
     setSelectedPedidoId(pedidoId);
     setPedidoDetalhe(null);
@@ -403,9 +394,6 @@ function PedidosPage() {
     }
   };
 
-
-
-  // Filtragem e Ordenação por Índice
   const filteredPedidos = (() => {
     let list = pedidosList.filter((p) => {
       const matchesSearch =
@@ -422,7 +410,6 @@ function PedidosPage() {
       return true;
     });
 
-    // Ordenação padrão por ordem de índice/ID crescente
     return [...list].sort((a, b) => a.id - b.id);
   })();
 
@@ -515,11 +502,11 @@ function PedidosPage() {
                         <TableCell className="font-semibold font-mono text-xs">
                           #{p.id}
                         </TableCell>
-                        <TableCell>
-                          <p className="font-medium text-foreground">
+                        <TableCell className="whitespace-nowrap">
+                          <p className="font-medium text-foreground whitespace-nowrap">
                             {p.cliente?.nome || p.venda?.cliente?.nome || (p.venda?.mesa?.nome ? `Consumo (${p.venda.mesa.nome})` : "Cliente Balcão")}
                           </p>
-                          <p className="text-xs text-muted-foreground font-mono">
+                          <p className="text-xs text-muted-foreground font-mono whitespace-nowrap">
                             {p.dataHora
                               ? new Date(p.dataHora).toLocaleString("pt-BR", {
                                   dateStyle: "short",
@@ -529,7 +516,7 @@ function PedidosPage() {
                           </p>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="border-border bg-muted/50 text-foreground text-xs font-mono font-medium">
+                          <Badge variant="outline" className="border-border bg-muted/50 text-foreground text-xs font-mono font-medium whitespace-nowrap">
                             {p.venda?.mesa?.nome
                               ? `Comanda #${p.venda.id} - ${p.venda.mesa.nome}`
                               : `Comanda #${p.venda?.id || "-"}`}
@@ -556,7 +543,7 @@ function PedidosPage() {
                               : "border-primary/30 bg-primary/10 text-primary font-semibold";
 
                             return (
-                              <Badge variant="outline" className={`text-xs flex items-center gap-1 w-fit ${style}`}>
+                              <Badge variant="outline" className={`text-xs flex items-center gap-1 w-fit whitespace-nowrap ${style}`}>
                                 <Icon className="size-3 shrink-0" />
                                 {label}
                               </Badge>
@@ -566,31 +553,31 @@ function PedidosPage() {
                         <TableCell>
                           <Badge
                             variant="outline"
-                            className={statusTone[isCancelado ? "Cancelado" : (p.statusPedido || "Aberto")] || statusTone["Aberto"]}
+                            className={`whitespace-nowrap ${statusTone[isCancelado ? "Cancelado" : (p.statusPedido || "Aberto")] || statusTone["Aberto"]}`}
                           >
                             {isCancelado ? "Cancelado" : (p.statusPedido || "Aberto")}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           {p.statusPedido === "Em preparo" || p.statusPedido === "Concluído" || p.statusPedido === "Concluido" ? (
-                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border font-mono text-xs">
-                              <Clock className="size-3 mr-1 inline-block text-muted-foreground" /> {formatTempoPreparo(p, now)}
+                            <Badge variant="outline" className="bg-muted text-muted-foreground border-border font-mono text-xs whitespace-nowrap">
+                              <Clock className="size-3 mr-1 inline-block text-muted-foreground shrink-0" /> {formatTempoPreparo(p, now)}
                             </Badge>
                           ) : (
-                            <span className="text-muted-foreground text-xs font-mono font-medium">-</span>
+                            <span className="text-muted-foreground text-xs font-mono font-medium whitespace-nowrap">-</span>
                           )}
                         </TableCell>
                         <TableCell>
                           {isCancelado ? (
-                            <Badge variant="outline" className="bg-destructive/15 text-destructive border-destructive/30 font-medium">
+                            <Badge variant="outline" className="bg-destructive/15 text-destructive border-destructive/30 font-medium whitespace-nowrap">
                               Cancelado
                             </Badge>
                           ) : isPago ? (
-                            <Badge variant="outline" className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 font-medium">
+                            <Badge variant="outline" className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 font-medium whitespace-nowrap">
                               Pago
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-amber-500/15 text-amber-700 border-amber-500/30 font-medium">
+                            <Badge variant="outline" className="bg-amber-500/15 text-amber-700 border-amber-500/30 font-medium whitespace-nowrap">
                               Pendente
                             </Badge>
                           )}
@@ -643,9 +630,6 @@ function PedidosPage() {
         </CardContent>
       </Card>
 
-
-
-      {/* Modal Ver Detalhes e Alterar Status do Pedido */}
       <Dialog
         open={selectedPedidoId !== null}
         onOpenChange={(open) => !open && setSelectedPedidoId(null)}
@@ -678,7 +662,6 @@ function PedidosPage() {
                 </DialogTitle>
                 {pedidoDetalhe && (
                   <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    {/* BADGE CANAL DE ATENDIMENTO / LOCAL */}
                     {isDelivery ? (
                       <Badge variant="outline" className="border-amber-500/30 bg-amber-500/12 text-amber-600 dark:text-amber-400 text-xs font-semibold flex items-center gap-1">
                         <Truck className="size-3" /> Delivery
@@ -693,7 +676,6 @@ function PedidosPage() {
                       </Badge>
                     )}
 
-                    {/* BADGE CLIENTE */}
                     <Badge variant="outline" className="border-border bg-muted/50 text-foreground text-xs font-medium flex items-center gap-1">
                       <User className={`size-3 ${isCadastrado ? "text-primary fill-primary/10" : "text-muted-foreground"}`} />
                       {clienteNome || "Sem cliente"}
@@ -711,7 +693,6 @@ function PedidosPage() {
             </div>
           ) : pedidoDetalhe ? (
             <div className="space-y-4 py-2 text-xs">
-              {/* STATUS ATUAL E PROGRESSÃO DA COZINHA */}
               {pedidoDetalhe.statusPedido === "Concluído" || pedidoDetalhe.statusPedido === "Concluido" ? (
                 <div className="p-3 border border-emerald-500/30 rounded-lg bg-emerald-500/10 text-emerald-700 text-xs space-y-1">
                   <p className="font-bold flex items-center gap-1.5">
@@ -751,7 +732,6 @@ function PedidosPage() {
                 </div>
               )}
 
-              {/* TABELA DE ITENS ATIVOS E SEÇÃO DE ITENS CANCELADOS */}
               {(() => {
                 const itensAtivos = (pedidoDetalhe.itens || []).filter(
                   (item) => (item.statusItem || "").toUpperCase() !== "CANCELADO"
@@ -802,7 +782,6 @@ function PedidosPage() {
                       </div>
                     )}
 
-                    {/* SEÇÃO AUDITORIA DE ITENS CANCELADOS (COM OLHO ABERTO/FECHADO E BOTÃO VER) */}
                     {itensCancelados.length > 0 && (
                       <div className="pt-2 border-t border-dashed">
                         <Button
@@ -866,7 +845,6 @@ function PedidosPage() {
                 );
               })()}
 
-              {/* RODAPÉ DO MODAL PADRONIZADO IGUAL AO DE COMANDAS */}
               <DialogFooter className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t">
                 {pedidoDetalhe.statusPedido !== "Concluído" &&
                  pedidoDetalhe.statusPedido !== "Concluido" &&
@@ -949,7 +927,6 @@ function PedidosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Motivo do Cancelamento do Pedido */}
       <Dialog
         open={cancelPedidoTarget !== null}
         onOpenChange={(open) => !open && setCancelPedidoTarget(null)}
@@ -1032,7 +1009,7 @@ function PedidosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Modal Confirmar Impressão de Comprovante de Cozinha ao Mudar para Em Preparo */}
+
       <AlertDialog
         open={pedidoParaImprimir !== null}
         onOpenChange={(open) => !open && setPedidoParaImprimir(null)}

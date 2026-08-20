@@ -62,7 +62,6 @@ function FinanceiroPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal Novo Lançamento
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -70,7 +69,6 @@ function FinanceiroPage() {
   const [valor, setValor] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Delete State
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -274,14 +272,14 @@ function FinanceiroPage() {
                             variant="outline"
                             className={
                               isEntrada
-                                ? "border-emerald-500/25 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 text-xs"
-                                : "border-destructive/25 bg-destructive/10 text-destructive text-xs"
+                                ? "border-emerald-500/25 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 text-xs whitespace-nowrap"
+                                : "border-destructive/25 bg-destructive/10 text-destructive text-xs whitespace-nowrap"
                             }
                           >
                             {isEntrada ? (
-                              <ArrowUpRight className="size-3.5 mr-1" />
+                              <ArrowUpRight className="size-3.5 mr-1 shrink-0" />
                             ) : (
-                              <ArrowDownLeft className="size-3.5 mr-1" />
+                              <ArrowDownLeft className="size-3.5 mr-1 shrink-0" />
                             )}
                             {f.transacao}
                           </Badge>
@@ -314,7 +312,6 @@ function FinanceiroPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Criar Lançamento */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -424,7 +421,6 @@ function FinanceiroPage() {
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog Delete */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

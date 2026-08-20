@@ -5,7 +5,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -57,18 +56,15 @@ function InsumosPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal State (Create / Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState<Insumo | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form Fields
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [quantidade, setQuantidade] = useState("");
   const [unidadeMedida, setUnidadeMedida] = useState("kg");
 
-  // Delete Alert State
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -260,8 +256,8 @@ function InsumosPage() {
                             variant="outline"
                             className={
                               isBaixo
-                                ? "border-destructive/25 bg-destructive/10 text-destructive"
-                                : "border-success/25 bg-success/12 text-success"
+                                ? "border-destructive/25 bg-destructive/10 text-destructive whitespace-nowrap"
+                                : "border-success/25 bg-success/12 text-success whitespace-nowrap"
                             }
                           >
                             {isBaixo ? "Baixo Estoque" : "Adequado"}
@@ -297,7 +293,6 @@ function InsumosPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Modal (Criar / Editar) */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -375,7 +370,6 @@ function InsumosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog (Deletar) */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

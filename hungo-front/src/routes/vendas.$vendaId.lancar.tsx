@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Utensils,
   X,
-  MapPin,
   Truck,
   ShoppingBag,
   ShoppingCart,
@@ -86,7 +85,6 @@ function LancarItensPage() {
   }, [vendaId]);
 
   useEffect(() => {
-    // Auto-focus na barra de busca ao carregar a página
     if (!loading && searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -169,13 +167,11 @@ function LancarItensPage() {
     }
   };
 
-  // Produtos Favoritos (Apenas onde favorito === true e tipo ativo)
   const produtosFavoritos = produtosList
     .filter((p) => Boolean(p.favorito) === true && (p.tipo ?? true));
 
-  // Produtos Filtrados na Pesquisa
   const filteredProdutos = produtosList.filter((p) => {
-    if (!(p.tipo ?? true)) return false; // apenas produtos ativos
+    if (!(p.tipo ?? true)) return false;
     const q = searchTerm.toLowerCase().trim();
     if (!q) return true;
     return (
@@ -207,7 +203,6 @@ function LancarItensPage() {
         </Button>
       }
     >
-      {/* CABEÇALHO DA COMANDA */}
       <div className="mb-6 p-4 border rounded-xl bg-card shadow-card flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-xl text-primary font-mono text-lg font-bold">
@@ -267,11 +262,9 @@ function LancarItensPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* COLUNA ESQUERDA: BARRA DE BUSCA E PRODUTOS (2 colunas) */}
         <div className="lg:col-span-2">
           <Card className="shadow-card overflow-hidden">
             <CardContent className="p-4 sm:p-6 space-y-4">
-              {/* BARRA DE BUSCA DE PRODUTOS */}
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
                 <Input
@@ -296,9 +289,7 @@ function LancarItensPage() {
                 )}
               </div>
 
-              {/* CONTEÚDO DINÂMICO: FAVORITOS QUANDO SEM BUSCA OU RESULTADOS DA BUSCA */}
               {searchTerm.trim() === "" ? (
-                /* SEÇÃO DE FAVORITOS */
                 <div className="space-y-3 pt-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
@@ -350,7 +341,6 @@ function LancarItensPage() {
                   )}
                 </div>
               ) : (
-                /* SEÇÃO DE RESULTADOS DA BUSCA DINÂMICA */
                 <div className="border rounded-xl overflow-hidden">
                   <div className="py-2.5 px-4 bg-muted/30 border-b flex justify-between items-center text-xs">
                     <span className="font-semibold uppercase tracking-wider text-muted-foreground">
@@ -413,7 +403,6 @@ function LancarItensPage() {
           </Card>
         </div>
 
-        {/* COLUNA DIREITA: CARRINHO E CONFIRMAÇÃO DO PEDIDO */}
         <div className="space-y-4">
           <Card className="shadow-card sticky top-4 border-2">
             <CardHeader className="py-4 border-b bg-muted/20">

@@ -4,7 +4,6 @@ import { Plus, Pencil, Trash2, Loader2, RefreshCw, MapPin, User, Phone, Mail } f
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -61,19 +60,16 @@ function ClientesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal State (Novo Cliente com Endereço ou Editar)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [includeEndereco, setIncludeEndereco] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form Fields - Cliente
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
 
-  // Form Fields - Endereço (se incluído)
   const [rua, setRua] = useState("");
   const [numero, setNumero] = useState("");
   const [bairro, setBairro] = useState("");
@@ -81,13 +77,11 @@ function ClientesPage() {
   const [cep, setCep] = useState("");
   const [complemento, setComplemento] = useState("");
 
-  // Modal Endereços do Cliente
   const [selectedClienteForEndereco, setSelectedClienteForEndereco] = useState<Cliente | null>(null);
   const [clienteEnderecos, setClienteEnderecos] = useState<Endereco[]>([]);
   const [loadingEnderecos, setLoadingEnderecos] = useState(false);
   const [isAddingEndereco, setIsAddingEndereco] = useState(false);
 
-  // Delete State
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -193,7 +187,6 @@ function ClientesPage() {
     }
   };
 
-  // Gerenciamento de Endereços
   const handleOpenEnderecosModal = async (cliente: Cliente) => {
     if (!cliente.id) return;
     setSelectedClienteForEndereco(cliente);
@@ -230,7 +223,6 @@ function ClientesPage() {
       });
       toast.success("Novo endereço adicionado ao cliente!");
       setIsAddingEndereco(false);
-      // Recarrega endereços do cliente
       const ends = await apiEnderecos.listarPorCliente(selectedClienteForEndereco.id);
       setClienteEnderecos(ends);
     } catch (err: any) {
@@ -413,7 +405,6 @@ function ClientesPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Criar / Editar Cliente */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -471,7 +462,6 @@ function ClientesPage() {
               />
             </div>
 
-            {/* Seção Endereço Inicial se criando novo cliente */}
             {!editingCliente && (
               <div className="border-t pt-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -582,7 +572,6 @@ function ClientesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal Visualizar / Gerenciar Endereços do Cliente */}
       <Dialog
         open={selectedClienteForEndereco !== null}
         onOpenChange={(open) => !open && setSelectedClienteForEndereco(null)}
@@ -754,7 +743,6 @@ function ClientesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* AlertDialog Delete Cliente */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

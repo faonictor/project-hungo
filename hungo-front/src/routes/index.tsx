@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ArrowUpRight, Plus, Loader2, RefreshCw, ShoppingBag, Utensils, DollarSign } from "lucide-react";
+import { ArrowUpRight, Plus, Loader2, RefreshCw, ShoppingBag, Utensils } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -178,7 +178,6 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Resumo de Comandas Abertas */}
         <Card className="shadow-card flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
