@@ -13,45 +13,54 @@ import br.com.halotec.hungospring.repository.MesaRepository;
 import br.com.halotec.hungospring.repository.PedidoRepository;
 import br.com.halotec.hungospring.repository.VendaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class VendaService {
-    @Autowired
-    private VendaRepository vendaRepository;
 
-    @Autowired
-    private ItemPedidoRepository itemPedidoRepository;
+    private final VendaRepository vendaRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
+    private final PedidoRepository pedidoRepository;
+    private final MesaRepository mesaRepository;
+    private final ComandaExcluidaRepository comandaExcluidaRepository;
+    private final ClienteRepository clienteRepository;
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    public VendaService(
+            VendaRepository vendaRepository,
+            ItemPedidoRepository itemPedidoRepository,
+            PedidoRepository pedidoRepository,
+            MesaRepository mesaRepository,
+            ComandaExcluidaRepository comandaExcluidaRepository,
+            ClienteRepository clienteRepository
+    ) {
+        this.vendaRepository = vendaRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
+        this.pedidoRepository = pedidoRepository;
+        this.mesaRepository = mesaRepository;
+        this.comandaExcluidaRepository = comandaExcluidaRepository;
+        this.clienteRepository = clienteRepository;
+    }
 
-    @Autowired
-    private MesaRepository mesaRepository;
-
-    @Autowired
-    private ComandaExcluidaRepository comandaExcluidaRepository;
-
-    @Autowired
-    private ClienteRepository clienteRepository;
-
-    public Iterable<Venda> listarTodos() {
+    @Transactional(readOnly = true)
+    public List<Venda> listarTodos() {
         return vendaRepository.findAll();
     }
 
-    public ResponseEntity<Venda> salvar(Venda venda) {
+    @Transactional
+    public Venda salvar(Venda venda) {
         if (venda.getId() == null || venda.getDataInicioVenda() == null) {
             venda.setDataInicioVenda(LocalDateTime.now());
         }
 
         if (venda.getCliente() != null && venda.getCliente().getId() != null) {
-            Cliente cli = clienteRepository.findById(venda.getCliente().getId()).orElse(null);
+            Long clienteId = venda.getCliente().getId();
+            Cliente cli = clienteId != null ? clienteRepository.findById(clienteId).orElse(null) : null;
             venda.setCliente(cli);
         } else {
             if (venda.getCliente() != null && venda.getCliente().getNome() != null && !venda.getCliente().getNome().trim().isEmpty()) {
@@ -62,26 +71,25 @@ public class VendaService {
 
         Venda salva = vendaRepository.save(venda);
 
-        // Se a venda estiver associada a uma mesa, marca a mesa como ocupada
         if (salva.getMesa() != null && salva.getMesa().getId() != null) {
             Mesa mesa = salva.getMesa();
             mesa.setStatus(false);
             mesaRepository.save(mesa);
         }
 
-        return new ResponseEntity<>(salva, HttpStatus.OK);
+        return salva;
     }
 
-    public ResponseEntity<Venda> buscarPorId(Long id) {
-        return new ResponseEntity<>(vendaRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public Venda buscarPorId(Long id) {
+        return vendaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + id));
     }
 
-    @jakarta.transaction.Transactional
-    public ResponseEntity<Venda> atualizar(Long id, Venda dadosNovos) {
-        Venda existente = vendaRepository.findById(id).orElse(null);
-        if (existente == null) {
-            return ResponseEntity.notFound().build();
-        }
+    @Transactional
+    public Venda atualizar(Long id, Venda dadosNovos) {
+        Venda existente = vendaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + id));
 
         Long mesaAntigaId = existente.getMesa() != null ? existente.getMesa().getId() : null;
 
@@ -90,7 +98,8 @@ public class VendaService {
 
             if ("LOCAL".equalsIgnoreCase(dadosNovos.getTipoAtendimento()) || "SALAO".equalsIgnoreCase(dadosNovos.getTipoAtendimento())) {
                 if (dadosNovos.getMesa() != null && dadosNovos.getMesa().getId() != null) {
-                    Mesa novaMesa = mesaRepository.findById(dadosNovos.getMesa().getId()).orElse(null);
+                    Long novaMesaId = dadosNovos.getMesa().getId();
+                    Mesa novaMesa = novaMesaId != null ? mesaRepository.findById(novaMesaId).orElse(null) : null;
                     existente.setMesa(novaMesa);
                     if (novaMesa != null) {
                         novaMesa.setStatus(false);
@@ -101,7 +110,8 @@ public class VendaService {
                 existente.setMesa(null);
             }
         } else if (dadosNovos.getMesa() != null && dadosNovos.getMesa().getId() != null) {
-            Mesa novaMesa = mesaRepository.findById(dadosNovos.getMesa().getId()).orElse(null);
+            Long novaMesaId = dadosNovos.getMesa().getId();
+            Mesa novaMesa = novaMesaId != null ? mesaRepository.findById(novaMesaId).orElse(null) : null;
             existente.setMesa(novaMesa);
             if (novaMesa != null) {
                 novaMesa.setStatus(false);
@@ -109,18 +119,15 @@ public class VendaService {
             }
         }
 
-        // Atualização de cliente (apenas se algum dado de cliente ou nome foi explicitamente fornecido)
         if (dadosNovos.getCliente() != null && dadosNovos.getCliente().getId() != null) {
-            // Cliente cadastrado no banco de dados
-            Cliente cliCadastrado = clienteRepository.findById(dadosNovos.getCliente().getId()).orElse(null);
+            Long cliId = dadosNovos.getCliente().getId();
+            Cliente cliCadastrado = cliId != null ? clienteRepository.findById(cliId).orElse(null) : null;
             existente.setCliente(cliCadastrado);
             existente.setNomeCliente(null);
         } else if (dadosNovos.getNomeCliente() != null && !dadosNovos.getNomeCliente().trim().isEmpty()) {
-            // Nome temporário descartável
             existente.setCliente(null);
             existente.setNomeCliente(dadosNovos.getNomeCliente().trim());
         } else if (dadosNovos.getCliente() != null && dadosNovos.getCliente().getNome() != null && !dadosNovos.getCliente().getNome().trim().isEmpty()) {
-            // Se veio objeto de cliente sem ID (nome temporário)
             existente.setCliente(null);
             existente.setNomeCliente(dadosNovos.getCliente().getNome().trim());
         }
@@ -137,7 +144,6 @@ public class VendaService {
 
         Venda salva = vendaRepository.save(existente);
 
-        // Se a mesa antiga ficou sem comandas abertas, marca como LIVRE
         if (mesaAntigaId != null && (salva.getMesa() == null || !mesaAntigaId.equals(salva.getMesa().getId()))) {
             List<Venda> restantes = vendaRepository.findByMesaIdAndDataFimVendaIsNull(mesaAntigaId);
             if (restantes == null || restantes.isEmpty()) {
@@ -149,15 +155,13 @@ public class VendaService {
             }
         }
 
-        return ResponseEntity.ok(salva);
+        return salva;
     }
 
-    @jakarta.transaction.Transactional
-    public ResponseEntity<Void> deletar(Long id, String motivo) {
-        Venda venda = vendaRepository.findById(id).orElse(null);
-        if (venda == null) {
-            return ResponseEntity.notFound().build();
-        }
+    @Transactional
+    public void deletar(Long id, @Nullable String motivo) {
+        Venda venda = vendaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + id));
 
         Float valorItens = itemPedidoRepository.somarTotalPorVendaId(id);
         float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
@@ -171,7 +175,6 @@ public class VendaService {
                 ? motivo.trim()
                 : "Exclusão de comanda solicitada pelo operador";
 
-        // Salva registro de auditoria da comanda excluída
         ComandaExcluida log = new ComandaExcluida(
                 id,
                 LocalDateTime.now(),
@@ -183,7 +186,6 @@ public class VendaService {
 
         Long mesaId = (venda.getMesa() != null) ? venda.getMesa().getId() : null;
 
-        // Cancela todos os pedidos e itens associados a esta comanda (mesmo em preparo ou abertos)
         List<Pedido> pedidos = pedidoRepository.findByVendaId(id);
         if (pedidos != null && !pedidos.isEmpty()) {
             for (Pedido p : pedidos) {
@@ -200,13 +202,11 @@ public class VendaService {
             }
         }
 
-        // Marca a comanda como CANCELADA e grava dataFimVenda e motivoCancelamento
         venda.setStatus("CANCELADA");
         venda.setMotivoCancelamento(motivoFinal);
         venda.setDataFimVenda(LocalDateTime.now());
         vendaRepository.save(venda);
 
-        // Se a mesa não tiver mais nenhuma outra comanda aberta, marca como LIVRE
         if (mesaId != null) {
             List<Venda> restantes = vendaRepository.findByMesaIdAndDataFimVendaIsNull(mesaId);
             if (restantes == null || restantes.isEmpty()) {
@@ -217,8 +217,6 @@ public class VendaService {
                 }
             }
         }
-
-        return ResponseEntity.ok().build();
     }
 
     private void enriquecerTotalBruto(Venda venda) {
@@ -229,6 +227,7 @@ public class VendaService {
         venda.setTotalBruto(totalBruto);
     }
 
+    @Transactional(readOnly = true)
     public List<Venda> buscarVendasEmAberto() {
         List<Venda> abertas = vendaRepository.findByDataFimVendaIsNull();
         if (abertas != null) {
@@ -237,8 +236,9 @@ public class VendaService {
         return abertas;
     }
 
+    @Transactional(readOnly = true)
     public List<Venda> buscarVendasFechadas() {
-        List<Venda> fechadas = new java.util.ArrayList<>(vendaRepository.findByDataFimVendaIsNotNull());
+        List<Venda> fechadas = new ArrayList<>(vendaRepository.findByDataFimVendaIsNotNull());
         List<Venda> parciais = vendaRepository.findByValorPagoGreaterThanAndDataFimVendaIsNull(0.0f);
         if (parciais != null) {
             fechadas.addAll(parciais);
@@ -247,11 +247,11 @@ public class VendaService {
         return fechadas;
     }
 
+    @Transactional
     public Venda fecharVenda(Long id) {
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + id));
 
-        // Validação de segurança: Verificar se a comanda possui pedidos em aberto ou em preparo na cozinha
         List<Pedido> pedidosDaVenda = pedidoRepository.findByVendaId(id);
         if (pedidosDaVenda != null && !pedidosDaVenda.isEmpty()) {
             boolean temPedidoPendente = pedidosDaVenda.stream().anyMatch(p ->
@@ -262,7 +262,6 @@ public class VendaService {
                 throw new IllegalStateException("Comanda #" + id + " com pedidos em aberto/pendentes");
             }
 
-            // Atualiza o status dos pedidos para Concluído ao fechar a comanda
             for (Pedido p : pedidosDaVenda) {
                 p.setStatusPedido("Concluído");
                 if (p.getDataInicioPreparo() == null) {
@@ -288,7 +287,6 @@ public class VendaService {
         Venda salva = vendaRepository.save(venda);
         enriquecerTotalBruto(salva);
 
-        // Verifica se a mesa possui outras comandas abertas ainda
         if (salva.getMesa() != null && salva.getMesa().getId() != null) {
             Long mesaId = salva.getMesa().getId();
             List<Venda> comandasRestantes = vendaRepository.findByMesaIdAndDataFimVendaIsNull(mesaId);
@@ -302,6 +300,7 @@ public class VendaService {
         return salva;
     }
 
+    @Transactional(readOnly = true)
     public List<Mesa> obterMesasDisponiveis() {
         return mesaRepository.findByStatus(true);
     }

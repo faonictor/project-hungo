@@ -2,42 +2,49 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.FluxoFinanceiro;
 import br.com.halotec.hungospring.service.FluxoFinanceiroService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/fluxo")
 public class FluxoFinanceiroController {
 
-    @Autowired
-    private FluxoFinanceiroService fluxoFinanceiroService;
+    private final FluxoFinanceiroService fluxoFinanceiroService;
 
-    @PostMapping("/fluxo")
+    public FluxoFinanceiroController(FluxoFinanceiroService fluxoFinanceiroService) {
+        this.fluxoFinanceiroService = fluxoFinanceiroService;
+    }
+
+    @PostMapping
     public ResponseEntity<FluxoFinanceiro> salvar(@RequestBody FluxoFinanceiro fluxoFinanceiro) {
-        return fluxoFinanceiroService.salvar(fluxoFinanceiro);
+        FluxoFinanceiro salvo = fluxoFinanceiroService.salvar(fluxoFinanceiro);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    @GetMapping("/fluxo")
-    public Iterable<FluxoFinanceiro> listarTodos() {
-        return fluxoFinanceiroService.listarTodos();
+    @GetMapping
+    public ResponseEntity<List<FluxoFinanceiro>> listarTodos() {
+        return ResponseEntity.ok(fluxoFinanceiroService.listarTodos());
     }
 
-    @GetMapping("/fluxo/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<FluxoFinanceiro> buscarPorId(@PathVariable Long id) {
-        return fluxoFinanceiroService.buscarPorId(id);
+        return ResponseEntity.ok(fluxoFinanceiroService.buscarPorId(id));
     }
 
-    @DeleteMapping("/fluxo/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return fluxoFinanceiroService.deletar(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        fluxoFinanceiroService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/fluxo/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<FluxoFinanceiro> atualizar(
             @PathVariable Long id,
             @RequestBody FluxoFinanceiro fluxoFinanceiro) {
         fluxoFinanceiro.setId(id);
-        return fluxoFinanceiroService.salvar(fluxoFinanceiro);
+        return ResponseEntity.ok(fluxoFinanceiroService.salvar(fluxoFinanceiro));
     }
-
 }

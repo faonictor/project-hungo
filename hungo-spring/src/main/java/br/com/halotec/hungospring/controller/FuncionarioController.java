@@ -2,44 +2,49 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.Funcionario;
 import br.com.halotec.hungospring.service.FuncionarioService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/funcionario")
 public class FuncionarioController {
 
-    @Autowired
-    private FuncionarioService funcionarioService;
+    private final FuncionarioService funcionarioService;
 
-    @PostMapping("/funcionario")
+    public FuncionarioController(FuncionarioService funcionarioService) {
+        this.funcionarioService = funcionarioService;
+    }
+
+    @PostMapping
     public ResponseEntity<Funcionario> salvar(@RequestBody Funcionario funcionario) {
-        return funcionarioService.salvar(funcionario);
+        Funcionario salvo = funcionarioService.salvar(funcionario);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    @GetMapping("/funcionario")
-    public Iterable<Funcionario> listarTodos() {
-        return funcionarioService.listarTodos();
+    @GetMapping
+    public ResponseEntity<List<Funcionario>> listarTodos() {
+        return ResponseEntity.ok(funcionarioService.listarTodos());
     }
 
-    @GetMapping("/funcionario/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Funcionario> buscarPorId(@PathVariable Long id) {
-        return funcionarioService.buscarPorId(id);
+        return ResponseEntity.ok(funcionarioService.buscarPorId(id));
     }
 
-    @DeleteMapping("/funcionario/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return funcionarioService.deletar(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        funcionarioService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/funcionario/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Funcionario> atualizar(
             @PathVariable Long id,
             @RequestBody Funcionario funcionario) {
         funcionario.setId(id);
-        return funcionarioService.salvar(funcionario);
+        return ResponseEntity.ok(funcionarioService.salvar(funcionario));
     }
-
 }
-
-

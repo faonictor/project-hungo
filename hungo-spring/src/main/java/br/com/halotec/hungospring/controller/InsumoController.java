@@ -2,44 +2,49 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.Insumo;
 import br.com.halotec.hungospring.service.InsumoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/insumo")
 public class InsumoController {
 
-    @Autowired
-    private InsumoService insumoService;
+    private final InsumoService insumoService;
 
-    @PostMapping("/insumo")
+    public InsumoController(InsumoService insumoService) {
+        this.insumoService = insumoService;
+    }
+
+    @PostMapping
     public ResponseEntity<Insumo> salvar(@RequestBody Insumo insumo) {
-        return insumoService.salvar(insumo);
+        Insumo salvo = insumoService.salvar(insumo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    @GetMapping("/insumo")
-    public Iterable<Insumo> listarTodos() {
-        return insumoService.listarTodos();
+    @GetMapping
+    public ResponseEntity<List<Insumo>> listarTodos() {
+        return ResponseEntity.ok(insumoService.listarTodos());
     }
 
-    @GetMapping("/insumo/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Insumo> buscarPorId(@PathVariable Long id) {
-        return insumoService.buscarPorId(id);
+        return ResponseEntity.ok(insumoService.buscarPorId(id));
     }
 
-    @DeleteMapping("/insumo/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return insumoService.deletar(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        insumoService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/insumo/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Insumo> atualizar(
             @PathVariable Long id,
             @RequestBody Insumo insumo) {
         insumo.setId(id);
-        return insumoService.salvar(insumo);
+        return ResponseEntity.ok(insumoService.salvar(insumo));
     }
-
 }
-
-

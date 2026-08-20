@@ -2,35 +2,46 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.FluxoFinanceiro;
 import br.com.halotec.hungospring.repository.FluxoFinanceiroRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class FluxoFinanceiroService {
-    @Autowired
-    private FluxoFinanceiroRepository fluxoFinanceiroRepository;
 
-    public Iterable<FluxoFinanceiro> listarTodos() {
+    private final FluxoFinanceiroRepository fluxoFinanceiroRepository;
+
+    public FluxoFinanceiroService(FluxoFinanceiroRepository fluxoFinanceiroRepository) {
+        this.fluxoFinanceiroRepository = fluxoFinanceiroRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<FluxoFinanceiro> listarTodos() {
         return fluxoFinanceiroRepository.findAll();
     }
 
-    public ResponseEntity<FluxoFinanceiro> salvar(FluxoFinanceiro fluxoFinanceiro) {
+    @Transactional
+    public FluxoFinanceiro salvar(FluxoFinanceiro fluxoFinanceiro) {
         if (fluxoFinanceiro.getDataTransacao() == null) {
-            fluxoFinanceiro.setDataTransacao(java.time.LocalDateTime.now());
+            fluxoFinanceiro.setDataTransacao(LocalDateTime.now());
         }
-        return new ResponseEntity<>(fluxoFinanceiroRepository.save(fluxoFinanceiro), HttpStatus.OK);
+        return fluxoFinanceiroRepository.save(fluxoFinanceiro);
     }
 
-    public ResponseEntity<FluxoFinanceiro> buscarPorId(Long id) {
-        return new ResponseEntity<>(fluxoFinanceiroRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public FluxoFinanceiro buscarPorId(Long id) {
+        return fluxoFinanceiroRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fluxo Financeiro não encontrado com o ID: " + id));
     }
 
-    public ResponseEntity deletar(Long id) {
+    @Transactional
+    public void deletar(Long id) {
+        if (!fluxoFinanceiroRepository.existsById(id)) {
+            throw new EntityNotFoundException("Fluxo Financeiro não encontrado com o ID: " + id);
+        }
         fluxoFinanceiroRepository.deleteById(id);
-        return new ResponseEntity("{\"mensagem\":\"Fluxo Removido com Sucesso\"}", HttpStatus.OK);
     }
 }
-
-

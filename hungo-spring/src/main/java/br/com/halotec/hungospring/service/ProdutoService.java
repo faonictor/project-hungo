@@ -2,72 +2,74 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.dto.ProdutoDTO;
 import br.com.halotec.hungospring.dto.ProdutoInsumoDTO;
-import br.com.halotec.hungospring.entity.Produto;
-import br.com.halotec.hungospring.entity.ProdutoInsumo;
 import br.com.halotec.hungospring.entity.Categoria;
 import br.com.halotec.hungospring.entity.Insumo;
-import br.com.halotec.hungospring.repository.ProdutoRepository;
-import br.com.halotec.hungospring.repository.ProdutoInsumoRepository;
+import br.com.halotec.hungospring.entity.Produto;
+import br.com.halotec.hungospring.entity.ProdutoInsumo;
 import br.com.halotec.hungospring.repository.CategoriaRepository;
 import br.com.halotec.hungospring.repository.InsumoRepository;
+import br.com.halotec.hungospring.repository.ProdutoInsumoRepository;
+import br.com.halotec.hungospring.repository.ProdutoRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ProdutoService {
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final ProdutoInsumoRepository produtoInsumoRepository;
+    private final InsumoRepository insumoRepository;
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
+    public ProdutoService(
+            ProdutoRepository produtoRepository,
+            CategoriaRepository categoriaRepository,
+            ProdutoInsumoRepository produtoInsumoRepository,
+            InsumoRepository insumoRepository
+    ) {
+        this.produtoRepository = produtoRepository;
+        this.categoriaRepository = categoriaRepository;
+        this.produtoInsumoRepository = produtoInsumoRepository;
+        this.insumoRepository = insumoRepository;
+    }
 
-    @Autowired
-    private ProdutoInsumoRepository produtoInsumoRepository;
-
-    @Autowired
-    private InsumoRepository insumoRepository;
-
-    // Listar todos os produtos
-    public Iterable<Produto> listarTodos() {
+    @Transactional(readOnly = true)
+    public List<Produto> listarTodos() {
         return produtoRepository.findAll();
     }
 
-    // Salvar um produto
-    public ResponseEntity<Produto> salvar(Produto produto) {
-        return new ResponseEntity<>(produtoRepository.save(produto), HttpStatus.OK);
-    }
-
-    // Buscar produto por ID
-    public ResponseEntity<Produto> buscarPorId(Long id) {
-        return new ResponseEntity<>(produtoRepository.findById(id).orElseThrow(), HttpStatus.OK);
-    }
-
-    // Deletar um produto
     @Transactional
-    public ResponseEntity deletar(Long id) {
+    public Produto salvar(Produto produto) {
+        return produtoRepository.save(produto);
+    }
+
+    @Transactional(readOnly = true)
+    public Produto buscarEntidadePorId(Long id) {
+        return produtoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
+    }
+
+    @Transactional
+    public void deletar(Long id) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
         produtoInsumoRepository.deleteByProduto(produto);
         produtoRepository.delete(produto);
-        return new ResponseEntity("{\"mensagem\":\"Produto e registros relacionados removidos com sucesso\"}", HttpStatus.OK);
     }
 
     @Transactional
-    public ResponseEntity<Produto> salvarOuAtualizarProduto(ProdutoDTO produtoDTO) {
+    public Produto salvarOuAtualizarProduto(ProdutoDTO produtoDTO) {
         Produto produto;
 
-        // Verificar se o produto já existe (atualização) ou criar um novo
-        if (produtoDTO.getId() != null) {
-            produto = produtoRepository.findById(produtoDTO.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + produtoDTO.getId()));
+        Long prodId = produtoDTO.getId();
+        if (prodId != null) {
+            produto = produtoRepository.findById(prodId)
+                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + prodId));
         } else {
             produto = new Produto();
         }
@@ -77,9 +79,9 @@ public class ProdutoService {
         produto.setTipo(produtoDTO.getTipo() != null ? produtoDTO.getTipo() : true);
         produto.setFavorito(produtoDTO.getFavorito() != null ? produtoDTO.getFavorito() : false);
 
-        // Se uma categoria foi informada, usa ela; caso contrario, atribui/cria a categoria "Geral"
-        if (produtoDTO.getCategoriaId() != null) {
-            Categoria categoria = categoriaRepository.findById(produtoDTO.getCategoriaId()).orElse(null);
+        Long catId = produtoDTO.getCategoriaId();
+        if (catId != null) {
+            Categoria categoria = categoriaRepository.findById(catId).orElse(null);
             if (categoria == null) {
                 categoria = obterOuCriarCategoriaGeral();
             }
@@ -96,20 +98,22 @@ public class ProdutoService {
         } else {
             produtoInsumoRepository.deleteByProduto(produto);
 
+            List<ProdutoInsumo> novosInsumos = new ArrayList<>();
             for (ProdutoInsumoDTO insumoDTO : produtoDTO.getInsumos()) {
-                ProdutoInsumo produtoInsumo = new ProdutoInsumo();
-                Insumo insumo = insumoRepository.findById(insumoDTO.getInsumoId())
-                        .orElseThrow(() -> new EntityNotFoundException("Insumo não encontrado"));
+                Long insumoId = Objects.requireNonNull(insumoDTO.getInsumoId(), "ID do Insumo é obrigatório");
+                Insumo insumo = insumoRepository.findById(insumoId)
+                        .orElseThrow(() -> new EntityNotFoundException("Insumo não encontrado com o ID: " + insumoId));
 
+                ProdutoInsumo produtoInsumo = new ProdutoInsumo();
                 produtoInsumo.setProduto(produto);
                 produtoInsumo.setInsumo(insumo);
                 produtoInsumo.setQuantidade(insumoDTO.getQuantidade());
-
-                produtoInsumoRepository.save(produtoInsumo);
+                novosInsumos.add(produtoInsumo);
             }
+            produtoInsumoRepository.saveAll(novosInsumos);
         }
 
-        return new ResponseEntity<>(produto, HttpStatus.OK);
+        return produto;
     }
 
     private Categoria obterOuCriarCategoriaGeral() {
@@ -121,9 +125,10 @@ public class ProdutoService {
                 });
     }
 
-    public ResponseEntity<ProdutoDTO> buscarProdutoPorId(Long id) {
+    @Transactional(readOnly = true)
+    public ProdutoDTO buscarProdutoPorId(Long id) {
         Produto produto = produtoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
 
         ProdutoDTO produtoDTO = new ProdutoDTO();
         produtoDTO.setId(produto.getId());
@@ -141,12 +146,12 @@ public class ProdutoService {
 
         for (ProdutoInsumo produtoInsumo : produtoInsumos) {
             ProdutoInsumoDTO insumoDTO = new ProdutoInsumoDTO();
-            insumoDTO.setInsumoId(produtoInsumo.getInsumo().getId());
+            insumoDTO.setInsumoId(produtoInsumo.getInsumo() != null ? produtoInsumo.getInsumo().getId() : null);
             insumoDTO.setQuantidade(produtoInsumo.getQuantidade());
             insumosDTO.add(insumoDTO);
         }
         produtoDTO.setInsumos(insumosDTO);
 
-        return new ResponseEntity<>(produtoDTO, HttpStatus.OK);
+        return produtoDTO;
     }
 }

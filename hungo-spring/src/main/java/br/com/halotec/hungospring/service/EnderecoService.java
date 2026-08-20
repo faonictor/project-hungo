@@ -2,36 +2,47 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.Endereco;
 import br.com.halotec.hungospring.repository.EnderecoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class EnderecoService {
-    @Autowired
-    private EnderecoRepository enderecoRepository;
 
-    public Iterable<Endereco> listarTodos() {
+    private final EnderecoRepository enderecoRepository;
+
+    public EnderecoService(EnderecoRepository enderecoRepository) {
+        this.enderecoRepository = enderecoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Endereco> listarTodos() {
         return enderecoRepository.findAll();
     }
 
-    public ResponseEntity<Endereco> salvar(Endereco endereco) {
-        return new ResponseEntity<>(enderecoRepository.save(endereco), HttpStatus.OK);
+    @Transactional
+    public Endereco salvar(Endereco endereco) {
+        return enderecoRepository.save(endereco);
     }
 
-    public ResponseEntity<Endereco> buscarPorId(Long id) {
-        return new ResponseEntity<>(enderecoRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public Endereco buscarPorId(Long id) {
+        return enderecoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Endereço não encontrado com o ID: " + id));
     }
 
-    public ResponseEntity deletar(Long id) {
+    @Transactional
+    public void deletar(Long id) {
+        if (!enderecoRepository.existsById(id)) {
+            throw new EntityNotFoundException("Endereço não encontrado com o ID: " + id);
+        }
         enderecoRepository.deleteById(id);
-        return new ResponseEntity("{\"mensagem\":\"Endereço Removido com Sucesso\"}", HttpStatus.OK);
     }
 
-    public Iterable<Endereco> buscarEnderecosPorCliente(Long clienteId) {
+    @Transactional(readOnly = true)
+    public List<Endereco> buscarEnderecosPorCliente(Long clienteId) {
         return enderecoRepository.findByClienteId(clienteId);
     }
 }
-
-

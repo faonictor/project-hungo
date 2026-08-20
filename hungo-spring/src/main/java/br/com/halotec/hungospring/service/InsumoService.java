@@ -2,32 +2,42 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.Insumo;
 import br.com.halotec.hungospring.repository.InsumoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class InsumoService {
-    @Autowired
-    private InsumoRepository insumoRepository;
 
-    public Iterable<Insumo> listarTodos() {
+    private final InsumoRepository insumoRepository;
+
+    public InsumoService(InsumoRepository insumoRepository) {
+        this.insumoRepository = insumoRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Insumo> listarTodos() {
         return insumoRepository.findAll();
     }
 
-    public ResponseEntity<Insumo> salvar(Insumo insumo) {
-        return new ResponseEntity<>(insumoRepository.save(insumo), HttpStatus.OK);
+    @Transactional
+    public Insumo salvar(Insumo insumo) {
+        return insumoRepository.save(insumo);
     }
 
-    public ResponseEntity<Insumo> buscarPorId(Long id) {
-        return new ResponseEntity<>(insumoRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public Insumo buscarPorId(Long id) {
+        return insumoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Insumo não encontrado com o ID: " + id));
     }
 
-    public ResponseEntity deletar(Long id) {
+    @Transactional
+    public void deletar(Long id) {
+        if (!insumoRepository.existsById(id)) {
+            throw new EntityNotFoundException("Insumo não encontrado com o ID: " + id);
+        }
         insumoRepository.deleteById(id);
-        return new ResponseEntity("{\"mensagem\":\"Insumo Removido com Sucesso\"}", HttpStatus.OK);
     }
 }
-
-

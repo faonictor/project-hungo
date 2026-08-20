@@ -1,10 +1,7 @@
 package br.com.halotec.hungospring.repository;
 
 import br.com.halotec.hungospring.entity.Insumo;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public interface InsumoRepository extends CrudRepository<Insumo, Long> {
+public interface InsumoRepository extends JpaRepository<Insumo, Long> {
 }
-

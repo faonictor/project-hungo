@@ -2,43 +2,47 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.Categoria;
 import br.com.halotec.hungospring.service.CategoriaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/categoria")
 public class CategoriaController {
 
-    @Autowired
-    private CategoriaService categoriaService;
+    private final CategoriaService categoriaService;
 
-    @PostMapping("/categoria")
+    public CategoriaController(CategoriaService categoriaService) {
+        this.categoriaService = categoriaService;
+    }
+
+    @PostMapping
     public ResponseEntity<Categoria> salvar(@RequestBody Categoria categoria) {
-        return categoriaService.salvar(categoria);
+        Categoria salva = categoriaService.salvar(categoria);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salva);
     }
 
-    @GetMapping("/categoria")
-    public Iterable<Categoria> listarTodos() {
-        return categoriaService.listarTodos();
+    @GetMapping
+    public ResponseEntity<List<Categoria>> listarTodos() {
+        return ResponseEntity.ok(categoriaService.listarTodos());
     }
 
-    @GetMapping("/categoria/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Categoria> buscarPorId(@PathVariable Long id) {
-        return categoriaService.buscarPorId(id);
+        return ResponseEntity.ok(categoriaService.buscarPorId(id));
     }
 
-    @DeleteMapping("/categoria/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return categoriaService.deletar(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        categoriaService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/categoria/{id}")
-    public ResponseEntity<Categoria> atualizar(
-            @PathVariable Long id,
-            @RequestBody Categoria categoria) {
+    @PutMapping("/{id}")
+    public ResponseEntity<Categoria> atualizar(@PathVariable Long id, @RequestBody Categoria categoria) {
         categoria.setId(id);
-        return categoriaService.salvar(categoria);
+        return ResponseEntity.ok(categoriaService.salvar(categoria));
     }
 }
-
-

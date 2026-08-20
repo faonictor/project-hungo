@@ -5,53 +5,61 @@ import br.com.halotec.hungospring.entity.Endereco;
 import br.com.halotec.hungospring.repository.ClienteRepository;
 import br.com.halotec.hungospring.repository.EnderecoRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class ClienteService {
-    @Autowired
-    private ClienteRepository clienteRepository;
 
-    @Autowired
-    private EnderecoRepository enderecoRepository;
+    private final ClienteRepository clienteRepository;
+    private final EnderecoRepository enderecoRepository;
 
+    public ClienteService(ClienteRepository clienteRepository, EnderecoRepository enderecoRepository) {
+        this.clienteRepository = clienteRepository;
+        this.enderecoRepository = enderecoRepository;
+    }
 
-    public Iterable<Cliente> listarTodos() {
+    @Transactional(readOnly = true)
+    public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
     }
 
-    public ResponseEntity<Cliente> salvar(Cliente cliente) {
-        return new ResponseEntity<>(clienteRepository.save(cliente), HttpStatus.OK);
+    @Transactional
+    public Cliente salvar(Cliente cliente) {
+        if (cliente.getId() == null && cliente.getDataCadastro() == null) {
+            cliente.setDataCadastro(LocalDateTime.now());
+        }
+        if (cliente.getStatus() == null) {
+            cliente.setStatus(true);
+        }
+        return clienteRepository.save(cliente);
     }
 
-    public ResponseEntity<Cliente> buscarPorId(Long id) {
-        return new ResponseEntity<>(clienteRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public Cliente buscarPorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID: " + id));
     }
 
     @Transactional
-    public ResponseEntity deletar(Long id) {
+    public void deletar(Long id) {
         Cliente cliente = clienteRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Cliente não encontrado com o ID: " + id));
 
         removerEnderecos(cliente);
-
         clienteRepository.delete(cliente);
-
-        return new ResponseEntity("{\"mensagem\":\"Cliente e Endereços removidos com sucesso\"}", HttpStatus.OK);
     }
 
     private void removerEnderecos(Cliente cliente) {
-        List<Endereco> enderecos = enderecoRepository.findByClienteId(cliente.getId());
-        for (Endereco endereco : enderecos) {
-            enderecoRepository.delete(endereco); // Exclui cada endereço
+        Long clienteId = cliente.getId();
+        if (clienteId != null) {
+            List<Endereco> enderecos = enderecoRepository.findByClienteId(clienteId);
+            if (enderecos != null && !enderecos.isEmpty()) {
+                enderecoRepository.deleteAll(enderecos);
+            }
         }
     }
 }
-
-

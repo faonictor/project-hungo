@@ -1,13 +1,11 @@
 package br.com.halotec.hungospring.repository;
 
 import br.com.halotec.hungospring.entity.Venda;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-@Repository
-public interface VendaRepository extends CrudRepository<Venda, Long> {
+public interface VendaRepository extends JpaRepository<Venda, Long> {
     List<Venda> findByDataFimVendaIsNull();
     List<Venda> findByDataFimVendaIsNotNull();
     List<Venda> findByValorPagoGreaterThanAndDataFimVendaIsNull(Float valorPago);

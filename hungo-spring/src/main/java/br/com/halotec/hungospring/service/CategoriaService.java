@@ -2,31 +2,42 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.Categoria;
 import br.com.halotec.hungospring.repository.CategoriaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class CategoriaService {
-    @Autowired
-    private CategoriaRepository categoriaRepository;
 
-    public Iterable<Categoria> listarTodos() {
+    private final CategoriaRepository categoriaRepository;
+
+    public CategoriaService(CategoriaRepository categoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Categoria> listarTodos() {
         return categoriaRepository.findAll();
     }
 
-    public ResponseEntity<Categoria> salvar(Categoria categoria) {
-        return new ResponseEntity<>(categoriaRepository.save(categoria), HttpStatus.OK);
+    @Transactional
+    public Categoria salvar(Categoria categoria) {
+        return categoriaRepository.save(categoria);
     }
 
-    public ResponseEntity<Categoria> buscarPorId(Long id) {
-        return new ResponseEntity<>(categoriaRepository.findById(id).orElseThrow(), HttpStatus.OK);
+    @Transactional(readOnly = true)
+    public Categoria buscarPorId(Long id) {
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada com o ID: " + id));
     }
 
-    public ResponseEntity deletar(Long id) {
+    @Transactional
+    public void deletar(Long id) {
+        if (!categoriaRepository.existsById(id)) {
+            throw new EntityNotFoundException("Categoria não encontrada com o ID: " + id);
+        }
         categoriaRepository.deleteById(id);
-        return new ResponseEntity("{\"mensagem\":\"Categoria Removida com Sucesso\"}", HttpStatus.OK);
     }
 }
-

@@ -2,47 +2,54 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.Endereco;
 import br.com.halotec.hungospring.service.EnderecoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("/endereco")
 public class EnderecoController {
 
-    @Autowired
-    private EnderecoService enderecoService;
+    private final EnderecoService enderecoService;
 
-    @PostMapping("/endereco")
+    public EnderecoController(EnderecoService enderecoService) {
+        this.enderecoService = enderecoService;
+    }
+
+    @PostMapping
     public ResponseEntity<Endereco> salvar(@RequestBody Endereco endereco) {
-        return enderecoService.salvar(endereco);
+        Endereco salvo = enderecoService.salvar(endereco);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    @GetMapping("/endereco")
-    public Iterable<Endereco> listarTodos() {
-        return enderecoService.listarTodos();
+    @GetMapping
+    public ResponseEntity<List<Endereco>> listarTodos() {
+        return ResponseEntity.ok(enderecoService.listarTodos());
     }
 
-    @GetMapping("/endereco/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Endereco> buscarPorId(@PathVariable Long id) {
-        return enderecoService.buscarPorId(id);
+        return ResponseEntity.ok(enderecoService.buscarPorId(id));
     }
 
-    @GetMapping("/endereco/cliente/{clienteId}")
-    public ResponseEntity<Iterable<Endereco>> listarEnderecosPorCliente(@PathVariable Long clienteId) {
-        Iterable<Endereco> enderecos = enderecoService.buscarEnderecosPorCliente(clienteId);
-        return ResponseEntity.ok(enderecos);
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<Endereco>> listarEnderecosPorCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(enderecoService.buscarEnderecosPorCliente(clienteId));
     }
 
-    @DeleteMapping("/endereco/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return enderecoService.deletar(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        enderecoService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/endereco/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Endereco> atualizar(
             @PathVariable Long id,
             @RequestBody Endereco endereco) {
         endereco.setId(id);
-        return enderecoService.salvar(endereco);
+        return ResponseEntity.ok(enderecoService.salvar(endereco));
     }
 }

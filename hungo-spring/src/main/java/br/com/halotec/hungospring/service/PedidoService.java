@@ -2,76 +2,84 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.dto.ItemPedidoDTO;
 import br.com.halotec.hungospring.dto.PedidoDTO;
-import br.com.halotec.hungospring.entity.*;
-import br.com.halotec.hungospring.repository.*;
+import br.com.halotec.hungospring.entity.Cliente;
+import br.com.halotec.hungospring.entity.ItemPedido;
+import br.com.halotec.hungospring.entity.Pedido;
+import br.com.halotec.hungospring.entity.Produto;
+import br.com.halotec.hungospring.entity.Venda;
+import br.com.halotec.hungospring.repository.ClienteRepository;
+import br.com.halotec.hungospring.repository.ItemPedidoRepository;
+import br.com.halotec.hungospring.repository.PedidoRepository;
+import br.com.halotec.hungospring.repository.ProdutoRepository;
+import br.com.halotec.hungospring.repository.VendaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class PedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
+    private final ClienteRepository clienteRepository;
+    private final VendaRepository vendaRepository;
+    private final ProdutoRepository produtoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    public PedidoService(
+            PedidoRepository pedidoRepository,
+            ClienteRepository clienteRepository,
+            VendaRepository vendaRepository,
+            ProdutoRepository produtoRepository,
+            ItemPedidoRepository itemPedidoRepository
+    ) {
+        this.pedidoRepository = pedidoRepository;
+        this.clienteRepository = clienteRepository;
+        this.vendaRepository = vendaRepository;
+        this.produtoRepository = produtoRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
+    }
 
-    @Autowired
-    private VendaRepository vendaRepository;
-
-    @Autowired
-    private ProdutoRepository produtoRepository;
-
-    @Autowired
-    private ItemPedidoRepository itemPedidoRepository;
-
-    public Iterable<Pedido> listarTodos() {
+    @Transactional(readOnly = true)
+    public List<Pedido> listarTodos() {
         return pedidoRepository.findAll();
     }
 
     @Transactional
-    public ResponseEntity<PedidoDTO> salvar(Long vendaId, PedidoDTO pedidoDTO) {
+    public PedidoDTO salvar(Long vendaId, PedidoDTO pedidoDTO) {
         if (pedidoDTO.getVendaId() == null) {
             pedidoDTO.setVendaId(vendaId);
         }
 
         Pedido pedido = montarPedido(pedidoDTO);
-
-        // Salvar o pedido no banco
         pedido = pedidoRepository.save(pedido);
 
-        // Salvar os itens do pedido
         salvarItensPedido(pedidoDTO, pedido);
+        if (pedido.getVenda() != null && pedido.getVenda().getId() != null) {
+            atualizarTotalVenda(pedido.getVenda().getId());
+        }
 
-        // Recalcula e atualiza o total da Venda no banco de dados
-        atualizarTotalVenda(pedido.getVenda().getId());
-
-        // Setar o ID gerado do pedido no DTO e retornar a resposta
         pedidoDTO.setId(pedido.getId());
         pedidoDTO.setDataInicioPreparo(pedido.getDataInicioPreparo());
         pedidoDTO.setDataFimPreparo(pedido.getDataFimPreparo());
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoDTO);
+        return pedidoDTO;
     }
 
     private Pedido montarPedido(PedidoDTO pedidoDTO) {
         Pedido pedido;
-        Long targetVendaId = pedidoDTO.getVendaId();
+        Long targetVendaId = Objects.requireNonNull(pedidoDTO.getVendaId(), "ID da Venda é obrigatório");
 
-        if (pedidoDTO.getId() != null) {
-            pedido = pedidoRepository.findById(pedidoDTO.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + pedidoDTO.getId()));
+        Long pedidoId = pedidoDTO.getId();
+        if (pedidoId != null) {
+            pedido = pedidoRepository.findById(pedidoId)
+                    .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + pedidoId));
         } else {
-            // Se já existe um pedido em aberto (não enviado/impresso para preparo) para esta comanda, reaproveita o mesmo registro
             List<Pedido> pedidosDaVenda = pedidoRepository.findByVendaId(targetVendaId);
             Pedido pedidoAbertoExistente = (pedidosDaVenda != null) ? pedidosDaVenda.stream()
                     .filter(p -> p.getStatusPedido() != null && "Aberto".equalsIgnoreCase(p.getStatusPedido()))
@@ -87,8 +95,9 @@ public class PedidoService {
         }
 
         Cliente cliente = null;
-        if (pedidoDTO.getClienteId() != null) {
-            cliente = clienteRepository.findById(pedidoDTO.getClienteId()).orElse(null);
+        Long cliId = pedidoDTO.getClienteId();
+        if (cliId != null) {
+            cliente = clienteRepository.findById(cliId).orElse(null);
         }
 
         Venda venda = vendaRepository.findById(targetVendaId)
@@ -97,7 +106,7 @@ public class PedidoService {
         pedido.setCliente(cliente);
         pedido.setVenda(venda);
         pedido.setTipoPedido(pedidoDTO.getTipoPedido() != null ? pedidoDTO.getTipoPedido() : "Mesa");
-        
+
         String newStatus = pedidoDTO.getStatusPedido() != null ? pedidoDTO.getStatusPedido() : "Aberto";
         pedido.setStatusPedido(newStatus);
         if ("Em preparo".equalsIgnoreCase(newStatus) && pedido.getDataInicioPreparo() == null) {
@@ -119,31 +128,30 @@ public class PedidoService {
     private void salvarItensPedido(PedidoDTO pedidoDTO, Pedido pedido) {
         if (pedidoDTO.getItens() != null && !pedidoDTO.getItens().isEmpty()) {
             List<ItemPedido> itensExistentes = (pedido.getId() != null) ? itemPedidoRepository.findByPedidoId(pedido.getId()) : null;
-
             List<ItemPedido> itensParaSalvar = new ArrayList<>();
 
             for (ItemPedidoDTO itemDTO : pedidoDTO.getItens()) {
-                Produto produto = produtoRepository.findById(itemDTO.getProdutoId())
-                        .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + itemDTO.getProdutoId()));
+                Long produtoId = Objects.requireNonNull(itemDTO.getProdutoId(), "ID do Produto é obrigatório");
+                Produto produto = produtoRepository.findById(produtoId)
+                        .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID " + produtoId));
 
                 ItemPedido itemToSave = null;
+                Long itemDtoId = itemDTO.getId();
 
-                if (itemDTO.getId() != null) {
-                    itemToSave = itemPedidoRepository.findById(itemDTO.getId()).orElse(null);
+                if (itemDtoId != null) {
+                    itemToSave = itemPedidoRepository.findById(itemDtoId).orElse(null);
                 } else if (itensExistentes != null && !itensExistentes.isEmpty()) {
-                    // Verifica se o mesmo produto já existe ativo no pedido em aberto
                     itemToSave = itensExistentes.stream()
-                            .filter(i -> i.getProduto() != null && i.getProduto().getId().equals(produto.getId()))
+                            .filter(i -> i.getProduto() != null && Objects.equals(i.getProduto().getId(), produto.getId()))
                             .filter(i -> i.getStatusItem() == null || !"CANCELADO".equalsIgnoreCase(i.getStatusItem()))
                             .findFirst()
                             .orElse(null);
                 }
 
                 if (itemToSave != null) {
-                    if (itemDTO.getId() != null) {
+                    if (itemDtoId != null) {
                         itemToSave.setQuantidade(itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1);
                     } else {
-                        // Incrementa a quantidade no item já existente no pedido aberto
                         itemToSave.setQuantidade(itemToSave.getQuantidade() + (itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1));
                     }
                     itemToSave.setTotal(itemToSave.getQuantidade() * produto.getPreco());
@@ -163,10 +171,7 @@ public class PedidoService {
                 itensParaSalvar.add(itemToSave);
             }
 
-            Iterable<ItemPedido> itensSalvos = itemPedidoRepository.saveAll(itensParaSalvar);
-
-            List<ItemPedido> itensSalvosList = StreamSupport.stream(itensSalvos.spliterator(), false)
-                    .collect(Collectors.toList());
+            List<ItemPedido> itensSalvosList = itemPedidoRepository.saveAll(itensParaSalvar);
 
             for (int i = 0; i < itensSalvosList.size(); i++) {
                 ItemPedidoDTO dto = pedidoDTO.getItens().get(i);
@@ -180,17 +185,19 @@ public class PedidoService {
     }
 
     @Transactional
-    public ResponseEntity<PedidoDTO> atualizar(Long id, PedidoDTO pedidoDTO) {
+    public PedidoDTO atualizar(Long id, PedidoDTO pedidoDTO) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + id));
 
         Cliente cliente = null;
-        if (pedidoDTO.getClienteId() != null) {
-            cliente = clienteRepository.findById(pedidoDTO.getClienteId()).orElse(null);
+        Long cliId = pedidoDTO.getClienteId();
+        if (cliId != null) {
+            cliente = clienteRepository.findById(cliId).orElse(null);
         }
 
-        Venda venda = vendaRepository.findById(pedidoDTO.getVendaId())
-                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID " + pedidoDTO.getVendaId()));
+        Long targetVendaId = Objects.requireNonNull(pedidoDTO.getVendaId(), "ID da Venda é obrigatório");
+        Venda venda = vendaRepository.findById(targetVendaId)
+                .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID " + targetVendaId));
 
         pedido.setCliente(cliente);
         pedido.setVenda(venda);
@@ -210,31 +217,30 @@ public class PedidoService {
 
         pedido = pedidoRepository.save(pedido);
 
-        // Atualiza e preserva os itens existentes (statusItem e motivoCancelamento)
         salvarItensPedido(pedidoDTO, pedido);
-
-        // Recalcula o total da Venda no banco de dados
-        atualizarTotalVenda(pedido.getVenda().getId());
+        if (pedido.getVenda() != null && pedido.getVenda().getId() != null) {
+            atualizarTotalVenda(pedido.getVenda().getId());
+        }
 
         pedidoDTO.setId(pedido.getId());
         pedidoDTO.setDataInicioPreparo(pedido.getDataInicioPreparo());
         pedidoDTO.setDataFimPreparo(pedido.getDataFimPreparo());
-        return ResponseEntity.ok(pedidoDTO);
+        return pedidoDTO;
     }
 
-    public ResponseEntity<Pedido> buscarPorId(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
+    @Transactional(readOnly = true)
+    public Pedido buscarPorId(Long id) {
+        return pedidoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + id));
-        return new ResponseEntity<>(pedido, HttpStatus.OK);
     }
 
     @Transactional
-    public ResponseEntity<Void> deletar(Long id) {
-        return cancelarPedidoDaComanda(id, "Cancelado via exclusão de pedido");
+    public void deletar(Long id) {
+        cancelarPedidoDaComanda(id, "Cancelado via exclusão de pedido");
     }
 
     @Transactional
-    public ResponseEntity<Void> cancelarPedidoDaComanda(Long id, String motivo) {
+    public void cancelarPedidoDaComanda(Long id, @Nullable String motivo) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com o ID " + id));
 
@@ -250,7 +256,6 @@ public class PedidoService {
         }
         pedidoRepository.save(pedido);
 
-        // Marca todos os itens do pedido como Cancelado e armazena a justificativa
         List<ItemPedido> itensDoPedido = itemPedidoRepository.findByPedidoId(id);
         for (ItemPedido item : itensDoPedido) {
             item.setStatusItem("Cancelado");
@@ -263,31 +268,32 @@ public class PedidoService {
         if (vendaId != null) {
             atualizarTotalVenda(vendaId);
         }
-
-        return ResponseEntity.ok().build();
     }
 
+    @Transactional(readOnly = true)
     public List<Pedido> buscarPedidosPorVenda(Long vendaId) {
         return pedidoRepository.findByVendaId(vendaId);
     }
 
+    @Transactional(readOnly = true)
     public List<ItemPedido> buscarItensPorVenda(Long vendaId) {
         return itemPedidoRepository.findByPedidoVendaId(vendaId);
     }
 
+    @Transactional(readOnly = true)
     public List<ItemPedido> buscarTodosItensVendasEmAberto() {
         return itemPedidoRepository.findItensVendasEmAberto();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public PedidoDTO buscarPedidoComItens(Long pedidoId) {
         Pedido pedido = pedidoRepository.findById(pedidoId)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado com ID: " + pedidoId));
 
         List<ItemPedidoDTO> itens = itemPedidoRepository.findByPedidoId(pedidoId).stream()
                 .map(item -> new ItemPedidoDTO(
                         item.getId(),
-                        item.getProduto().getId(),
+                        item.getProduto() != null ? item.getProduto().getId() : null,
                         item.getQuantidade(),
                         item.getTotal(),
                         item.getStatusItem(),
@@ -299,7 +305,7 @@ public class PedidoService {
                 pedido.getId(),
                 pedido.getCliente() != null ? pedido.getCliente().getId() : null,
                 pedido.getEndereco() != null ? pedido.getEndereco().getId() : null,
-                pedido.getVenda().getId(),
+                pedido.getVenda() != null ? pedido.getVenda().getId() : null,
                 pedido.getTipoPedido(),
                 pedido.getStatusPedido(),
                 pedido.getDataHora(),

@@ -2,41 +2,50 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.ItemPedido;
 import br.com.halotec.hungospring.service.ItemPedidoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class ItemPedidoController {
 
-    @Autowired
-    private ItemPedidoService itemPedidoService;
+    private final ItemPedidoService itemPedidoService;
+
+    public ItemPedidoController(ItemPedidoService itemPedidoService) {
+        this.itemPedidoService = itemPedidoService;
+    }
 
     @PostMapping("/item-pedido")
     public ResponseEntity<ItemPedido> salvar(@RequestBody ItemPedido itemPedido) {
-        return itemPedidoService.salvar(itemPedido);
+        ItemPedido salvo = itemPedidoService.salvar(itemPedido);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
     @GetMapping("/item-pedido")
-    public Iterable<ItemPedido> listarTodos() {
-        return itemPedidoService.listarTodos();
+    public ResponseEntity<List<ItemPedido>> listarTodos() {
+        return ResponseEntity.ok(itemPedidoService.listarTodos());
     }
 
     @GetMapping("/item-pedido/{id}")
     public ResponseEntity<ItemPedido> buscarPorId(@PathVariable Long id) {
-        return itemPedidoService.buscarPorId(id);
+        return ResponseEntity.ok(itemPedidoService.buscarPorId(id));
     }
 
     @DeleteMapping("/item-pedido/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return itemPedidoService.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        itemPedidoService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
     @RequestMapping(value = {"/item-pedido/{id}/cancelar", "/item-pedido/cancelar/{id}"}, method = {RequestMethod.PUT, RequestMethod.POST})
     public ResponseEntity<Void> cancelarItem(
             @PathVariable Long id,
-            @RequestParam(required = false) String motivo) {
-        return itemPedidoService.cancelarItem(id, motivo);
+            @RequestParam(required = false) @Nullable String motivo) {
+        itemPedidoService.cancelarItem(id, motivo);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/item-pedido/{id}")
@@ -44,7 +53,6 @@ public class ItemPedidoController {
             @PathVariable Long id,
             @RequestBody ItemPedido itemPedido) {
         itemPedido.setId(id);
-        return itemPedidoService.salvar(itemPedido);
+        return ResponseEntity.ok(itemPedidoService.salvar(itemPedido));
     }
-
 }

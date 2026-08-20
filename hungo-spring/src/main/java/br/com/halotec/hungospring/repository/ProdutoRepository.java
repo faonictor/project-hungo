@@ -1,9 +1,7 @@
 package br.com.halotec.hungospring.repository;
 
 import br.com.halotec.hungospring.entity.Produto;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public interface ProdutoRepository extends CrudRepository<Produto,Long> {
+public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 }

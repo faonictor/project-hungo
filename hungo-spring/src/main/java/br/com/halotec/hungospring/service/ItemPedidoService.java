@@ -6,79 +6,99 @@ import br.com.halotec.hungospring.entity.Venda;
 import br.com.halotec.hungospring.repository.ItemPedidoRepository;
 import br.com.halotec.hungospring.repository.ProdutoRepository;
 import br.com.halotec.hungospring.repository.VendaRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ItemPedidoService {
-    @Autowired
-    private ItemPedidoRepository itemPedidoRepository;
-    @Autowired
-    private ProdutoRepository produtoRepository;
-    @Autowired
-    private VendaRepository vendaRepository;
 
-    public Iterable<ItemPedido> listarTodos() {
+    private final ItemPedidoRepository itemPedidoRepository;
+    private final ProdutoRepository produtoRepository;
+    private final VendaRepository vendaRepository;
+
+    public ItemPedidoService(
+            ItemPedidoRepository itemPedidoRepository,
+            ProdutoRepository produtoRepository,
+            VendaRepository vendaRepository
+    ) {
+        this.itemPedidoRepository = itemPedidoRepository;
+        this.produtoRepository = produtoRepository;
+        this.vendaRepository = vendaRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ItemPedido> listarTodos() {
         return itemPedidoRepository.findAll();
     }
 
-    public ResponseEntity<ItemPedido> salvar(ItemPedido itemPedido) {
-        Produto produto = produtoRepository.findById(itemPedido.getProduto().getId()).get();
+    @Transactional
+    public ItemPedido salvar(ItemPedido itemPedido) {
+        if (itemPedido.getProduto() == null || itemPedido.getProduto().getId() == null) {
+            throw new IllegalArgumentException("Produto e ID do Produto são obrigatórios");
+        }
+        Long produtoId = Objects.requireNonNull(itemPedido.getProduto().getId());
+        Produto produto = produtoRepository.findById(produtoId)
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + produtoId));
+
         itemPedido.setTotal(itemPedido.getQuantidade() * produto.getPreco());
         ItemPedido salvo = itemPedidoRepository.save(itemPedido);
-        if (salvo.getPedido() != null && salvo.getPedido().getVenda() != null) {
+
+        if (salvo.getPedido() != null && salvo.getPedido().getVenda() != null && salvo.getPedido().getVenda().getId() != null) {
             atualizarTotalVenda(salvo.getPedido().getVenda().getId());
         }
-        return new ResponseEntity<>(salvo, HttpStatus.OK);
+        return salvo;
     }
 
-    public ResponseEntity<ItemPedido> buscarPorId(Long id) {
-        return new ResponseEntity<>(itemPedidoRepository.findById(id).orElseThrow(), HttpStatus.OK);
-    }
-
-    @Transactional
-    public ResponseEntity<Void> cancelarItem(Long id, String motivo) {
-        ItemPedido item = itemPedidoRepository.findById(id).orElse(null);
-        if (item != null) {
-            if (item.getPedido() != null) {
-                String status = item.getPedido().getStatusPedido();
-                if ("Concluído".equalsIgnoreCase(status) || "Concluido".equalsIgnoreCase(status)) {
-                    throw new IllegalStateException("Pedidos concluídos não podem ter itens cancelados.");
-                }
-            }
-            item.setStatusItem("Cancelado");
-            if (motivo != null && !motivo.trim().isEmpty()) {
-                item.setMotivoCancelamento(motivo.trim());
-            }
-            itemPedidoRepository.save(item);
-
-            if (item.getPedido() != null && item.getPedido().getVenda() != null) {
-                atualizarTotalVenda(item.getPedido().getVenda().getId());
-            }
-        }
-        return ResponseEntity.ok().build();
+    @Transactional(readOnly = true)
+    public ItemPedido buscarPorId(Long id) {
+        return itemPedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ItemPedido não encontrado com o ID: " + id));
     }
 
     @Transactional
-    public ResponseEntity deletar(Long id) {
-        ItemPedido item = itemPedidoRepository.findById(id).orElse(null);
-        if (item != null) {
-            if (item.getPedido() != null) {
-                String status = item.getPedido().getStatusPedido();
-                if ("Concluído".equalsIgnoreCase(status) || "Concluido".equalsIgnoreCase(status)) {
-                    throw new IllegalStateException("Pedidos concluídos não podem ter itens removidos.");
-                }
-            }
-            Long vendaId = (item.getPedido() != null && item.getPedido().getVenda() != null) ? item.getPedido().getVenda().getId() : null;
-            itemPedidoRepository.delete(item);
-            if (vendaId != null) {
-                atualizarTotalVenda(vendaId);
+    public void cancelarItem(Long id, @Nullable String motivo) {
+        ItemPedido item = itemPedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ItemPedido não encontrado com o ID: " + id));
+
+        if (item.getPedido() != null) {
+            String status = item.getPedido().getStatusPedido();
+            if ("Concluído".equalsIgnoreCase(status) || "Concluido".equalsIgnoreCase(status)) {
+                throw new IllegalStateException("Pedidos concluídos não podem ter itens cancelados.");
             }
         }
-        return new ResponseEntity("{\"mensagem\":\"Item Removido com Sucesso\"}", HttpStatus.OK);
+        item.setStatusItem("Cancelado");
+        if (motivo != null && !motivo.trim().isEmpty()) {
+            item.setMotivoCancelamento(motivo.trim());
+        }
+        itemPedidoRepository.save(item);
+
+        if (item.getPedido() != null && item.getPedido().getVenda() != null && item.getPedido().getVenda().getId() != null) {
+            atualizarTotalVenda(item.getPedido().getVenda().getId());
+        }
+    }
+
+    @Transactional
+    public void deletar(Long id) {
+        ItemPedido item = itemPedidoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ItemPedido não encontrado com o ID: " + id));
+
+        if (item.getPedido() != null) {
+            String status = item.getPedido().getStatusPedido();
+            if ("Concluído".equalsIgnoreCase(status) || "Concluido".equalsIgnoreCase(status)) {
+                throw new IllegalStateException("Pedidos concluídos não podem ter itens removidos.");
+            }
+        }
+        Long vendaId = (item.getPedido() != null && item.getPedido().getVenda() != null) ? item.getPedido().getVenda().getId() : null;
+        itemPedidoRepository.delete(item);
+
+        if (vendaId != null) {
+            atualizarTotalVenda(vendaId);
+        }
     }
 
     private void atualizarTotalVenda(Long vendaId) {
@@ -94,5 +114,3 @@ public class ItemPedidoService {
         }
     }
 }
-
-

@@ -1,10 +1,7 @@
 package br.com.halotec.hungospring.repository;
 
 import br.com.halotec.hungospring.entity.FluxoFinanceiro;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Repository
-public interface FluxoFinanceiroRepository extends CrudRepository<FluxoFinanceiro, Long> {
+public interface FluxoFinanceiroRepository extends JpaRepository<FluxoFinanceiro, Long> {
 }
-

@@ -2,33 +2,46 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.Funcionario;
 import br.com.halotec.hungospring.repository.FuncionarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class FuncionarioService {
 
-    @Autowired
-    private FuncionarioRepository funcionarioRepository;
+    private final FuncionarioRepository funcionarioRepository;
 
-    public Iterable<Funcionario> listarTodos() {
+    public FuncionarioService(FuncionarioRepository funcionarioRepository) {
+        this.funcionarioRepository = funcionarioRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Funcionario> listarTodos() {
         return funcionarioRepository.findAll();
     }
 
-    public ResponseEntity<Funcionario> salvar(Funcionario funcionario) {
-        return ResponseEntity.ok(funcionarioRepository.save(funcionario));
+    @Transactional
+    public Funcionario salvar(Funcionario funcionario) {
+        if (funcionario.getId() == null && funcionario.getDataCadastro() == null) {
+            funcionario.setDataCadastro(LocalDateTime.now());
+        }
+        return funcionarioRepository.save(funcionario);
     }
 
-    public ResponseEntity<Funcionario> buscarPorId(Long id) {
-        return ResponseEntity.ok(funcionarioRepository.findById(id).orElseThrow());
+    @Transactional(readOnly = true)
+    public Funcionario buscarPorId(Long id) {
+        return funcionarioRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Funcionário não encontrado com o ID: " + id));
     }
 
-    public ResponseEntity<?> deletar(Long id) {
+    @Transactional
+    public void deletar(Long id) {
+        if (!funcionarioRepository.existsById(id)) {
+            throw new EntityNotFoundException("Funcionário não encontrado com o ID: " + id);
+        }
         funcionarioRepository.deleteById(id);
-        return ResponseEntity.ok("{\"mensagem\":\"funcionario Removido com Sucesso\"}");
     }
 }
-

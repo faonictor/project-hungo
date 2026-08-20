@@ -2,7 +2,7 @@ package br.com.halotec.hungospring.controller;
 
 import br.com.halotec.hungospring.entity.ProdutoInsumo;
 import br.com.halotec.hungospring.service.ProdutoInsumoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,33 +11,33 @@ import java.util.List;
 @RestController
 public class ProdutoInsumoController {
 
-    @Autowired
-    private ProdutoInsumoService produtoInsumoService;
+    private final ProdutoInsumoService produtoInsumoService;
+
+    public ProdutoInsumoController(ProdutoInsumoService produtoInsumoService) {
+        this.produtoInsumoService = produtoInsumoService;
+    }
 
     @PostMapping("/produto-insumo")
     public ResponseEntity<ProdutoInsumo> salvar(@RequestBody ProdutoInsumo produtoInsumo) {
-        return produtoInsumoService.salvar(produtoInsumo);
+        ProdutoInsumo salvo = produtoInsumoService.salvar(produtoInsumo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
-
-//    @GetMapping("/produto-insumo")
-//    public Iterable<ProdutoInsumo> listarTodos() {
-//        return produtoInsumoService.listarTodos();
-//    }
 
     @GetMapping("/produto-insumo/{id}")
     public ResponseEntity<ProdutoInsumo> buscarPorId(@PathVariable Long id) {
-        return produtoInsumoService.buscarPorId(id);
+        return ResponseEntity.ok(produtoInsumoService.buscarPorId(id));
     }
 
     @GetMapping("/produto-insumo")
     public ResponseEntity<List<ProdutoInsumo>> buscarInsumosPorProdutoId(@RequestParam Long produtoId) {
         List<ProdutoInsumo> produtoInsumos = produtoInsumoService.buscarInsumosPorProdutoId(produtoId);
-        return ResponseEntity.ok(produtoInsumos); // Retorna os insumos encontrados
+        return ResponseEntity.ok(produtoInsumos);
     }
 
     @DeleteMapping("/produto-insumo/{id}")
-    public ResponseEntity deletar(@PathVariable Long id) {
-        return produtoInsumoService.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        produtoInsumoService.deletar(id);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/produto-insumo/{id}")
@@ -45,6 +45,6 @@ public class ProdutoInsumoController {
             @PathVariable Long id,
             @RequestBody ProdutoInsumo produtoInsumo) {
         produtoInsumo.setId(id);
-        return produtoInsumoService.salvar(produtoInsumo);
+        return ResponseEntity.ok(produtoInsumoService.salvar(produtoInsumo));
     }
 }
