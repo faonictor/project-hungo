@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Plus, Tags, Pencil, Trash2, Loader2, RefreshCw } from "lucide-react";
+import { Plus, Tags, Pencil, Trash2, RefreshCw, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,18 +14,12 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { apiCategorias, Categoria } from "@/lib/api";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorState } from "@/components/common/ErrorState";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 
 export const Route = createFileRoute("/categorias")({
   head: () => ({
@@ -143,24 +137,20 @@ function CategoriasPage() {
       }
     >
       {loading ? (
-        <div className="flex h-48 items-center justify-center text-muted-foreground">
-          <Loader2 className="size-6 animate-spin mr-2" />
-          Carregando categorias da API...
-        </div>
+        <LoadingState message="Carregando categorias da API..." />
       ) : error ? (
-        <div className="flex h-48 flex-col items-center justify-center text-destructive">
-          <p>{error}</p>
-          <Button variant="outline" size="sm" onClick={fetchCategorias} className="mt-2">
-            Tentar Novamente
-          </Button>
-        </div>
+        <ErrorState message={error} onRetry={fetchCategorias} />
       ) : categoriasList.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center text-muted-foreground">
-          <p>Nenhuma categoria cadastrada ainda.</p>
-          <Button variant="link" onClick={handleOpenCreateModal}>
-            Cadastrar primeira categoria
-          </Button>
-        </div>
+        <EmptyState
+          icon={Tags}
+          title="Nenhuma categoria cadastrada ainda."
+          description="Crie categorias para agrupar produtos no seu cardápio."
+          action={
+            <Button variant="link" onClick={handleOpenCreateModal}>
+              Cadastrar primeira categoria
+            </Button>
+          }
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {categoriasList.map((c) => (
@@ -175,16 +165,16 @@ function CategoriasPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleOpenEditModal(c)}
-                      className="size-8"
+                      className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
                       title="Editar"
                     >
-                      <Pencil className="size-4 text-muted-foreground" />
+                      <Pencil className="size-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => c.id && setDeleteId(c.id)}
-                      className="size-8 text-destructive hover:text-destructive"
+                      className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                       title="Excluir"
                     >
                       <Trash2 className="size-4" />
@@ -222,7 +212,34 @@ function CategoriasPage() {
               />
             </div>
 
-            <DialogFooter className="pt-4 flex justify-end">
+            <DialogFooter className="pt-4 flex flex-row items-center justify-between sm:justify-between w-full">
+              <div className="flex items-center gap-2">
+                {editingCategoria?.id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const id = editingCategoria.id!;
+                      setIsModalOpen(false);
+                      setDeleteId(id);
+                    }}
+                    className="size-9 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 border-destructive/30"
+                    title="Excluir Categoria"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={submitting}
+                  className="text-xs"
+                >
+                  Cancelar
+                </Button>
+              </div>
               <Button type="submit" className="bg-brand text-primary-foreground font-semibold" disabled={submitting}>
                 {submitting ? (
                   <>
@@ -239,26 +256,14 @@ function CategoriasPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Categoria?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação excluirá a categoria. Certifique-se de que não há produtos vinculados a ela.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Excluindo..." : "Confirmar Exclusão"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Excluir Categoria?"
+        description="Esta ação excluirá a categoria. Certifique-se de que não há produtos vinculados a ela."
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </AppShell>
   );
 }

@@ -1,7 +1,5 @@
 package br.com.halotec.hungospring.dto;
 
-import java.util.List;
-
 public class ProdutoDTO {
     private Long id;
     private String nome;
@@ -9,7 +7,6 @@ public class ProdutoDTO {
     private Long categoriaId;
     private Boolean tipo;
     private Boolean favorito = false;
-    private List<ProdutoInsumoDTO> insumos;
 
     public ProdutoDTO() {}
 
@@ -25,6 +22,4 @@ public class ProdutoDTO {
     public void setTipo(Boolean tipo) { this.tipo = tipo; }
     public Boolean getFavorito() { return favorito; }
     public void setFavorito(Boolean favorito) { this.favorito = favorito; }
-    public List<ProdutoInsumoDTO> getInsumos() { return insumos; }
-    public void setInsumos(List<ProdutoInsumoDTO> insumos) { this.insumos = insumos; }
 }

@@ -6,23 +6,6 @@ INSERT IGNORE INTO Categoria (id, nome) VALUES (4, 'Bebidas & Sucos');
 INSERT IGNORE INTO Categoria (id, nome) VALUES (5, 'Sobremesas');
 INSERT IGNORE INTO Categoria (id, nome) VALUES (6, 'Geral');
 
--- INSUMOS
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (1, 'Pão Brioche Selado', 2.50, 100, 'UN');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (2, 'Hambúrguer Fraldinha 180g', 8.90, 80, 'UN');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (3, 'Queijo Cheddar Fatiado', 45.00, 10.5, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (4, 'Bacon Defumado Crocante', 52.00, 8.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (5, 'Maionese Caseira Verde', 22.00, 5.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (6, 'Molho Especial de Alho', 24.00, 4.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (7, 'Massa de Pizza Artesanal 35cm', 4.50, 50, 'UN');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (8, 'Molho de Tomate Pelado Italian', 18.00, 12.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (9, 'Queijo Muçarela Ralado', 38.00, 15.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (10, 'Linguiça Calabresa Fatiada', 32.00, 10.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (11, 'Batata Palito Congelada 9mm', 14.50, 30.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (12, 'Filé de Frango em Cubos', 22.00, 20.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (13, 'Polpa de Morango Natural', 16.00, 15.0, 'KG');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (14, 'Leite Condensado Nestlé', 9.50, 25, 'UN');
-INSERT IGNORE INTO Insumo (id, nome, preco, quantidade, unidadeMedida) VALUES (15, 'Sorvete de Creme 2L', 28.00, 10, 'UN');
-
 -- PRODUTOS (30 PRODUTOS - 6 FAVORITOS)
 INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUES (1, 'X-Bacon Supremo 180g', 34.90, true, true, 1);
 INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUES (2, 'Smash Cheddar Duplo', 29.90, true, true, 1);
@@ -54,25 +37,6 @@ INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUE
 INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUES (28, 'Pudim de Leite Condensado Caseiro', 12.00, true, false, 5);
 INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUES (29, 'Torta Holandesa Fatia Especial', 16.50, true, false, 5);
 INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUES (30, 'Café Expresso c/ Petit Four', 9.90, true, false, 6);
-
--- FICHA TÉCNICA
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (1, 1, 1, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (2, 1, 2, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (3, 1, 3, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (4, 1, 4, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (5, 2, 1, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (6, 2, 2, 2);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (7, 2, 3, 2);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (8, 3, 7, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (9, 3, 8, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (10, 3, 9, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (11, 3, 10, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (12, 4, 11, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (13, 4, 3, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (14, 4, 4, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (15, 6, 13, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (16, 27, 14, 1);
-INSERT IGNORE INTO ProdutoInsumo (id, produto_id, insumo_id, quantidade) VALUES (17, 27, 15, 1);
 
 -- CLIENTES
 INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (1, 'João Carlos da Silva', '(11) 98888-7777', 'joao.silva@email.com', '123456', '123.456.789-01', NOW(), true);

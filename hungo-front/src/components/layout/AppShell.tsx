@@ -2,11 +2,10 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ShoppingBag,
-  ShoppingCart,
+  Receipt,
   Lock,
   Package,
   Tags,
-  Boxes,
   Users,
   Wallet,
   Utensils,
@@ -29,9 +28,8 @@ const nav = [
   {
     title: "Operação",
     items: [
+      { to: "/vendas", label: "Comandas", icon: Receipt },
       { to: "/pedidos", label: "Pedidos", icon: ShoppingBag },
-      { to: "/vendas", label: "Vendas abertas", icon: ShoppingCart },
-      { to: "/vendas/encerradas", label: "Vendas encerradas", icon: Lock },
     ],
   },
   {
@@ -39,13 +37,13 @@ const nav = [
     items: [
       { to: "/produtos", label: "Produtos", icon: Package },
       { to: "/categorias", label: "Categorias", icon: Tags },
-      { to: "/insumos", label: "Insumos", icon: Boxes },
     ],
   },
   {
     title: "Gestão",
     items: [
       { to: "/clientes", label: "Clientes", icon: Users },
+      { to: "/vendas/encerradas", label: "Vendas encerradas", icon: Lock },
       { to: "/financeiro", label: "Financeiro", icon: Wallet },
     ],
   },
@@ -70,12 +68,16 @@ const SidebarContent = memo(function SidebarContent({ onNavigate }: { onNavigate
 
   return (
     <div className="flex h-full flex-col bg-sidebar-gradient text-sidebar-foreground">
-      <div className="flex items-center gap-3 px-6 py-6">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-brand shadow-float">
-          <Utensils className="size-5 text-primary-foreground" />
-        </span>
-        <div className="leading-tight">
-          <p className="text-base font-semibold tracking-tight">Hungo</p>
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-sidebar-border/20">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white p-1.5 shadow-float ring-1 ring-black/5">
+          <img
+            src="/logo-hungo.svg"
+            alt="Hungo"
+            className="h-full w-full object-contain"
+          />
+        </div>
+        <div className="leading-tight min-w-0">
+          <p className="text-base font-bold tracking-tight text-sidebar-foreground">Hungo</p>
           <p className="text-xs text-sidebar-foreground/60">Gestão de restaurantes</p>
         </div>
       </div>

@@ -20,6 +20,7 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChannelBadge } from "@/components/common/ChannelBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -213,31 +214,10 @@ function LancarItensPage() {
               <h2 className="text-lg font-bold text-foreground">
                 Comanda #{venda?.id}
               </h2>
-              {(() => {
-                const tipo = (venda?.tipoAtendimento || (venda?.mesa ? "LOCAL" : "LOCAL")).toUpperCase();
-                const isDelivery = tipo === "DELIVERY";
-                const isRetirada = tipo === "RETIRADA" || tipo === "BALCAO";
-
-                if (isDelivery) {
-                  return (
-                    <Badge variant="outline" className="border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold">
-                      <Truck className="size-3 mr-1" /> Delivery
-                    </Badge>
-                  );
-                }
-                if (isRetirada) {
-                  return (
-                    <Badge variant="outline" className="border-purple-500/30 bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold">
-                      <ShoppingBag className="size-3 mr-1" /> Retirada
-                    </Badge>
-                  );
-                }
-                return (
-                  <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary font-semibold">
-                    <Utensils className="size-3 mr-1" /> {venda?.mesa?.nome || "Consumo Local"}
-                  </Badge>
-                );
-              })()}
+              <ChannelBadge
+                tipo={venda?.tipoAtendimento}
+                mesaNome={venda?.mesa?.nome}
+              />
             </div>
             {(() => {
               const nomeExibicao = venda?.cliente?.nome || (venda as any)?.nomeCliente || "";
@@ -255,7 +235,10 @@ function LancarItensPage() {
 
         <div className="flex items-center gap-6 text-sm">
           <div className="text-right">
-            <span className="text-xs text-muted-foreground block">Total Parcial Acumulado</span>
+            <span className="text-xs text-muted-foreground block">
+              Total Parcial Acumulado
+              {venda?.taxaEntrega && venda.taxaEntrega > 0 ? ` (com frete ${brl(venda.taxaEntrega)})` : ""}
+            </span>
             <span className="text-xl font-bold text-foreground">{brl(venda?.total || 0)}</span>
           </div>
         </div>

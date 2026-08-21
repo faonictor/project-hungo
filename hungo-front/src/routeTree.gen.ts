@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CategoriasRouteImport } from './routes/categorias'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
-import { Route as InsumosRouteImport } from './routes/insumos'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as VendasIndexRouteImport } from './routes/vendas.index'
@@ -38,11 +37,6 @@ const ClientesRoute = ClientesRouteImport.update({
 const FinanceiroRoute = FinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InsumosRoute = InsumosRouteImport.update({
-  id: '/insumos',
-  path: '/insumos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PedidosRoute = PedidosRouteImport.update({
@@ -76,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/categorias': typeof CategoriasRoute
   '/clientes': typeof ClientesRoute
   '/financeiro': typeof FinanceiroRoute
-  '/insumos': typeof InsumosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
   '/vendas/encerradas': typeof VendasEncerradasRoute
@@ -88,7 +81,6 @@ export interface FileRoutesByTo {
   '/categorias': typeof CategoriasRoute
   '/clientes': typeof ClientesRoute
   '/financeiro': typeof FinanceiroRoute
-  '/insumos': typeof InsumosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
   '/vendas/encerradas': typeof VendasEncerradasRoute
@@ -101,7 +93,6 @@ export interface FileRoutesById {
   '/categorias': typeof CategoriasRoute
   '/clientes': typeof ClientesRoute
   '/financeiro': typeof FinanceiroRoute
-  '/insumos': typeof InsumosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
   '/vendas/encerradas': typeof VendasEncerradasRoute
@@ -115,7 +106,6 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/clientes'
     | '/financeiro'
-    | '/insumos'
     | '/pedidos'
     | '/produtos'
     | '/vendas/encerradas'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/clientes'
     | '/financeiro'
-    | '/insumos'
     | '/pedidos'
     | '/produtos'
     | '/vendas/encerradas'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/categorias'
     | '/clientes'
     | '/financeiro'
-    | '/insumos'
     | '/pedidos'
     | '/produtos'
     | '/vendas/encerradas'
@@ -152,7 +140,6 @@ export interface RootRouteChildren {
   CategoriasRoute: typeof CategoriasRoute
   ClientesRoute: typeof ClientesRoute
   FinanceiroRoute: typeof FinanceiroRoute
-  InsumosRoute: typeof InsumosRoute
   PedidosRoute: typeof PedidosRoute
   ProdutosRoute: typeof ProdutosRoute
   VendasEncerradasRoute: typeof VendasEncerradasRoute
@@ -188,13 +175,6 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/financeiro'
       preLoaderRoute: typeof FinanceiroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/insumos': {
-      id: '/insumos'
-      path: '/insumos'
-      fullPath: '/insumos'
-      preLoaderRoute: typeof InsumosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pedidos': {
@@ -240,7 +220,6 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriasRoute: CategoriasRoute,
   ClientesRoute: ClientesRoute,
   FinanceiroRoute: FinanceiroRoute,
-  InsumosRoute: InsumosRoute,
   PedidosRoute: PedidosRoute,
   ProdutosRoute: ProdutosRoute,
   VendasEncerradasRoute: VendasEncerradasRoute,

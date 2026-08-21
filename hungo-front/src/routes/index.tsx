@@ -37,13 +37,9 @@ export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
-const statusTone: Record<string, string> = {
-  Aberto: "bg-info/12 text-info border-info/25",
-  "Em preparo": "bg-warning/15 text-warning border-warning/35",
-  Entregue: "bg-success/12 text-success border-success/25",
-  Pago: "bg-success/20 text-success border-success/40",
-  Cancelado: "bg-destructive/10 text-destructive border-destructive/25",
-};
+import { OrderStatusBadge } from "@/components/common/OrderStatusBadge";
+import { LoadingState } from "@/components/common/LoadingState";
+import { EmptyState } from "@/components/common/EmptyState";
 
 function DashboardPage() {
   const [vendasAbertas, setVendasAbertas] = useState<Venda[]>([]);
@@ -210,15 +206,13 @@ function DashboardPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           {loading ? (
-            <div className="flex h-36 items-center justify-center text-muted-foreground">
-              <Loader2 className="size-5 animate-spin mr-2" />
-              Carregando últimos pedidos...
-            </div>
+            <LoadingState message="Carregando últimos pedidos..." className="h-36" />
           ) : pedidosList.length === 0 ? (
-            <div className="flex h-36 flex-col items-center justify-center text-muted-foreground">
-              <ShoppingBag className="size-6 mb-1 text-muted-foreground/60" />
-              <p className="text-xs">Nenhum pedido lançado na base de dados.</p>
-            </div>
+            <EmptyState
+              icon={ShoppingBag}
+              title="Nenhum pedido lançado na base de dados."
+              className="h-36"
+            />
           ) : (
             pedidosList.slice(0, 5).map((p) => (
               <div
@@ -234,9 +228,7 @@ function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                <Badge variant="outline" className={statusTone[p.statusPedido || "Aberto"] || statusTone["Aberto"]}>
-                  {p.statusPedido || "Aberto"}
-                </Badge>
+                <OrderStatusBadge status={p.statusPedido} />
               </div>
             ))
           )}

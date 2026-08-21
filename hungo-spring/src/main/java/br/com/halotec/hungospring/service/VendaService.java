@@ -2,12 +2,14 @@ package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.entity.Cliente;
 import br.com.halotec.hungospring.entity.ComandaExcluida;
+import br.com.halotec.hungospring.entity.Endereco;
 import br.com.halotec.hungospring.entity.ItemPedido;
 import br.com.halotec.hungospring.entity.Mesa;
 import br.com.halotec.hungospring.entity.Pedido;
 import br.com.halotec.hungospring.entity.Venda;
 import br.com.halotec.hungospring.repository.ClienteRepository;
 import br.com.halotec.hungospring.repository.ComandaExcluidaRepository;
+import br.com.halotec.hungospring.repository.EnderecoRepository;
 import br.com.halotec.hungospring.repository.ItemPedidoRepository;
 import br.com.halotec.hungospring.repository.MesaRepository;
 import br.com.halotec.hungospring.repository.PedidoRepository;
@@ -30,6 +32,7 @@ public class VendaService {
     private final MesaRepository mesaRepository;
     private final ComandaExcluidaRepository comandaExcluidaRepository;
     private final ClienteRepository clienteRepository;
+    private final EnderecoRepository enderecoRepository;
 
     public VendaService(
             VendaRepository vendaRepository,
@@ -37,7 +40,8 @@ public class VendaService {
             PedidoRepository pedidoRepository,
             MesaRepository mesaRepository,
             ComandaExcluidaRepository comandaExcluidaRepository,
-            ClienteRepository clienteRepository
+            ClienteRepository clienteRepository,
+            EnderecoRepository enderecoRepository
     ) {
         this.vendaRepository = vendaRepository;
         this.itemPedidoRepository = itemPedidoRepository;
@@ -45,6 +49,7 @@ public class VendaService {
         this.mesaRepository = mesaRepository;
         this.comandaExcluidaRepository = comandaExcluidaRepository;
         this.clienteRepository = clienteRepository;
+        this.enderecoRepository = enderecoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +72,21 @@ public class VendaService {
                 venda.setNomeCliente(venda.getCliente().getNome().trim());
             }
             venda.setCliente(null);
+        }
+
+        boolean isDelivery = "DELIVERY".equalsIgnoreCase(venda.getTipoAtendimento());
+        if (isDelivery) {
+            if (venda.getEndereco() != null && venda.getEndereco().getId() != null) {
+                Long endId = venda.getEndereco().getId();
+                Endereco end = endId != null ? enderecoRepository.findById(endId).orElse(null) : null;
+                venda.setEndereco(end);
+            }
+            if (venda.getTaxaEntrega() == null) {
+                venda.setTaxaEntrega(0.0f);
+            }
+        } else {
+            venda.setTaxaEntrega(0.0f);
+            venda.setEndereco(null);
         }
 
         Venda salva = vendaRepository.save(venda);
@@ -117,6 +137,25 @@ public class VendaService {
                 novaMesa.setStatus(false);
                 mesaRepository.save(novaMesa);
             }
+        }
+
+        String tipoFinal = existente.getTipoAtendimento();
+        boolean isDelivery = "DELIVERY".equalsIgnoreCase(tipoFinal);
+
+        if (isDelivery) {
+            if (dadosNovos.getTaxaEntrega() != null) {
+                existente.setTaxaEntrega(dadosNovos.getTaxaEntrega());
+            }
+            if (dadosNovos.getEndereco() != null && dadosNovos.getEndereco().getId() != null) {
+                Long endId = dadosNovos.getEndereco().getId();
+                Endereco end = endId != null ? enderecoRepository.findById(endId).orElse(null) : null;
+                existente.setEndereco(end);
+            } else if (dadosNovos.getEndereco() == null && dadosNovos.getTipoAtendimento() != null) {
+                existente.setEndereco(null);
+            }
+        } else {
+            existente.setTaxaEntrega(0.0f);
+            existente.setEndereco(null);
         }
 
         if (dadosNovos.getCliente() != null && dadosNovos.getCliente().getId() != null) {

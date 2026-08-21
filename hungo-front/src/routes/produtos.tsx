@@ -31,26 +31,17 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorState } from "@/components/common/ErrorState";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 import { toast } from "sonner";
 import {
   apiProdutos,
   apiCategorias,
-  apiInsumos,
   Produto,
   ProdutoDTO,
   Categoria,
-  Insumo,
-  ProdutoInsumoDTO,
 } from "@/lib/api";
 import { brl } from "@/lib/mock-data";
 
@@ -70,7 +61,6 @@ export const Route = createFileRoute("/produtos")({
 function ProdutosPage() {
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [insumosList, setInsumosList] = useState<Insumo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,7 +77,6 @@ function ProdutosPage() {
   const [categoriaId, setCategoriaId] = useState<string>("");
   const [tipo, setTipo] = useState<boolean>(true);
   const [favorito, setFavorito] = useState<boolean>(false);
-  const [selectedInsumos, setSelectedInsumos] = useState<ProdutoInsumoDTO[]>([]);
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -96,14 +85,12 @@ function ProdutosPage() {
     try {
       setLoading(true);
       setError(null);
-      const [prods, cats, ins] = await Promise.all([
+      const [prods, cats] = await Promise.all([
         apiProdutos.listar(),
         apiCategorias.listar(),
-        apiInsumos.listar(),
       ]);
       setProdutosList(prods);
       setCategorias(cats);
-      setInsumosList(ins);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Erro ao carregar produtos");
@@ -124,7 +111,6 @@ function ProdutosPage() {
     setCategoriaId("geral");
     setTipo(true);
     setFavorito(false);
-    setSelectedInsumos([]);
     setIsModalOpen(true);
   };
 
@@ -140,7 +126,6 @@ function ProdutosPage() {
       setCategoriaId(prodDTO.categoriaId ? prodDTO.categoriaId.toString() : "geral");
       setTipo(prodDTO.tipo ?? true);
       setFavorito(prodDTO.favorito ?? false);
-      setSelectedInsumos(prodDTO.insumos || []);
     } catch (err: any) {
       toast.error("Erro ao carregar detalhes do produto.");
       setIsModalOpen(false);
@@ -149,36 +134,12 @@ function ProdutosPage() {
     }
   };
 
-  const handleAddInsumoRow = () => {
-    if (insumosList.length === 0) {
-      toast.warning("Nenhum insumo cadastrado para adicionar.");
-      return;
-    }
-    const defaultInsumoId = insumosList[0]?.id || 1;
-    setSelectedInsumos((prev) => [...prev, { insumoId: defaultInsumoId, quantidade: 1 }]);
-  };
-
-  const handleRemoveInsumoRow = (index: number) => {
-    setSelectedInsumos((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleInsumoChange = (index: number, field: keyof ProdutoInsumoDTO, value: any) => {
-    setSelectedInsumos((prev) => {
-      const updated = [...prev];
-      const currentItem = updated[index];
-      if (currentItem) {
-        updated[index] = { ...currentItem, [field]: value };
-      }
-      return updated;
-    });
-  };
-
   const handleToggleFavorito = async (p: Produto) => {
     const isFav = !p.favorito;
     if (isFav) {
-      const totalFavs = produtosList.filter((prod) => prod.favorito).length;
-      if (totalFavs >= 12) {
-        toast.warning("Você já possui 12 produtos favoritos. Desmarque um para adicionar outro.");
+      const otherFavs = produtosList.filter((prod) => prod.favorito && prod.id !== p.id).length;
+      if (otherFavs >= 12) {
+        toast.warning("Você já possui o limite máximo de 12 produtos favoritos. Desmarque um para adicionar outro.");
         return;
       }
     }
@@ -196,7 +157,7 @@ function ProdutosPage() {
       toast.success(isFav ? `${p.nome} destacado como Favorito! ⭐` : `${p.nome} removido dos favoritos.`);
       fetchData();
     } catch (err: any) {
-      toast.error("Erro ao atualizar status de favorito.");
+      toast.error(err.message || "Erro ao atualizar status de favorito.");
     }
   };
 
@@ -213,10 +174,14 @@ function ProdutosPage() {
       return;
     }
 
-    if (favorito && !editingProdutoId) {
-      const totalFavs = produtosList.filter((p) => p.favorito).length;
-      if (totalFavs >= 12) {
-        toast.warning("Você já possui 12 produtos favoritos. O produto será criado sem marcação de favorito.");
+    let finalFavorito = favorito;
+    if (favorito) {
+      const otherFavs = produtosList.filter(
+        (p) => p.favorito && p.id !== editingProdutoId
+      ).length;
+      if (otherFavs >= 12) {
+        toast.warning("Você já possui 12 produtos favoritos. O produto será salvo sem marcação de favorito.");
+        finalFavorito = false;
         setFavorito(false);
       }
     }
@@ -227,8 +192,7 @@ function ProdutosPage() {
       preco: parsedPreco,
       categoriaId: categoriaId && categoriaId !== "geral" ? parseInt(categoriaId, 10) : null,
       tipo,
-      favorito,
-      insumos: selectedInsumos,
+      favorito: finalFavorito,
     };
 
     try {
@@ -337,41 +301,31 @@ function ProdutosPage() {
           </div>
 
           {loading ? (
-            <div className="flex h-48 items-center justify-center text-muted-foreground">
-              <Loader2 className="size-6 animate-spin mr-2" />
-              Carregando produtos da API...
-            </div>
+            <LoadingState message="Carregando produtos da API..." />
           ) : error ? (
-            <div className="flex h-48 flex-col items-center justify-center text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchData} className="mt-2">
-                Tentar Novamente
-              </Button>
-            </div>
+            <ErrorState message={error} onRetry={fetchData} />
           ) : filteredProdutos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-              {statusFilter === "FAVORITOS" ? (
-                <Star className="size-10 text-warning/60 mb-3" />
-              ) : statusFilter === "INATIVOS" ? (
-                <XCircle className="size-10 text-destructive/60 mb-3" />
-              ) : statusFilter === "ATIVOS" ? (
-                <CheckCircle2 className="size-10 text-emerald-500/60 mb-3" />
-              ) : (
-                <Utensils className="size-10 text-muted-foreground/50 mb-3" />
-              )}
-              <p className="text-base font-semibold text-foreground">
-                Nenhum produto encontrado nesta visualização
-              </p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                {searchTerm
+            <EmptyState
+              icon={
+                statusFilter === "FAVORITOS"
+                  ? Star
+                  : statusFilter === "INATIVOS"
+                  ? XCircle
+                  : statusFilter === "ATIVOS"
+                  ? CheckCircle2
+                  : Utensils
+              }
+              title="Nenhum produto encontrado nesta visualização"
+              description={
+                searchTerm
                   ? `Nenhum resultado corresponde à busca por "${searchTerm}".`
                   : statusFilter === "FAVORITOS"
                   ? "Nenhum produto está marcado como favorito. Marque estrelas nos produtos para acesso rápido."
                   : statusFilter === "INATIVOS"
                   ? "Nenhum produto está inativo no momento."
-                  : "Nenhum produto cadastrado no sistema."}
-              </p>
-            </div>
+                  : "Nenhum produto cadastrado no sistema."
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -437,16 +391,16 @@ function ProdutosPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => p.id && handleOpenEditModal(p.id)}
-                              className="size-8"
+                              className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
                               title="Editar Produto"
                             >
-                              <Pencil className="size-4 text-muted-foreground" />
+                              <Pencil className="size-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => p.id && setDeleteId(p.id)}
-                              className="size-8 text-destructive hover:text-destructive"
+                              className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                               title="Excluir Produto"
                             >
                               <Trash2 className="size-4" />
@@ -471,7 +425,7 @@ function ProdutosPage() {
             </DialogTitle>
             <DialogDescription>
               {editingProdutoId
-                ? "Altere as informações do produto ou insumos da receita."
+                ? "Altere as informações do produto."
                 : "Preencha os dados do novo produto para o cardápio."}
             </DialogDescription>
           </DialogHeader>
@@ -479,7 +433,7 @@ function ProdutosPage() {
           {loadingDetails ? (
             <div className="flex h-40 items-center justify-center text-muted-foreground">
               <Loader2 className="size-6 animate-spin mr-2" />
-              Carregando receita do produto...
+              Carregando detalhes do produto...
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -546,7 +500,19 @@ function ProdutosPage() {
                     type="checkbox"
                     id="favoritoStatus"
                     checked={favorito}
-                    onChange={(e) => setFavorito(e.target.checked)}
+                    onChange={(e) => {
+                      const willCheck = e.target.checked;
+                      if (willCheck) {
+                        const otherFavs = produtosList.filter(
+                          (p) => p.favorito && p.id !== editingProdutoId
+                        ).length;
+                        if (otherFavs >= 12) {
+                          toast.warning("Limite máximo de 12 produtos favoritos atingido. Desmarque outro produto antes de marcar este.");
+                          return;
+                        }
+                      }
+                      setFavorito(willCheck);
+                    }}
                     className="size-4"
                   />
                   <Label htmlFor="favoritoStatus" className="text-xs font-semibold text-warning cursor-pointer flex items-center gap-1">
@@ -555,79 +521,34 @@ function ProdutosPage() {
                 </div>
               </div>
 
-              <div className="space-y-3 border-t pt-3">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <Label className="text-xs font-semibold">Ficha Técnica / Insumos do Produto</Label>
-                    <p className="text-[11px] text-muted-foreground">
-                      Insumos consumidos do estoque a cada venda deste produto.
-                    </p>
-                  </div>
+              <DialogFooter className="pt-4 flex flex-row items-center justify-between sm:justify-between w-full">
+                <div className="flex items-center gap-2">
+                  {editingProdutoId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const id = editingProdutoId;
+                        setIsModalOpen(false);
+                        setDeleteId(id);
+                      }}
+                      className="size-9 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 border-destructive/30"
+                      title="Excluir Produto"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    onClick={handleAddInsumoRow}
-                    className="text-xs h-7"
+                    onClick={() => setIsModalOpen(false)}
+                    disabled={submitting}
+                    className="text-xs"
                   >
-                    + Insumo
+                    Cancelar
                   </Button>
                 </div>
-
-                {selectedInsumos.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic py-2">
-                    Nenhum insumo associado. O produto não dará baixa automática em insumos.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
-                    {selectedInsumos.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs">
-                        <Select
-                          value={item.insumoId?.toString() || ""}
-                          onValueChange={(val) =>
-                            handleInsumoChange(idx, "insumoId", parseInt(val, 10))
-                          }
-                        >
-                          <SelectTrigger className="h-8 text-xs flex-1">
-                            <SelectValue placeholder="Selecione o insumo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {insumosList.map((ins) => (
-                              <SelectItem key={ins.id} value={ins.id?.toString() || ""}>
-                                {ins.nome} ({ins.unidadeMedida})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Input
-                          type="number"
-                          step="0.001"
-                          min="0.001"
-                          value={item.quantidade}
-                          onChange={(e) =>
-                            handleInsumoChange(idx, "quantidade", parseFloat(e.target.value) || 0)
-                          }
-                          className="w-20 h-8 text-xs text-center"
-                          placeholder="Qtd"
-                        />
-
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveInsumoRow(idx)}
-                          className="size-8 text-destructive shrink-0"
-                        >
-                          <X className="size-3.5" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <DialogFooter className="pt-4 flex justify-end">
                 <Button type="submit" className="bg-brand text-primary-foreground font-semibold" disabled={submitting}>
                   {submitting ? (
                     <>
@@ -645,26 +566,14 @@ function ProdutosPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir produto do cardápio?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação removerá o produto do cardápio. Esta operação não poderá ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Excluindo..." : "Sim, excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Excluir produto do cardápio?"
+        description="Esta ação removerá o produto do cardápio. Esta operação não poderá ser desfeita."
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </AppShell>
   );
 }

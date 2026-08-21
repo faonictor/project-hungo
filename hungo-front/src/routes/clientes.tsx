@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Loader2, RefreshCw, MapPin, User, Phone, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, MapPin, User, Phone, Mail, Loader2, Users } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,16 +22,6 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   apiClientes,
@@ -40,6 +30,10 @@ import {
   ClienteEnderecoDTO,
   Endereco,
 } from "@/lib/api";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorState } from "@/components/common/ErrorState";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 
 export const Route = createFileRoute("/clientes")({
   head: () => ({
@@ -260,10 +254,11 @@ function ClientesPage() {
     }
   };
 
-  const filteredClientes = clientesList.filter((c) =>
-    c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.telefone && c.telefone.includes(searchTerm)) ||
-    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredClientes = clientesList.filter(
+    (c) =>
+      c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.telefone && c.telefone.includes(searchTerm)) ||
+      (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -299,24 +294,19 @@ function ClientesPage() {
           </div>
 
           {loading ? (
-            <div className="flex h-48 items-center justify-center text-muted-foreground">
-              <Loader2 className="size-6 animate-spin mr-2" />
-              Carregando clientes da API...
-            </div>
+            <LoadingState message="Carregando clientes da API..." />
           ) : error ? (
-            <div className="flex h-48 flex-col items-center justify-center text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchClientes} className="mt-2">
-                Tentar Novamente
-              </Button>
-            </div>
+            <ErrorState message={error} onRetry={fetchClientes} />
           ) : filteredClientes.length === 0 ? (
-            <div className="flex h-48 flex-col items-center justify-center text-muted-foreground">
-              <p>Nenhum cliente encontrado.</p>
-              <Button variant="link" onClick={handleOpenCreateModal}>
-                Cadastrar primeiro cliente
-              </Button>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="Nenhum cliente encontrado."
+              action={
+                <Button variant="link" onClick={handleOpenCreateModal}>
+                  Cadastrar primeiro cliente
+                </Button>
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -380,16 +370,16 @@ function ClientesPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleOpenEditModal(c)}
-                            className="size-8"
+                            className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
                             title="Editar Cliente"
                           >
-                            <Pencil className="size-4 text-muted-foreground" />
+                            <Pencil className="size-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => c.id && setDeleteId(c.id)}
-                            className="size-8 text-destructive hover:text-destructive"
+                            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                             title="Excluir Cliente"
                           >
                             <Trash2 className="size-4" />
@@ -480,7 +470,7 @@ function ClientesPage() {
                 {includeEndereco && (
                   <div className="space-y-3 bg-muted/40 p-3 rounded-lg text-sm">
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="col-span-2 space-y-1">
+                      <div className="col-span-2 space-y-2">
                         <Label htmlFor="rua" className="text-xs">Rua / Logradouro</Label>
                         <Input
                           id="rua"
@@ -491,7 +481,7 @@ function ClientesPage() {
                           required={includeEndereco}
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <Label htmlFor="numero" className="text-xs">Número</Label>
                         <Input
                           id="numero"
@@ -505,7 +495,7 @@ function ClientesPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <Label htmlFor="bairro" className="text-xs">Bairro</Label>
                         <Input
                           id="bairro"
@@ -516,7 +506,7 @@ function ClientesPage() {
                           required={includeEndereco}
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <Label htmlFor="cidade" className="text-xs">Cidade</Label>
                         <Input
                           id="cidade"
@@ -529,7 +519,7 @@ function ClientesPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <Label htmlFor="cep" className="text-xs">CEP</Label>
                         <Input
                           id="cep"
@@ -539,7 +529,7 @@ function ClientesPage() {
                           className="h-8 text-xs"
                         />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <Label htmlFor="complemento" className="text-xs">Complemento</Label>
                         <Input
                           id="complemento"
@@ -555,7 +545,34 @@ function ClientesPage() {
               </div>
             )}
 
-            <DialogFooter className="pt-4 flex justify-end">
+            <DialogFooter className="pt-4 flex flex-row items-center justify-between sm:justify-between w-full">
+              <div className="flex items-center gap-2">
+                {editingCliente?.id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const id = editingCliente.id!;
+                      setIsModalOpen(false);
+                      setDeleteId(id);
+                    }}
+                    className="size-9 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 border-destructive/30"
+                    title="Excluir Cliente"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                  disabled={submitting}
+                  className="text-xs"
+                >
+                  Cancelar
+                </Button>
+              </div>
               <Button type="submit" className="bg-brand text-primary-foreground font-semibold" disabled={submitting}>
                 {submitting ? (
                   <>
@@ -592,7 +609,7 @@ function ClientesPage() {
           ) : isAddingEndereco ? (
             <form onSubmit={handleAddEnderecoToCliente} className="space-y-3 py-2">
               <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-2 space-y-1">
+                <div className="col-span-2 space-y-2">
                   <Label htmlFor="newRua" className="text-xs">Rua</Label>
                   <Input
                     id="newRua"
@@ -603,7 +620,7 @@ function ClientesPage() {
                     required
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label htmlFor="newNum" className="text-xs">Número</Label>
                   <Input
                     id="newNum"
@@ -616,7 +633,7 @@ function ClientesPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label htmlFor="newBairro" className="text-xs">Bairro</Label>
                   <Input
                     id="newBairro"
@@ -627,7 +644,7 @@ function ClientesPage() {
                     required
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label htmlFor="newCidade" className="text-xs">Cidade</Label>
                   <Input
                     id="newCidade"
@@ -639,7 +656,7 @@ function ClientesPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label htmlFor="newCep" className="text-xs">CEP</Label>
                   <Input
                     id="newCep"
@@ -649,7 +666,7 @@ function ClientesPage() {
                     className="h-8 text-xs"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label htmlFor="newComp" className="text-xs">Complemento</Label>
                   <Input
                     id="newComp"
@@ -661,7 +678,7 @@ function ClientesPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex flex-row items-center justify-between sm:justify-between w-full pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -728,7 +745,7 @@ function ClientesPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteEndereco(end.id!)}
-                          className="size-7 text-destructive hover:text-destructive shrink-0"
+                          className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 cursor-pointer"
                           title="Remover Endereço"
                         >
                           <Trash2 className="size-3.5" />
@@ -743,26 +760,14 @@ function ClientesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação excluirá o cliente e seus registros vinculados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteCliente}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Excluindo..." : "Confirmar Exclusão"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Excluir Cliente?"
+        description="Esta ação excluirá o cliente e seus registros vinculados."
+        onConfirm={handleDeleteCliente}
+        loading={deleting}
+      />
     </AppShell>
   );
 }

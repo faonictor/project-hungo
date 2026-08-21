@@ -1,41 +1,28 @@
 package br.com.halotec.hungospring.service;
 
 import br.com.halotec.hungospring.dto.ProdutoDTO;
-import br.com.halotec.hungospring.dto.ProdutoInsumoDTO;
 import br.com.halotec.hungospring.entity.Categoria;
-import br.com.halotec.hungospring.entity.Insumo;
 import br.com.halotec.hungospring.entity.Produto;
-import br.com.halotec.hungospring.entity.ProdutoInsumo;
 import br.com.halotec.hungospring.repository.CategoriaRepository;
-import br.com.halotec.hungospring.repository.InsumoRepository;
-import br.com.halotec.hungospring.repository.ProdutoInsumoRepository;
 import br.com.halotec.hungospring.repository.ProdutoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
-    private final ProdutoInsumoRepository produtoInsumoRepository;
-    private final InsumoRepository insumoRepository;
 
     public ProdutoService(
             ProdutoRepository produtoRepository,
-            CategoriaRepository categoriaRepository,
-            ProdutoInsumoRepository produtoInsumoRepository,
-            InsumoRepository insumoRepository
+            CategoriaRepository categoriaRepository
     ) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
-        this.produtoInsumoRepository = produtoInsumoRepository;
-        this.insumoRepository = insumoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +45,6 @@ public class ProdutoService {
     public void deletar(Long id) {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
-        produtoInsumoRepository.deleteByProduto(produto);
         produtoRepository.delete(produto);
     }
 
@@ -77,7 +63,20 @@ public class ProdutoService {
         produto.setNome(produtoDTO.getNome());
         produto.setPreco(produtoDTO.getPreco());
         produto.setTipo(produtoDTO.getTipo() != null ? produtoDTO.getTipo() : true);
-        produto.setFavorito(produtoDTO.getFavorito() != null ? produtoDTO.getFavorito() : false);
+
+        boolean querFavorito = Boolean.TRUE.equals(produtoDTO.getFavorito());
+        if (querFavorito) {
+            boolean jaEraFavorito = prodId != null && Boolean.TRUE.equals(produto.getFavorito());
+            if (!jaEraFavorito) {
+                long totalFavs = produtoRepository.countByFavoritoTrue();
+                if (totalFavs >= 12) {
+                    throw new IllegalStateException("Limite máximo de 12 produtos favoritos atingido. Desmarque outro produto antes de destacar este.");
+                }
+            }
+            produto.setFavorito(true);
+        } else {
+            produto.setFavorito(false);
+        }
 
         Long catId = produtoDTO.getCategoriaId();
         if (catId != null) {
@@ -90,30 +89,7 @@ public class ProdutoService {
             produto.setCategoria(obterOuCriarCategoriaGeral());
         }
 
-        produto = produtoRepository.save(produto);
-
-        // Gerenciar os insumos associados
-        if (produtoDTO.getInsumos() == null || produtoDTO.getInsumos().isEmpty()) {
-            produtoInsumoRepository.deleteByProduto(produto);
-        } else {
-            produtoInsumoRepository.deleteByProduto(produto);
-
-            List<ProdutoInsumo> novosInsumos = new ArrayList<>();
-            for (ProdutoInsumoDTO insumoDTO : produtoDTO.getInsumos()) {
-                Long insumoId = Objects.requireNonNull(insumoDTO.getInsumoId(), "ID do Insumo é obrigatório");
-                Insumo insumo = insumoRepository.findById(insumoId)
-                        .orElseThrow(() -> new EntityNotFoundException("Insumo não encontrado com o ID: " + insumoId));
-
-                ProdutoInsumo produtoInsumo = new ProdutoInsumo();
-                produtoInsumo.setProduto(produto);
-                produtoInsumo.setInsumo(insumo);
-                produtoInsumo.setQuantidade(insumoDTO.getQuantidade());
-                novosInsumos.add(produtoInsumo);
-            }
-            produtoInsumoRepository.saveAll(novosInsumos);
-        }
-
-        return produto;
+        return produtoRepository.save(produto);
     }
 
     private Categoria obterOuCriarCategoriaGeral() {
@@ -140,17 +116,6 @@ public class ProdutoService {
         if (produto.getCategoria() != null) {
             produtoDTO.setCategoriaId(produto.getCategoria().getId());
         }
-
-        List<ProdutoInsumoDTO> insumosDTO = new ArrayList<>();
-        List<ProdutoInsumo> produtoInsumos = produtoInsumoRepository.findByProduto(produto);
-
-        for (ProdutoInsumo produtoInsumo : produtoInsumos) {
-            ProdutoInsumoDTO insumoDTO = new ProdutoInsumoDTO();
-            insumoDTO.setInsumoId(produtoInsumo.getInsumo() != null ? produtoInsumo.getInsumo().getId() : null);
-            insumoDTO.setQuantidade(produtoInsumo.getQuantidade());
-            insumosDTO.add(insumoDTO);
-        }
-        produtoDTO.setInsumos(insumosDTO);
 
         return produtoDTO;
     }

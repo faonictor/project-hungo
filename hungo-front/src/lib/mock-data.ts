@@ -62,14 +62,6 @@ export const categorias = [
   { id: 4, nome: "Bebidas", descricao: "Sucos, drinks e cervejas", produtos: 18 },
 ];
 
-export const insumos = [
-  { id: 1, nome: "Picanha bovina", unidade: "kg", estoque: 18, minimo: 10, custo: 74.9 },
-  { id: 2, nome: "Camarão limpo", unidade: "kg", estoque: 6, minimo: 8, custo: 92.0 },
-  { id: 3, nome: "Arroz arbóreo", unidade: "kg", estoque: 32, minimo: 15, custo: 21.5 },
-  { id: 4, nome: "Leite condensado", unidade: "un", estoque: 4, minimo: 12, custo: 7.9 },
-  { id: 5, nome: "Caju polpa", unidade: "kg", estoque: 25, minimo: 10, custo: 14.3 },
-];
-
 export const clientes = [
   { id: 1, nome: "Marina Alves", telefone: "(85) 99812-4410", email: "marina@email.com", cidade: "Fortaleza", pedidos: 32, ultima: "Hoje" },
   { id: 2, nome: "Rafael Souza", telefone: "(85) 99741-2093", email: "rafael@email.com", cidade: "Fortaleza", pedidos: 18, ultima: "Hoje" },

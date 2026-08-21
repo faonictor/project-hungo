@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { ArrowDownLeft, ArrowUpRight, Plus, Loader2, RefreshCw, Trash2, DollarSign, ChevronRight } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Plus,
+  RefreshCw,
+  Trash2,
+  DollarSign,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,18 +39,12 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { apiFluxoFinanceiro, FluxoFinanceiro } from "@/lib/api";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorState } from "@/components/common/ErrorState";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 import { brl } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/financeiro")({
@@ -217,22 +220,20 @@ function FinanceiroPage() {
       <Card className="mt-6 shadow-card">
         <CardContent className="p-4 sm:p-6">
           {loading ? (
-            <div className="flex h-48 items-center justify-center text-muted-foreground">
-              <Loader2 className="size-6 animate-spin mr-2" />
-              Carregando fluxo financeiro...
-            </div>
+            <LoadingState message="Carregando fluxo financeiro..." />
           ) : error ? (
-            <div className="flex h-48 flex-col items-center justify-center text-destructive">
-              <p>{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchFluxo} className="mt-2">
-                Tentar Novamente
-              </Button>
-            </div>
+            <ErrorState message={error} onRetry={fetchFluxo} />
           ) : fluxoList.length === 0 ? (
-            <div className="flex h-48 flex-col items-center justify-center text-muted-foreground">
-              <DollarSign className="size-8 text-muted-foreground/60 mb-2" />
-              <p>Nenhum lançamento financeiro registrado.</p>
-            </div>
+            <EmptyState
+              icon={DollarSign}
+              title="Nenhum lançamento financeiro registrado."
+              description="Adicione entradas ou saídas de caixa para controlar o fluxo financeiro."
+              action={
+                <Button variant="link" onClick={handleOpenCreateModal}>
+                  Criar primeiro lançamento
+                </Button>
+              }
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -296,7 +297,7 @@ function FinanceiroPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => f.id && setDeleteId(f.id)}
-                            className="size-8 text-destructive hover:text-destructive"
+                            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                             title="Excluir Lançamento"
                           >
                             <Trash2 className="size-4" />
@@ -396,23 +397,30 @@ function FinanceiroPage() {
               />
             </div>
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="pt-4 flex flex-row items-center justify-between sm:justify-between w-full">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+                disabled={submitting}
+                className="text-xs"
+              >
+                Cancelar
+              </Button>
               <Button
                 type="submit"
-                className="w-full h-10 px-4 text-xs font-bold bg-brand text-primary-foreground hover:opacity-90 shadow-xs flex items-center justify-between gap-1.5"
+                className="h-9 px-4 text-xs font-bold bg-brand text-primary-foreground hover:opacity-90 shadow-xs flex items-center gap-1.5"
                 disabled={submitting}
               >
                 {submitting ? (
-                  <div className="flex items-center gap-1.5 justify-center w-full">
-                    <Loader2 className="size-4 animate-spin shrink-0" /> Salvando...
-                  </div>
+                  <>
+                    <Loader2 className="size-4 animate-spin shrink-0 mr-1" /> Salvando...
+                  </>
                 ) : (
                   <>
-                    <div className="flex items-center gap-1.5">
-                      <DollarSign className="size-4 shrink-0" />
-                      <span>Registrar Lançamento</span>
-                    </div>
-                    <ChevronRight className="size-4 shrink-0" />
+                    <DollarSign className="size-4 shrink-0" />
+                    <span>Registrar Lançamento</span>
+                    <ChevronRight className="size-4 shrink-0 ml-1" />
                   </>
                 )}
               </Button>
@@ -421,26 +429,14 @@ function FinanceiroPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Lançamento?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação excluirá o lançamento financeiro da base de dados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Excluindo..." : "Confirmar Exclusão"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDeleteDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        title="Excluir Lançamento?"
+        description="Esta ação excluirá o lançamento financeiro da base de dados."
+        onConfirm={handleDelete}
+        loading={deleting}
+      />
     </AppShell>
   );
 }

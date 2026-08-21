@@ -45,22 +45,9 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   }
 }
 
-export interface Insumo {
-  id?: number;
-  nome: string;
-  preco: number;
-  quantidade: number;
-  unidadeMedida: string;
-}
-
 export interface Categoria {
   id?: number;
   nome: string;
-}
-
-export interface ProdutoInsumoDTO {
-  insumoId: number;
-  quantidade: number;
 }
 
 export interface ProdutoDTO {
@@ -70,7 +57,6 @@ export interface ProdutoDTO {
   categoriaId?: number | null;
   tipo: boolean;
   favorito?: boolean;
-  insumos?: ProdutoInsumoDTO[];
 }
 
 export interface Produto {
@@ -189,25 +175,6 @@ export interface FluxoFinanceiro {
   venda?: Venda | null;
   fluxo: number;
 }
-
-export const apiInsumos = {
-  listar: () => request<Insumo[]>("/insumo"),
-  buscarPorId: (id: number) => request<Insumo>(`/insumo/${id}`),
-  salvar: (insumo: Omit<Insumo, "id">) =>
-    request<Insumo>("/insumo", {
-      method: "POST",
-      body: JSON.stringify(insumo),
-    }),
-  atualizar: (id: number, insumo: Partial<Insumo>) =>
-    request<Insumo>(`/insumo/${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ ...insumo, id }),
-    }),
-  deletar: (id: number) =>
-    request<void>(`/insumo/${id}`, {
-      method: "DELETE",
-    }),
-};
 
 export const apiCategorias = {
   listar: () => request<Categoria[]>("/categoria"),
