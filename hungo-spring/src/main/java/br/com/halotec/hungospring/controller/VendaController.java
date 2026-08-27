@@ -4,9 +4,9 @@ import br.com.halotec.hungospring.dto.ReceberPagamentoAPrazoDTO;
 import br.com.halotec.hungospring.entity.Mesa;
 import br.com.halotec.hungospring.entity.Venda;
 import br.com.halotec.hungospring.service.VendaService;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

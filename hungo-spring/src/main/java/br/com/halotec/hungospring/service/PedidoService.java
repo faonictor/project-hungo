@@ -13,7 +13,7 @@ import br.com.halotec.hungospring.repository.PedidoRepository;
 import br.com.halotec.hungospring.repository.ProdutoRepository;
 import br.com.halotec.hungospring.repository.VendaRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

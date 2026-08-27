@@ -4,9 +4,9 @@ import br.com.halotec.hungospring.dto.PedidoDTO;
 import br.com.halotec.hungospring.entity.ItemPedido;
 import br.com.halotec.hungospring.entity.Pedido;
 import br.com.halotec.hungospring.service.PedidoService;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
