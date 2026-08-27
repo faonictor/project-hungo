@@ -269,7 +269,7 @@ export function NovaComandaModal({
                       "size-8 rounded-full flex items-center justify-center shrink-0",
                       selectedClienteObj
                         ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                        : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                        : "bg-primary/10 text-primary"
                     )}
                   >
                     <User className="size-4" />

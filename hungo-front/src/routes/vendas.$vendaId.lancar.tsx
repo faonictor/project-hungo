@@ -24,6 +24,8 @@ import { ChannelBadge } from "@/components/common/ChannelBadge";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { LoadingState } from "@/components/common/LoadingState";
+import { ErrorState } from "@/components/common/ErrorState";
 import { toast } from "sonner";
 import {
   apiVendas,
@@ -56,6 +58,7 @@ function LancarItensPage() {
   const [venda, setVenda] = useState<Venda | null>(null);
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,16 +69,24 @@ function LancarItensPage() {
   const fetchVendaEProdutos = async () => {
     try {
       setLoading(true);
+      setError(null);
       const vId = parseInt(vendaId, 10);
+      if (isNaN(vId)) {
+        throw new Error("Identificador de comanda inválido.");
+      }
       const [vData, prods] = await Promise.all([
         apiVendas.buscarPorId(vId),
         apiProdutos.listar(),
       ]);
+      if (!vData || !vData.id) {
+        throw new Error("Comanda não encontrada ou já encerrada.");
+      }
       setVenda(vData);
-      setProdutosList(prods);
+      setProdutosList(Array.isArray(prods) ? prods : []);
     } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Erro ao carregar dados da comanda ou produtos.");
       toast.error("Erro ao carregar dados da comanda ou produtos.");
-      navigate({ to: "/vendas" });
     } finally {
       setLoading(false);
     }
@@ -168,68 +179,87 @@ function LancarItensPage() {
     }
   };
 
-  const produtosFavoritos = produtosList
-    .filter((p) => Boolean(p.favorito) === true && (p.tipo ?? true));
+  const safeProdutosList = Array.isArray(produtosList) ? produtosList : [];
+  const safeCarrinho = Array.isArray(carrinho) ? carrinho : [];
 
-  const filteredProdutos = produtosList.filter((p) => {
-    if (!(p.tipo ?? true)) return false;
-    const q = searchTerm.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      p.nome.toLowerCase().includes(q) ||
-      (p.categoria?.nome && p.categoria.nome.toLowerCase().includes(q))
+    const produtosFavoritos = safeProdutosList.filter(
+      (p) => Boolean(p.favorito) === true && (p.tipo ?? true)
     );
-  });
 
-  const totalCarrinho = carrinho.reduce((acc, item) => acc + (item.total || 0), 0);
+    const filteredProdutos = safeProdutosList.filter((p) => {
+      if (!(p.tipo ?? true)) return false;
+      const q = searchTerm.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        p.nome.toLowerCase().includes(q) ||
+        (p.categoria?.nome && p.categoria.nome.toLowerCase().includes(q))
+      );
+    });
 
-  if (loading) {
+    const totalCarrinho = safeCarrinho.reduce((acc, item) => acc + (item.total || 0), 0);
+
+    if (loading) {
+      return (
+        <AppShell title="Lançar Itens" description="Carregando produtos...">
+          <LoadingState message={`Carregando comanda #${vendaId}...`} />
+        </AppShell>
+      );
+    }
+
+    if (error || !venda) {
+      return (
+        <AppShell
+          title="Lançar Itens na Comanda"
+          actions={
+            <Button variant="outline" onClick={() => navigate({ to: "/vendas" })}>
+              <ArrowLeft className="size-4 mr-1" /> Voltar para Comandas
+            </Button>
+          }
+        >
+          <ErrorState
+            title="Não foi possível carregar a comanda"
+            message={error || "A comanda selecionada não foi encontrada ou não está disponível."}
+            onRetry={fetchVendaEProdutos}
+          />
+        </AppShell>
+      );
+    }
+
     return (
-      <AppShell title="Lançar Itens" description="Carregando produtos...">
-        <div className="flex h-64 items-center justify-center text-muted-foreground">
-          <Loader2 className="size-8 animate-spin mr-2" />
-          Carregando comanda #{vendaId}...
-        </div>
-      </AppShell>
-    );
-  }
-
-  return (
-    <AppShell
-      title={`Lançar Itens — Comanda #${venda?.id}`}
-      description="Pesquise produtos e lance o pedido diretamente na comanda."
-      actions={
-        <Button variant="outline" onClick={() => navigate({ to: "/vendas" })}>
-          <ArrowLeft className="size-4 mr-1" /> Voltar para Comandas
-        </Button>
-      }
-    >
+      <AppShell
+        title={`Lançar Itens — Comanda #${venda.numeroComanda || venda.id}`}
+        description="Pesquise produtos e lance o pedido diretamente na comanda."
+        actions={
+          <Button variant="outline" onClick={() => navigate({ to: "/vendas" })}>
+            <ArrowLeft className="size-4 mr-1" /> Voltar para Comandas
+          </Button>
+        }
+      >
       <div className="mb-6 p-4 border rounded-xl bg-card shadow-card flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-xl text-primary font-mono text-lg font-bold">
-            #{venda?.id}
+          <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-mono font-bold text-sm shrink-0">
+            #{venda?.numeroComanda || venda?.id}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg font-bold text-foreground">
-                Comanda #{venda?.id}
+                Comanda #{venda?.numeroComanda || venda?.id}
               </h2>
               <ChannelBadge
                 tipo={venda?.tipoAtendimento}
                 mesaNome={venda?.mesa?.nome}
               />
+              <Badge variant="outline" className="text-xs border-border bg-muted/40 font-medium">
+                <User
+                  className={`size-3 mr-1 ${
+                    Boolean(venda?.cliente?.id)
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-primary"
+                  }`}
+                />
+                {venda?.cliente?.nome || (venda as any)?.nomeCliente || "Consumo Local"}
+              </Badge>
             </div>
-            {(() => {
-              const nomeExibicao = venda?.cliente?.nome || (venda as any)?.nomeCliente || "";
-              const isCadastrado = Boolean(venda?.cliente?.id);
-
-              return (
-                <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mt-1">
-                  <User className={`size-3.5 shrink-0 ${isCadastrado ? "text-primary fill-primary/10" : "text-muted-foreground"}`} />
-                  <span className="truncate">{nomeExibicao || "Sem cliente"}</span>
-                </div>
-              );
-            })()}
           </div>
         </div>
 

@@ -33,6 +33,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { OrderStatusBadge } from "@/components/common/OrderStatusBadge";
+import { ChannelBadge } from "@/components/common/ChannelBadge";
 import { Pedido, PedidoDTO, Produto } from "@/lib/api";
 import { brl } from "@/lib/mock-data";
 
@@ -115,49 +116,29 @@ export function PedidoDetalhesModal({
     <Dialog open={pedidoId !== null} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg sm:max-h-[85vh] overflow-y-auto">
         <DialogHeader className="flex flex-col space-y-1.5 pb-2 border-b">
-          <DialogTitle
-            className={`text-lg font-bold flex items-center gap-2 transition-colors cursor-default ${titleHoverColor}`}
-          >
+          <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <FileText className={`size-5 ${iconColor}`} />
             Detalhes do Pedido #{pedidoId}
           </DialogTitle>
           {pedidoDetalhe && (
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {isDelivery ? (
-                <Badge
-                  variant="outline"
-                  className="border-amber-500/30 bg-amber-500/12 text-amber-600 dark:text-amber-400 text-xs font-semibold flex items-center gap-1"
-                >
-                  <Truck className="size-3" /> Delivery
-                </Badge>
-              ) : isRetirada ? (
-                <Badge
-                  variant="outline"
-                  className="border-purple-500/30 bg-purple-500/12 text-purple-600 dark:text-purple-400 text-xs font-semibold flex items-center gap-1"
-                >
-                  <ShoppingBag className="size-3" /> Retirada
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="border-primary/30 bg-primary/10 text-primary text-xs font-semibold flex items-center gap-1"
-                >
-                  <MapPin className="size-3" /> {mesaNome || "Consumo Local"}
-                </Badge>
-              )}
+              <ChannelBadge
+                tipo={pedidoDetalhe?.tipoPedido || pedidoListItem?.tipoPedido || "LOCAL"}
+                mesaNome={mesaNome}
+              />
 
               <Badge
                 variant="outline"
-                className="border-border bg-muted/50 text-foreground text-xs font-medium flex items-center gap-1"
+                className="text-xs border-border bg-muted/40 font-medium"
               >
                 <User
-                  className={`size-3 ${
+                  className={`size-3 mr-1 ${
                     isCadastrado
-                      ? "text-primary fill-primary/10"
-                      : "text-muted-foreground"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-primary"
                   }`}
                 />
-                {clienteNome || "Sem cliente"}
+                {clienteNome || "Consumo Local"}
               </Badge>
             </div>
           )}

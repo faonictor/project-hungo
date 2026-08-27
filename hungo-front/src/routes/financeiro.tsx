@@ -9,6 +9,7 @@ import {
   DollarSign,
   ChevronRight,
   Loader2,
+  CalendarClock,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { apiFluxoFinanceiro, FluxoFinanceiro } from "@/lib/api";
+import { apiFluxoFinanceiro, apiVendas, FluxoFinanceiro, Venda } from "@/lib/api";
 import { LoadingState } from "@/components/common/LoadingState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -62,6 +63,7 @@ export const Route = createFileRoute("/financeiro")({
 
 function FinanceiroPage() {
   const [fluxoList, setFluxoList] = useState<FluxoFinanceiro[]>([]);
+  const [vendasAPrazo, setVendasAPrazo] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,8 +81,12 @@ function FinanceiroPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiFluxoFinanceiro.listar();
+      const [data, aPrazoData] = await Promise.all([
+        apiFluxoFinanceiro.listar(),
+        apiVendas.listarAPrazo().catch(() => []),
+      ]);
       setFluxoList(data);
+      setVendasAPrazo(aPrazoData || []);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Erro ao carregar fluxo financeiro");
@@ -121,7 +127,6 @@ function FinanceiroPage() {
         descricao: descricao.trim(),
         transacao,
         fluxo: valorNum,
-        dataTransacao: new Date().toISOString(),
       });
       toast.success("Lançamento financeiro cadastrado com sucesso!");
       setIsModalOpen(false);
@@ -138,7 +143,7 @@ function FinanceiroPage() {
     try {
       setDeleting(true);
       await apiFluxoFinanceiro.deletar(deleteId);
-      toast.success("Lançamento excluído.");
+      toast.success("Lançamento excluído com sucesso!");
       setDeleteId(null);
       fetchFluxo();
     } catch (err: any) {
@@ -158,9 +163,11 @@ function FinanceiroPage() {
 
   const saldo = totalEntradas - totalSaidas;
 
+  const totalAPrazo = vendasAPrazo.reduce((acc, v) => acc + (v.total || 0), 0);
+
   const resumo = [
     {
-      label: "Entradas",
+      label: "Entradas Realizadas",
       value: brl(totalEntradas),
       tone: "text-emerald-600 dark:text-emerald-400 font-bold font-mono",
       icon: <ArrowUpRight className="size-4 text-emerald-500 shrink-0" />,
@@ -179,6 +186,13 @@ function FinanceiroPage() {
       tone: "text-primary font-bold font-mono",
       icon: <DollarSign className="size-4 text-primary shrink-0" />,
       hoverStyle: "hover:border-primary/60 hover:bg-primary/5 dark:hover:border-primary/80",
+    },
+    {
+      label: "A Receber (A Prazo)",
+      value: brl(totalAPrazo),
+      tone: "text-purple-700 dark:text-purple-300 font-bold font-mono",
+      icon: <CalendarClock className="size-4 text-purple-600 shrink-0" />,
+      hoverStyle: "hover:border-purple-500/60 hover:bg-purple-500/5 dark:hover:border-purple-500/80",
     },
   ];
 
@@ -200,18 +214,18 @@ function FinanceiroPage() {
         </div>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3.5 grid-cols-2 lg:grid-cols-4">
         {resumo.map((r) => (
           <Card
             key={r.label}
             className={`shadow-card border border-border transition-all duration-300 cursor-default ${r.hoverStyle}`}
           >
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                 {r.icon}
                 <span>{r.label}</span>
               </div>
-              <p className={`mt-2 text-2xl font-bold font-mono tracking-tight ${r.tone}`}>{r.value}</p>
+              <p className={`mt-1.5 text-xl sm:text-2xl font-bold font-mono tracking-tight ${r.tone}`}>{r.value}</p>
             </CardContent>
           </Card>
         ))}

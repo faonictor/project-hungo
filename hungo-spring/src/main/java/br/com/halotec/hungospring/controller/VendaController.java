@@ -1,5 +1,6 @@
 package br.com.halotec.hungospring.controller;
 
+import br.com.halotec.hungospring.dto.ReceberPagamentoAPrazoDTO;
 import br.com.halotec.hungospring.entity.Mesa;
 import br.com.halotec.hungospring.entity.Venda;
 import br.com.halotec.hungospring.service.VendaService;
@@ -40,6 +41,16 @@ public class VendaController {
         return ResponseEntity.ok(vendaService.buscarVendasFechadas());
     }
 
+    @GetMapping("/venda/a-prazo")
+    public ResponseEntity<List<Venda>> buscarVendasAPrazoPendentes() {
+        return ResponseEntity.ok(vendaService.buscarVendasAPrazoPendentes());
+    }
+
+    @GetMapping("/venda/cliente/{clienteId}/a-prazo")
+    public ResponseEntity<List<Venda>> buscarVendasAPrazoPorCliente(@PathVariable Long clienteId) {
+        return ResponseEntity.ok(vendaService.buscarVendasAPrazoPorCliente(clienteId));
+    }
+
     @GetMapping("/venda/{id}")
     public ResponseEntity<Venda> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(vendaService.buscarPorId(id));
@@ -64,5 +75,19 @@ public class VendaController {
     @PutMapping("/venda/{id}/fechar")
     public ResponseEntity<Venda> fecharVenda(@PathVariable Long id) {
         return ResponseEntity.ok(vendaService.fecharVenda(id));
+    }
+
+    @PostMapping("/venda/{id}/receber-a-prazo")
+    public ResponseEntity<Venda> receberPagamentoAPrazo(
+            @PathVariable Long id,
+            @RequestBody ReceberPagamentoAPrazoDTO dto
+    ) {
+        Venda quitada = vendaService.receberPagamentoAPrazo(
+                id,
+                dto.getValorRecebido(),
+                dto.getFormaPagamentoReal(),
+                dto.getDesconto()
+        );
+        return ResponseEntity.ok(quitada);
     }
 }

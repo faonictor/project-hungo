@@ -67,7 +67,7 @@ export function PerguntaEstornoPedidoModal({
             )}
             {venda && (
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-sans pt-1 border-t">
-                <span>Total já pago na Comanda #{venda.id}:</span>
+                <span>Total já pago na Comanda #{venda.numeroComanda || venda.id}:</span>
                 <span className="font-bold font-mono">{brl(totalPagoNaComanda)}</span>
               </div>
             )}

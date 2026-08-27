@@ -23,10 +23,10 @@ export function ChannelBadge({ tipo = "LOCAL", mesaNome, className }: ChannelBad
     : mesaNome || "Consumo Local";
 
   const style = isDelivery
-    ? "border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold"
+    ? "border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-normal"
     : isRetirada
-    ? "border-purple-500/30 bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold"
-    : "border-primary/30 bg-primary/10 text-primary font-semibold";
+    ? "border-purple-500/30 bg-purple-500/15 text-purple-600 dark:text-purple-400 font-normal"
+    : "border-primary/30 bg-primary/10 text-primary font-normal";
 
   return (
     <Badge

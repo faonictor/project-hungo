@@ -201,7 +201,7 @@ export function EditarComandaModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-bold">
             <Pencil className="size-5 text-primary" />
-            Editar Dados da Comanda #{venda.id}
+            Editar Dados da Comanda #{venda.numeroComanda || venda.id}
           </DialogTitle>
           <DialogDescription className="text-xs">
             Altere o canal de atendimento, a mesa ou o cliente desta comanda.
@@ -301,7 +301,7 @@ export function EditarComandaModal({
                       "size-8 rounded-full flex items-center justify-center shrink-0",
                       selectedClienteObj
                         ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                        : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                        : "bg-primary/10 text-primary"
                     )}
                   >
                     <User className="size-4" />

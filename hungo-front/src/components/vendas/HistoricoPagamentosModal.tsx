@@ -61,13 +61,18 @@ export function HistoricoPagamentosModal({
   const isEncerrada = Boolean(venda.dataFimVenda);
 
   const totalBrutoConsumido = round2(
-    isEncerrada
+    venda.totalBruto && venda.totalBruto > 0
+      ? venda.totalBruto
+      : isEncerrada && venda.formaPagamento !== "A_PRAZO"
       ? totalPagoEntrada + totalDescontosCalculado
       : (venda.total || 0) + totalPagoEntrada + totalDescontosCalculado
   );
 
   const totalLiquidoCaixa = round2(Math.max(0, totalPagoEntrada - totalEstornado));
-  const saldoPendenteComanda = isEncerrada
+  const isAPrazo = venda.formaPagamento === "A_PRAZO";
+  const saldoPendenteComanda = isAPrazo
+    ? round2(venda.statusPagamento === "PAGO" ? 0 : venda.total || 0)
+    : isEncerrada
     ? 0
     : round2(
         Math.max(
@@ -83,7 +88,7 @@ export function HistoricoPagamentosModal({
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <History className="size-5 text-primary" />
-              Histórico de Pagamentos — Comanda #{venda.id}
+              Histórico de Pagamentos — Venda #{venda.id} (Comanda #{venda.numeroComanda || venda.id})
             </DialogTitle>
             {onAbrirEstorno && totalLiquidoCaixa > 0 && (
               <Button
@@ -98,7 +103,7 @@ export function HistoricoPagamentosModal({
             )}
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
-            Rastreabilidade completa de todas as movimentações, pagamentos e estornos efetuados nesta comanda.
+            Rastreabilidade completa de todas as movimentações e pagamentos efetuados nesta venda.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,7 +111,13 @@ export function HistoricoPagamentosModal({
           <div className="p-3.5 border rounded-xl bg-card space-y-2.5 shadow-2xs">
             <div className="flex justify-between items-center text-xs">
               <span className="font-bold text-foreground flex items-center gap-1.5 text-sm">
-                <User className="size-4 text-primary shrink-0" />
+                <User
+                  className={`size-4 shrink-0 ${
+                    Boolean(venda.cliente)
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-primary"
+                  }`}
+                />
                 {venda.cliente?.nome ||
                   venda.nomeCliente ||
                   (venda.mesa?.nome ? `Consumo Local (${venda.mesa.nome})` : "Consumo Local")}
@@ -114,55 +125,58 @@ export function HistoricoPagamentosModal({
               <Badge
                 variant="outline"
                 className={
-                  isEncerrada
+                  isAPrazo && saldoPendenteComanda > 0
+                    ? "border-purple-500/30 bg-purple-500/15 text-purple-600 dark:text-purple-400 font-semibold px-2 py-0.5"
+                    : isAPrazo
+                    ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-0.5"
+                    : isEncerrada
                     ? "border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-0.5"
                     : "border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5"
                 }
               >
-                {isEncerrada ? "Comanda Encerrada" : "Comanda Aberta (Com Parciais)"}
+                {isAPrazo && saldoPendenteComanda > 0
+                  ? "Conta a Prazo (Pendente)"
+                  : isAPrazo
+                  ? "Conta a Prazo (Quitada)"
+                  : isEncerrada
+                  ? "Comanda Encerrada"
+                  : "Comanda Aberta (Com Parciais)"}
               </Badge>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t text-xs font-mono">
               <div className="p-2 bg-muted/40 rounded-lg border">
                 <p className="text-[10px] text-muted-foreground font-sans font-semibold">
-                  Total Bruto Consumido
+                  Total Consumido
                 </p>
                 <p className="text-sm font-bold text-foreground mt-0.5">
                   {brl(totalBrutoConsumido)}
                 </p>
               </div>
 
-              <div className="p-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
-                <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-sans font-semibold">
-                  Total de Descontos
+              <div className="p-2 bg-muted/40 rounded-lg border">
+                <p className="text-[10px] text-muted-foreground font-sans font-semibold">
+                  Descontos
                 </p>
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                <p className="text-sm font-normal text-muted-foreground mt-0.5">
                   {brl(totalDescontosCalculado)}
                 </p>
               </div>
 
-              <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+              <div className="p-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg">
                 <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-sans font-semibold">
-                  Total Líquido Recebido
+                  Total Pago
                 </p>
-                <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                <p className="text-sm font-normal text-emerald-600 dark:text-emerald-400 mt-0.5">
                   {brl(totalLiquidoCaixa)}
                 </p>
               </div>
 
-              <div className="p-2 bg-amber-500/5 border border-amber-500/20 rounded-lg">
-                <p className="text-[10px] text-amber-700 dark:text-amber-400 font-sans font-semibold">
+              <div className="p-2 bg-muted/40 rounded-lg border">
+                <p className="text-[10px] text-foreground font-sans font-bold">
                   Saldo Pendente
                 </p>
-                <p
-                  className={cn(
-                    "text-sm font-bold mt-0.5",
-                    saldoPendenteComanda > 0
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-muted-foreground"
-                  )}
-                >
+                <p className="text-sm font-bold text-foreground mt-0.5">
                   {brl(saldoPendenteComanda)}
                 </p>
               </div>
@@ -222,39 +236,70 @@ export function HistoricoPagamentosModal({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pagamentosList.map((p) => (
-                    <TableRow key={p.id || p.dataPagamento} className="text-xs">
-                      <TableCell className="font-mono text-[11px] text-muted-foreground">
-                        {p.dataPagamento
-                          ? new Date(p.dataPagamento).toLocaleString("pt-BR", {
-                              dateStyle: "short",
-                              timeStyle: "short",
-                            })
-                          : "-"}
-                      </TableCell>
+                  {pagamentosList.map((p) => {
+                    const badge = (() => {
+                      if (p.tipo === "ESTORNO") {
+                        return {
+                          label: "Estorno / Devolução",
+                          className: "border-destructive/30 bg-destructive/10 text-destructive text-[10px]",
+                        };
+                      }
+                      if (p.tipo === "PARCIAL") {
+                        return {
+                          label: "Parcial",
+                          className: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px]",
+                        };
+                      }
+                      if (p.tipo === "ENTRADA_A_PRAZO") {
+                        return {
+                          label: "Entrada a Prazo",
+                          className: "border-primary/30 bg-primary/10 text-primary text-[10px]",
+                        };
+                      }
+                      if (p.tipo === "DEBITO_PARCIAL") {
+                        return {
+                          label: "Débito Parcial",
+                          className: "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px]",
+                        };
+                      }
+                      if (p.tipo === "QUITACAO_A_PRAZO") {
+                        return {
+                          label: "Quitação a Prazo",
+                          className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]",
+                        };
+                      }
+                      if (p.tipo === "TOTAL") {
+                        return {
+                          label: isAPrazo ? "Quitação a Prazo" : "Encerramento",
+                          className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]",
+                        };
+                      }
+                      return {
+                        label: "Parcial",
+                        className: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px]",
+                      };
+                    })();
 
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            p.tipo === "ESTORNO"
-                              ? "border-destructive/30 bg-destructive/10 text-destructive text-[10px]"
-                              : p.tipo === "TOTAL"
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 text-[10px]"
-                              : "border-amber-500/30 bg-amber-500/10 text-amber-600 text-[10px]"
-                          }
-                        >
-                          {p.tipo === "ESTORNO"
-                            ? "Estorno / Devolução"
-                            : p.tipo === "TOTAL"
-                            ? "Encerramento"
-                            : "Parcial"}
-                        </Badge>
-                      </TableCell>
+                    return (
+                      <TableRow key={p.id || p.dataPagamento} className="text-xs">
+                        <TableCell className="font-mono text-[11px] text-muted-foreground">
+                          {p.dataPagamento
+                            ? new Date(p.dataPagamento).toLocaleString("pt-BR", {
+                                dateStyle: "short",
+                                timeStyle: "short",
+                              })
+                            : "-"}
+                        </TableCell>
 
-                      <TableCell className="text-foreground">
-                        {p.formaPagamento || "Dinheiro"}
-                      </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={badge.className}>
+                            {badge.label}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="text-foreground">
+                          {p.formaPagamento || "Dinheiro"}
+                        </TableCell>
 
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {brl(p.totalAntes || 0)}
@@ -267,8 +312,8 @@ export function HistoricoPagamentosModal({
                       <TableCell
                         className={`text-right font-mono ${
                           p.tipo === "ESTORNO"
-                            ? "text-destructive font-bold"
-                            : "text-emerald-600 dark:text-emerald-400 font-bold"
+                            ? "text-destructive"
+                            : "text-primary"
                         }`}
                       >
                         {p.tipo === "ESTORNO"
@@ -279,8 +324,9 @@ export function HistoricoPagamentosModal({
                       <TableCell className="text-right font-mono text-amber-600 dark:text-amber-400">
                         {brl(p.saldoRestante || 0)}
                       </TableCell>
-                    </TableRow>
-                  ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

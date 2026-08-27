@@ -120,7 +120,7 @@ export function EstornoPagamentoModal({
         <DialogHeader className="pb-3 border-b space-y-1">
           <DialogTitle className="flex items-center gap-2 text-base font-bold text-destructive">
             <RotateCcw className="size-5 shrink-0" />
-            Estorno de Pagamento — Comanda #{venda.id}
+            Estorno de Pagamento — Venda #{venda.id} (Comanda #{venda.numeroComanda || venda.id})
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
             Registre a devolução do dinheiro pago pelo cliente. A saída será registrada no fluxo de caixa e no histórico da comanda.

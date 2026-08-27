@@ -8,6 +8,8 @@ import {
   ShoppingBag,
   Truck,
   ChevronRight,
+  Check,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +26,9 @@ const round2 = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 interface ComandasListViewProps {
   vendasAbertas: Venda[];
   allItensAbertos: ItemPedido[];
-  onOpenNovaComanda: () => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+  onOpenNovaComanda: (tipoAtendimento?: string) => void;
   onVerItensComanda: (venda: Venda) => void;
   onLancarItens: (venda: Venda) => void;
   onFecharComanda: (venda: Venda) => void;
@@ -34,12 +38,21 @@ interface ComandasListViewProps {
 export function ComandasListView({
   vendasAbertas,
   allItensAbertos,
+  activeTab: controlledActiveTab,
+  onTabChange,
   onOpenNovaComanda,
   onVerItensComanda,
   onLancarItens,
   onFecharComanda,
 }: ComandasListViewProps) {
-  const [activeTab, setActiveTab] = useState<string>("TODOS");
+  const [internalActiveTab, setInternalActiveTab] = useState<string>("TODOS");
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+
+  const handleTabChange = (tab: string) => {
+    setInternalActiveTab(tab);
+    onTabChange?.(tab);
+  };
+
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const getVendaData = (venda: Venda) => {
@@ -59,7 +72,8 @@ export function ComandasListView({
     const taxa = round2(venda.taxaEntrega || 0);
     const totalConsumido = round2(subtotal + taxa);
     const valorPago = round2(venda.valorPago || 0);
-    const saldoPendente = round2(Math.max(0, totalConsumido - valorPago));
+    const desconto = round2(venda.desconto || 0);
+    const saldoPendente = round2(Math.max(0, totalConsumido - valorPago - desconto));
 
     return {
       itensCount: itens.filter(
@@ -69,6 +83,7 @@ export function ComandasListView({
       taxa,
       totalConsumido,
       valorPago,
+      desconto,
       saldoPendente,
     };
   };
@@ -83,6 +98,7 @@ export function ComandasListView({
     const q = searchTerm.toLowerCase();
     return (
       v.id?.toString().includes(q) ||
+      v.numeroComanda?.toString().includes(q) ||
       (v.mesa?.nome && v.mesa.nome.toLowerCase().includes(q)) ||
       (v.cliente?.nome && v.cliente.nome.toLowerCase().includes(q)) ||
       (v.nomeCliente && v.nomeCliente.toLowerCase().includes(q))
@@ -106,7 +122,7 @@ export function ComandasListView({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="h-9">
             <TabsTrigger
               value="TODOS"
@@ -154,8 +170,10 @@ export function ComandasListView({
           description="Inicie um novo atendimento no local, retirada ou delivery."
           action={
             <Button
-              onClick={onOpenNovaComanda}
-              className="bg-brand text-primary-foreground font-semibold text-xs"
+              onClick={() =>
+                onOpenNovaComanda(activeTab !== "TODOS" ? activeTab : undefined)
+              }
+              className="bg-brand text-primary-foreground font-semibold text-xs cursor-pointer"
             >
               <Plus className="size-3.5 mr-1" /> Abrir Primeira Comanda
             </Button>
@@ -168,6 +186,14 @@ export function ComandasListView({
               getVendaData(venda);
             const clienteNome =
               venda.cliente?.nome || venda.nomeCliente || "";
+
+            const isQuitado =
+              totalConsumido > 0 &&
+              valorPago + (venda.desconto || 0) >= totalConsumido &&
+              saldoPendente <= 0.001;
+            const isParcial =
+              !isQuitado &&
+              (valorPago > 0 || (venda.statusPagamento || "").toUpperCase() === "A_PRAZO");
 
             const rawTipo = (venda.tipoAtendimento || "LOCAL").toUpperCase();
             const isDelivery = rawTipo === "DELIVERY" || rawTipo === "ENTREGA";
@@ -186,26 +212,38 @@ export function ComandasListView({
                 className={`p-4 rounded-2xl border bg-card transition-all flex flex-col justify-between shadow-2xs space-y-3 cursor-pointer group ${hoverBorderClass}`}
               >
                 <div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-bold text-base text-foreground">
-                        Comanda #{venda.id}
-                      </span>
-                      <ChannelBadge
-                        tipo={venda.tipoAtendimento}
-                        mesaNome={venda.mesa?.nome}
-                      />
-                    </div>
-
-                    {valorPago > 0 && (
-                      <Badge
-                        variant="outline"
-                        className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px]"
-                      >
-                        Parcial Pago
-                      </Badge>
-                    )}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-base text-foreground truncate">
+                      Comanda #{venda.numeroComanda || venda.id}
+                    </span>
+                    <ChannelBadge
+                      tipo={venda.tipoAtendimento}
+                      mesaNome={venda.mesa?.nome}
+                      className="shrink-0"
+                    />
                   </div>
+
+                  {(isQuitado || isParcial) && (
+                    <div className="mt-2 flex items-center">
+                      {isQuitado ? (
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-normal flex items-center gap-1 w-fit"
+                        >
+                          <Check className="size-3 shrink-0" />
+                          <span>Pago</span>
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-xs font-normal flex items-center gap-1 w-fit"
+                        >
+                          <Clock className="size-3 shrink-0" />
+                          <span>Parcial</span>
+                        </Badge>
+                      )}
+                    </div>
+                  )}
 
                   <div className="mt-3 space-y-1.5 text-xs">
                     <div className="flex items-center gap-1.5 text-foreground font-semibold truncate">
@@ -214,11 +252,11 @@ export function ComandasListView({
                           "size-3.5 shrink-0",
                           venda.cliente
                             ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-blue-600 dark:text-blue-400"
+                            : "text-primary"
                         )}
                       />
                       <span className="truncate">
-                        {clienteNome || (venda.mesa?.nome ? `Consumo Local (${venda.mesa.nome})` : "Consumo Local")}
+                        {clienteNome || "Consumo Local"}
                       </span>
                     </div>
 
@@ -236,10 +274,17 @@ export function ComandasListView({
                       {valorPago > 0 && (
                         <div className="text-right">
                           <span className="text-[10px] text-muted-foreground block">
-                            Saldo Restante
+                            {isQuitado ? "Total Pago" : "Saldo Restante"}
                           </span>
-                          <span className="text-sm font-bold font-mono text-primary">
-                            {brl(saldoPendente)}
+                          <span
+                            className={cn(
+                              "text-sm font-bold font-mono",
+                              isQuitado
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-primary"
+                            )}
+                          >
+                            {isQuitado ? brl(valorPago) : brl(saldoPendente)}
                           </span>
                         </div>
                       )}

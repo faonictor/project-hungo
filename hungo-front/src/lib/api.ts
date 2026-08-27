@@ -8,6 +8,40 @@ function getApiBaseUrl(): string {
   return "http://localhost:8080";
 }
 
+export function formatFriendlyErrorMessage(rawMsg: string, status?: number): string {
+  if (!rawMsg) return "Não foi possível carregar os dados do servidor.";
+
+  const lower = rawMsg.toLowerCase();
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("econnrefused")
+  ) {
+    return "Não foi possível conectar ao servidor da API. Verifique se o backend está em execução.";
+  }
+  if (
+    lower.includes("unknown database") ||
+    lower.includes("jdbc") ||
+    lower.includes("communications link failure") ||
+    lower.includes("connection refused") ||
+    lower.includes("access denied") ||
+    lower.includes("sqlexception")
+  ) {
+    return "Erro de conexão com o banco de dados. Verifique se o serviço MySQL está ativo e com a base de dados criada.";
+  }
+  if (lower.includes("constraintviolation") || lower.includes("foreign key")) {
+    return "Não foi possível concluir a ação pois este registro está vinculado a outros dados no sistema.";
+  }
+  if (
+    lower.includes("result must not be null") ||
+    lower.includes("nullpointerexception") ||
+    (status === 500 && lower.includes("internal server error"))
+  ) {
+    return "O servidor encontrou uma instabilidade temporária ao processar esta solicitação. Tente novamente.";
+  }
+  return rawMsg;
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${getApiBaseUrl()}${endpoint}`;
   const headers = {
@@ -15,10 +49,17 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     ...(options?.headers || {}),
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      "Não foi possível conectar ao servidor da API. Verifique se o backend está em execução."
+    );
+  }
 
   if (!response.ok) {
     let errorMessage = `Erro HTTP ${response.status}: ${response.statusText}`;
@@ -30,7 +71,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
         errorMessage = errorData;
       }
     } catch {}
-    throw new Error(errorMessage);
+    throw new Error(formatFriendlyErrorMessage(errorMessage, response.status));
   }
 
   const text = await response.text();
@@ -113,6 +154,7 @@ export interface Mesa {
 
 export interface Venda {
   id?: number;
+  numeroComanda?: number;
   tipoAtendimento?: string;
   mesa?: Mesa | null;
   cliente?: Cliente | null;
@@ -122,8 +164,11 @@ export interface Venda {
   formaPagamento?: string;
   dataInicioVenda?: string;
   dataFimVenda?: string | null;
+  dataVencimento?: string | null;
+  statusPagamento?: "PAGO" | "PENDENTE" | "PARCIAL" | string | null;
   total?: number;
   valorPago?: number;
+  desconto?: number;
   totalBruto?: number;
   status?: string;
   motivoCancelamento?: string;
@@ -281,6 +326,9 @@ export const apiMesas = {
 export const apiVendas = {
   listarEmAberto: () => request<Venda[]>("/venda/emAberto"),
   listarFechadas: () => request<Venda[]>("/venda/fechadas"),
+  listarAPrazo: () => request<Venda[]>("/venda/a-prazo"),
+  listarAPrazoPorCliente: (clienteId: number) =>
+    request<Venda[]>(`/venda/cliente/${clienteId}/a-prazo`),
   buscarPorId: (id: number) => request<Venda>(`/venda/${id}`),
   salvar: (venda: Partial<Venda>) =>
     request<Venda>("/venda", {
@@ -295,6 +343,14 @@ export const apiVendas = {
   fecharVenda: (id: number) =>
     request<Venda>(`/venda/${id}/fechar`, {
       method: "PUT",
+    }),
+  receberPagamentoAPrazo: (
+    id: number,
+    dto: { valorRecebido: number; formaPagamentoReal: string; desconto?: number }
+  ) =>
+    request<Venda>(`/venda/${id}/receber-a-prazo`, {
+      method: "POST",
+      body: JSON.stringify(dto),
     }),
   deletar: (id: number, motivo?: string) =>
     request<void>(`/venda/${id}${motivo ? `?motivo=${encodeURIComponent(motivo)}` : ""}`, {

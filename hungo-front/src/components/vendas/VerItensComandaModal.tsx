@@ -31,6 +31,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ChannelBadge } from "@/components/common/ChannelBadge";
+import { cn } from "@/lib/utils";
 import { Venda, ItemPedido } from "@/lib/api";
 import { brl } from "@/lib/mock-data";
 
@@ -67,11 +68,12 @@ export function VerItensComandaModal({
 
   if (!venda) return null;
 
-  const itensAtivos = itensList.filter(
-    (i) => (i.statusItem || "").toUpperCase() !== "CANCELADO"
+  const safeItensList = Array.isArray(itensList) ? itensList : [];
+  const itensAtivos = safeItensList.filter(
+    (i) => (i?.statusItem || "").toUpperCase() !== "CANCELADO"
   );
-  const itensCancelados = itensList.filter(
-    (i) => (i.statusItem || "").toUpperCase() === "CANCELADO"
+  const itensCancelados = safeItensList.filter(
+    (i) => (i?.statusItem || "").toUpperCase() === "CANCELADO"
   );
 
   const subtotalItens = round2(
@@ -80,7 +82,8 @@ export function VerItensComandaModal({
   const taxaEntrega = round2(venda.taxaEntrega || 0);
   const totalComanda = round2(subtotalItens + taxaEntrega);
   const valorJaPago = round2(venda.valorPago || 0);
-  const saldoPendente = round2(Math.max(0, totalComanda - valorJaPago));
+  const descontoAcumulado = round2(venda.desconto || 0);
+  const saldoPendente = round2(Math.max(0, totalComanda - valorJaPago - descontoAcumulado));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,7 +92,7 @@ export function VerItensComandaModal({
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <FileText className="size-5 text-primary" />
-              Comanda #{venda.id} — Itens Lançados
+              Comanda #{venda.numeroComanda || venda.id} — Itens Lançados
             </DialogTitle>
 
             <Button
@@ -107,7 +110,13 @@ export function VerItensComandaModal({
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <ChannelBadge tipo={venda.tipoAtendimento} mesaNome={venda.mesa?.nome} />
             <Badge variant="outline" className="text-xs border-border bg-muted/40 font-medium">
-              <User className="size-3 mr-1 text-primary" />
+              <User
+                className={`size-3 mr-1 ${
+                  venda.cliente
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-primary"
+                }`}
+              />
               {venda.cliente?.nome || venda.nomeCliente || "Consumo Local"}
             </Badge>
           </div>
@@ -275,25 +284,44 @@ export function VerItensComandaModal({
           )}
 
           <div className="p-3 bg-muted/40 rounded-xl border space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal dos Itens:</span>
-              <span className="font-mono font-medium">{brl(subtotalItens)}</span>
-            </div>
-            {taxaEntrega > 0 && (
+            {taxaEntrega > 0 ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal dos Itens:</span>
+                  <span className="font-mono font-medium">{brl(subtotalItens)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taxa de Entrega:</span>
+                  <span className="font-mono font-medium">{brl(taxaEntrega)}</span>
+                </div>
+                <div className="flex justify-between font-semibold pt-0.5">
+                  <span className="text-foreground">Total Consumido:</span>
+                  <span className="font-mono">{brl(totalComanda)}</span>
+                </div>
+              </>
+            ) : (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Taxa de Entrega:</span>
-                <span className="font-mono font-medium">{brl(taxaEntrega)}</span>
+                <span className="text-muted-foreground">Total Consumido:</span>
+                <span className="font-mono font-medium">{brl(totalComanda)}</span>
+              </div>
+            )}
+            {descontoAcumulado > 0 && (
+              <div className="flex justify-between text-muted-foreground">
+                <span>Descontos:</span>
+                <span className="font-mono font-normal">- {brl(descontoAcumulado)}</span>
               </div>
             )}
             {valorJaPago > 0 && (
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                <span>Total Já Pago (Parciais):</span>
-                <span className="font-mono font-bold">- {brl(valorJaPago)}</span>
+                <span>Total Pago:</span>
+                <span className="font-mono font-normal">- {brl(valorJaPago)}</span>
               </div>
             )}
             <div className="flex justify-between pt-1 border-t font-bold text-sm text-foreground">
-              <span>Saldo Pendente a Pagar:</span>
-              <span className="font-mono text-primary">{brl(saldoPendente)}</span>
+              <span>Saldo Pendente:</span>
+              <span className="font-mono font-bold text-foreground">
+                {brl(saldoPendente)}
+              </span>
             </div>
           </div>
         </div>

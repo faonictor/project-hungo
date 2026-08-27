@@ -94,6 +94,9 @@ export function VerPedidosVendaModal({
   const isCadastrado = Boolean(venda.cliente);
   const isCancelada = venda.status === "CANCELADA";
   const isEncerrada = Boolean(venda.dataFimVenda);
+  const isAPrazo = venda.formaPagamento === "A_PRAZO";
+  const saldoPendente = round2(venda.statusPagamento === "PAGO" ? 0 : venda.total || 0);
+  const isAPrazoPendente = isAPrazo && saldoPendente > 0.01;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,27 +104,39 @@ export function VerPedidosVendaModal({
         <DialogHeader className="pb-3 border-b flex flex-col space-y-2">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <ShoppingBag className="size-5 text-primary" />
-            Pedidos da Venda #{venda.id}
+            Pedidos da Venda #{venda.id} (Comanda #{venda.numeroComanda || venda.id})
           </DialogTitle>
 
           <div className="flex flex-wrap items-center gap-2 pt-0.5">
             <Badge
               variant="outline"
-              className={`text-xs ${
+              className={`text-xs font-semibold ${
                 isCancelada
                   ? "border-destructive/30 bg-destructive/10 text-destructive"
+                  : isAPrazoPendente
+                  ? "border-purple-500/30 bg-purple-500/15 text-purple-600 dark:text-purple-400"
+                  : isAPrazo
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                   : isEncerrada
                   ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                   : "border-primary/30 bg-primary/10 text-primary"
               }`}
             >
-              {isCancelada ? "Cancelada" : isEncerrada ? "Encerrada" : "Em Aberto"}
+              {isCancelada
+                ? "Cancelada"
+                : isAPrazoPendente
+                ? "A Prazo"
+                : isAPrazo
+                ? "A Prazo (Quitada)"
+                : isEncerrada
+                ? "Encerrada"
+                : "Em Aberto"}
             </Badge>
             <ChannelBadge tipo={venda.tipoAtendimento} mesaNome={venda.mesa?.nome} />
             <Badge variant="outline" className="text-xs border-border bg-muted/40 font-medium">
               <User
                 className={`size-3 mr-1 ${
-                  isCadastrado ? "text-emerald-600 dark:text-emerald-400" : "text-blue-600 dark:text-blue-400"
+                  isCadastrado ? "text-emerald-600 dark:text-emerald-400" : "text-primary"
                 }`}
               />
               {clienteNome}

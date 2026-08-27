@@ -56,7 +56,8 @@ export const Route = createFileRoute("/pedidos")({
 });
 
 function formatTempoPreparo(p: Pedido, now: Date): string {
-  if (p.statusPedido === "Aberto" || (p.statusPedido || "").toLowerCase() === "cancelado") return "-";
+  if (p.statusPedido === "Aberto") return "Não iniciado";
+  if ((p.statusPedido || "").toLowerCase() === "cancelado") return "-";
 
   const startDateStr = p.dataInicioPreparo || p.dataHora;
   if (!startDateStr) return "-";
@@ -278,7 +279,6 @@ function PedidosPage() {
           totalAntes: estornoModalVenda.valorPago || 0,
           saldoRestante: novoValorPago,
           desconto: 0,
-          dataPagamento: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno em pagamentos-comanda:", e);
@@ -291,7 +291,6 @@ function PedidosPage() {
           descricao: `Estorno/Devolução ao cliente: ${payload.motivo}`,
           transacao: "Saída",
           fluxo: payload.valorEstorno,
-          dataTransacao: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno no fluxo financeiro:", e);
@@ -318,10 +317,13 @@ function PedidosPage() {
 
   const filteredPedidos = (() => {
     let list = activePedidos.filter((p) => {
+      const q = searchTerm.toLowerCase();
       const matchesSearch =
-        p.id.toString().includes(searchTerm) ||
-        (p.cliente?.nome && p.cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (p.venda?.mesa?.nome && p.venda.mesa.nome.toLowerCase().includes(searchTerm.toLowerCase()));
+        p.id.toString().includes(q) ||
+        p.venda?.id?.toString().includes(q) ||
+        p.venda?.numeroComanda?.toString().includes(q) ||
+        (p.cliente?.nome && p.cliente.nome.toLowerCase().includes(q)) ||
+        (p.venda?.mesa?.nome && p.venda.mesa.nome.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;
 
@@ -392,7 +394,7 @@ function PedidosPage() {
                   <TableRow>
                     <TableHead className="w-20">Pedido</TableHead>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>Comanda/Mesa</TableHead>
+                    <TableHead>Comanda</TableHead>
                     <TableHead>Atendimento</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Tempo de Preparo</TableHead>
@@ -426,9 +428,7 @@ function PedidosPage() {
                           variant="outline"
                           className="border-border bg-muted/50 text-foreground text-xs font-mono font-medium whitespace-nowrap"
                         >
-                          {p.venda?.mesa?.nome
-                            ? `Comanda #${p.venda.id} - ${p.venda.mesa.nome}`
-                            : `Comanda #${p.venda?.id || "-"}`}
+                          Comanda #{p.venda?.numeroComanda || p.venda?.id || "-"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -441,7 +441,15 @@ function PedidosPage() {
                         <OrderStatusBadge status={p.statusPedido || "Aberto"} />
                       </TableCell>
                       <TableCell>
-                        {p.statusPedido === "Em preparo" ? (
+                        {p.statusPedido === "Aberto" ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-muted text-muted-foreground border-border font-mono text-xs whitespace-nowrap"
+                          >
+                            <Clock className="size-3 mr-1 inline-block text-muted-foreground shrink-0" />{" "}
+                            Não iniciado
+                          </Badge>
+                        ) : p.statusPedido === "Em preparo" || p.statusPedido === "Concluído" || p.statusPedido === "Concluido" ? (
                           <Badge
                             variant="outline"
                             className="bg-muted text-muted-foreground border-border font-mono text-xs whitespace-nowrap"
@@ -464,7 +472,7 @@ function PedidosPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenDetalhesModal(p.id)}
-                                className="size-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 cursor-pointer relative"
+                                className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer relative"
                                 title="Ver Detalhes do Pedido"
                               >
                                 <Eye className="size-4" />

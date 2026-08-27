@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { RefreshCw, Lock, History, Info, ShoppingBag } from "lucide-react";
+import { RefreshCw, Lock, History, Info, ShoppingBag, Search, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,6 +58,7 @@ function VendasEncerradasPage() {
   const [pagamentosList, setPagamentosList] = useState<PagamentoComanda[]>([]);
   const [loadingPagamentos, setLoadingPagamentos] = useState(false);
   const [descontosMap, setDescontosMap] = useState<Record<number, number>>({});
+  const [pagosMap, setPagosMap] = useState<Record<number, number>>({});
 
   const fetchVendasFechadas = async () => {
     try {
@@ -66,21 +67,30 @@ function VendasEncerradasPage() {
       const data = await apiVendas.listarFechadas();
       setVendasFechadas(data);
 
-      const map: Record<number, number> = {};
+      const descMap: Record<number, number> = {};
+      const pgsMap: Record<number, number> = {};
       await Promise.all(
         data.map(async (v) => {
           if (v.id) {
             try {
               const pgs = await apiPagamentosComanda.listarPorVenda(v.id);
+              const pgsEntrada = pgs.filter((p) => p.tipo !== "ESTORNO");
+              const estornos = pgs.filter((p) => p.tipo === "ESTORNO");
               const somaDescontos = pgs.reduce((acc, p) => acc + (p.desconto || 0), 0);
-              map[v.id] = round2(somaDescontos);
+              const totalEntradas = pgsEntrada.reduce((acc, p) => acc + (p.valorPago || 0), 0);
+              const totalEstornos = estornos.reduce((acc, p) => acc + Math.abs(p.valorPago || 0), 0);
+              const liquido = Math.max(0, totalEntradas - totalEstornos);
+              descMap[v.id] = round2(somaDescontos);
+              pgsMap[v.id] = pgs.length > 0 ? round2(liquido) : round2(v.valorPago || 0);
             } catch {
-              map[v.id] = 0;
+              descMap[v.id] = 0;
+              pgsMap[v.id] = round2(v.valorPago || 0);
             }
           }
         })
       );
-      setDescontosMap(map);
+      setDescontosMap(descMap);
+      setPagosMap(pgsMap);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Erro ao carregar vendas");
@@ -138,7 +148,6 @@ function VendasEncerradasPage() {
           totalAntes: estornoModalVenda.valorPago || 0,
           saldoRestante: novoValorPago,
           desconto: 0,
-          dataPagamento: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno em pagamentos-comanda:", e);
@@ -151,7 +160,6 @@ function VendasEncerradasPage() {
           descricao: `Estorno/Devolução ao cliente: ${payload.motivo}`,
           transacao: "Saída",
           fluxo: payload.valorEstorno,
-          dataTransacao: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno no fluxo financeiro:", e);
@@ -177,16 +185,19 @@ function VendasEncerradasPage() {
   const filteredVendas = vendasFechadas.filter((v) => {
     const q = searchTerm.toLowerCase().trim();
     const isCancelada = v.status === "CANCELADA";
-    const isEncerrada = Boolean(v.dataFimVenda) && !isCancelada;
-    const isParcial = !isEncerrada && !isCancelada && Boolean(v.valorPago && v.valorPago > 0);
+    const isAPrazoPendente = !isCancelada && v.formaPagamento === "A_PRAZO" && (v.total || 0) > 0.01;
+    const isEncerrada = Boolean(v.dataFimVenda) && !isCancelada && !isAPrazoPendente;
+    const isParcial = !v.dataFimVenda && !isCancelada && Boolean(v.valorPago && v.valorPago > 0);
 
     if (statusFilter === "encerradas" && !isEncerrada) return false;
+    if (statusFilter === "aprazo" && !isAPrazoPendente) return false;
     if (statusFilter === "parciais" && !isParcial) return false;
     if (statusFilter === "canceladas" && !isCancelada) return false;
 
     if (!q) return true;
     return (
       v.id?.toString().includes(q) ||
+      v.numeroComanda?.toString().includes(q) ||
       (v.mesa?.nome && v.mesa.nome.toLowerCase().includes(q)) ||
       (v.cliente?.nome && v.cliente.nome.toLowerCase().includes(q)) ||
       (v.tipoAtendimento && v.tipoAtendimento.toLowerCase().includes(q))
@@ -194,7 +205,12 @@ function VendasEncerradasPage() {
   });
 
   const countCanceladas = vendasFechadas.filter((v) => v.status === "CANCELADA").length;
-  const countEncerradas = vendasFechadas.filter((v) => Boolean(v.dataFimVenda) && v.status !== "CANCELADA").length;
+  const countAPrazo = vendasFechadas.filter(
+    (v) => v.status !== "CANCELADA" && v.formaPagamento === "A_PRAZO" && (v.total || 0) > 0.01
+  ).length;
+  const countEncerradas = vendasFechadas.filter(
+    (v) => Boolean(v.dataFimVenda) && v.status !== "CANCELADA" && !(v.formaPagamento === "A_PRAZO" && (v.total || 0) > 0.01)
+  ).length;
   const countParciais = vendasFechadas.filter(
     (v) => !v.dataFimVenda && v.status !== "CANCELADA" && Boolean(v.valorPago && v.valorPago > 0)
   ).length;
@@ -210,7 +226,7 @@ function VendasEncerradasPage() {
   return (
     <AppShell
       title="Vendas encerradas e histórico"
-      description={`${filteredVendas.length} comandas no histórico · ${brl(totalFaturado)} recebido.`}
+      description={`${filteredVendas.length} vendas no histórico · ${brl(totalFaturado)} recebido.`}
       actions={
         <Button variant="outline" size="icon" onClick={fetchVendasFechadas} title="Recarregar">
           <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
@@ -224,34 +240,41 @@ function VendasEncerradasPage() {
               <TabsList>
                 <TabsTrigger value="todas">Todas ({vendasFechadas.length})</TabsTrigger>
                 <TabsTrigger value="encerradas">Encerradas ({countEncerradas})</TabsTrigger>
+                <TabsTrigger value="aprazo">A Prazo ({countAPrazo})</TabsTrigger>
                 <TabsTrigger value="parciais">Pagamento Parcial ({countParciais})</TabsTrigger>
                 <TabsTrigger value="canceladas">Canceladas ({countCanceladas})</TabsTrigger>
               </TabsList>
             </Tabs>
 
-            <Input
-              placeholder="Buscar por nº da comanda, cliente ou mesa..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-9 sm:max-w-72"
-            />
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por ID, comanda..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
           </div>
 
           {loading ? (
-            <LoadingState message="Carregando histórico de vendas..." />
+            <div className="flex h-36 items-center justify-center text-muted-foreground">
+              <Loader2 className="size-6 animate-spin mr-2" />
+              Carregando histórico...
+            </div>
           ) : error ? (
             <ErrorState message={error} onRetry={fetchVendasFechadas} />
           ) : filteredVendas.length === 0 ? (
             <EmptyState
               icon={Lock}
-              title="Nenhuma comanda encontrada no histórico com este filtro."
+              title="Nenhuma venda encontrada no histórico com este filtro."
             />
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20 font-bold">Comanda</TableHead>
+                    <TableHead className="w-28 font-bold">Venda / Comanda</TableHead>
                     <TableHead className="font-bold">Mesa / Cliente</TableHead>
                     <TableHead className="font-bold">Atendimento</TableHead>
                     <TableHead className="font-bold">Abertura</TableHead>
@@ -265,10 +288,31 @@ function VendasEncerradasPage() {
                 <TableBody>
                   {filteredVendas.map((v) => {
                     const isEncerrada = Boolean(v.dataFimVenda);
-                    const totalPagoVal = round2(v.valorPago || 0);
-                    const descontosVal = round2(v.id ? descontosMap[v.id] || 0 : 0);
-                    const saldoPendenteVal = round2(v.total || 0);
-                    const totalBrutoVal = round2(totalPagoVal + descontosVal + saldoPendenteVal);
+                    const totalPagoVal = round2(
+                      v.id && pagosMap[v.id] !== undefined
+                        ? pagosMap[v.id]
+                        : v.valorPago || 0
+                    );
+                    const descontosVal = round2(
+                      v.id && descontosMap[v.id] !== undefined
+                        ? descontosMap[v.id]
+                        : v.desconto || 0
+                    );
+                    const saldoPendenteVal = round2(
+                      v.formaPagamento === "A_PRAZO" && v.statusPagamento !== "PAGO"
+                        ? v.total || 0
+                        : isEncerrada
+                        ? 0
+                        : v.total || 0
+                    );
+                    const totalBrutoVal = round2(
+                      v.totalBruto && v.totalBruto > 0
+                        ? v.totalBruto
+                        : totalPagoVal + descontosVal + saldoPendenteVal
+                    );
+
+                    const isAPrazo = v.formaPagamento === "A_PRAZO";
+                    const isAPrazoPendente = isAPrazo && saldoPendenteVal > 0.01;
 
                     const clienteNome = v.cliente?.nome || v.nomeCliente || "";
                     const displayMesaCliente = v.mesa?.nome
@@ -285,7 +329,12 @@ function VendasEncerradasPage() {
 
                     return (
                       <TableRow key={v.id}>
-                        <TableCell className="font-mono text-xs">#{v.id}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          <span className="font-bold text-foreground block">#{v.id}</span>
+                          <span className="text-[10px] text-muted-foreground block">
+                            Comanda #{v.numeroComanda || v.id}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-foreground text-xs whitespace-nowrap">
                           {displayMesaCliente}
                         </TableCell>
@@ -315,6 +364,20 @@ function VendasEncerradasPage() {
                               className="border-destructive/25 bg-destructive/10 text-destructive text-xs whitespace-nowrap"
                             >
                               Cancelada
+                            </Badge>
+                          ) : isAPrazoPendente ? (
+                            <Badge
+                              variant="outline"
+                              className="border-purple-500/30 bg-purple-500/12 text-purple-600 dark:text-purple-400 text-xs font-semibold whitespace-nowrap"
+                            >
+                              A Prazo
+                            </Badge>
+                          ) : isAPrazo ? (
+                            <Badge
+                              variant="outline"
+                              className="border-emerald-500/25 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 text-xs font-semibold whitespace-nowrap"
+                            >
+                              A Prazo (Quitada)
                             </Badge>
                           ) : isEncerrada ? (
                             <Badge
@@ -354,7 +417,7 @@ function VendasEncerradasPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => setPedidosModalVenda(v)}
-                              className="size-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 shrink-0 cursor-pointer"
+                              className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0 cursor-pointer"
                               title="Visualizar Pedidos da Venda"
                             >
                               <ShoppingBag className="size-4" />
@@ -374,7 +437,7 @@ function VendasEncerradasPage() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleOpenHistoricoModal(v)}
-                                className="size-8 text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 shrink-0 cursor-pointer"
+                                className="size-8 text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0 cursor-pointer"
                                 title="Ver Histórico de Pagamentos"
                               >
                                 <History className="size-4" />

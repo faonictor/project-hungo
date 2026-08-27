@@ -108,8 +108,9 @@ public class ItemPedidoService {
             Float totalItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
             float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
             float valorPago = venda.getValorPago() != null ? venda.getValorPago() : 0.0f;
+            float desconto = venda.getDesconto() != null ? venda.getDesconto() : 0.0f;
             float totalConsumido = (totalItens != null ? totalItens : 0.0f) + taxa;
-            venda.setTotal(Math.max(0.0f, totalConsumido - valorPago));
+            venda.setTotal(Math.max(0.0f, totalConsumido - valorPago - desconto));
             vendaRepository.save(venda);
         }
     }

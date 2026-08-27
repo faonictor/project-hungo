@@ -60,7 +60,7 @@ export function ExcluirComandaModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive font-bold">
             <AlertTriangle className="size-5 text-destructive" />
-            Excluir Comanda #{venda.id}?
+            Excluir Comanda #{venda.numeroComanda || venda.id}?
           </DialogTitle>
           <DialogDescription className="text-xs">
             Esta ação cancelará a comanda e todos os seus pedidos vinculados. Um registro de auditoria será gerado no histórico de cancelamentos.
@@ -70,7 +70,7 @@ export function ExcluirComandaModal({
         <div className="space-y-4 py-2 text-xs">
           <div className="p-3 bg-muted/40 rounded-lg border space-y-1">
             <p className="font-semibold text-foreground">
-              Comanda #{venda.id} — {venda.tipoAtendimento || "LOCAL"}
+              Comanda #{venda.numeroComanda || venda.id} — {venda.tipoAtendimento || "LOCAL"}
             </p>
             <p className="text-[11px] text-muted-foreground">
               {venda.mesa?.nome

@@ -316,10 +316,10 @@ export function MapaMesasView({
 
                   <Badge
                     variant="outline"
-                    className={`text-[10px] px-1.5 py-0 ${
+                    className={`text-xs font-normal ${
                       deliveryData.isEmUso
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35 font-semibold"
-                        : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35 font-semibold"
+                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35"
+                        : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35"
                     }`}
                   >
                     {deliveryData.isEmUso ? "Em uso" : "Livre"}
@@ -412,10 +412,10 @@ export function MapaMesasView({
 
                   <Badge
                     variant="outline"
-                    className={`text-[10px] px-1.5 py-0 ${
+                    className={`text-xs font-normal ${
                       retiradaData.isEmUso
-                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35 font-semibold"
-                        : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35 font-semibold"
+                        ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35"
+                        : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35"
                     }`}
                   >
                     {retiradaData.isEmUso ? "Em uso" : "Livre"}
@@ -514,10 +514,10 @@ export function MapaMesasView({
 
                     <Badge
                       variant="outline"
-                      className={`text-[10px] px-1.5 py-0 ${
+                      className={`text-xs font-normal ${
                         isOcupada
-                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35 font-semibold"
-                          : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35 font-semibold"
+                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/35"
+                          : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/35"
                       }`}
                     >
                       {isOcupada ? "Em uso" : "Livre"}
@@ -593,7 +593,7 @@ export function MapaMesasView({
                   <div className="min-w-0 flex-1">
                     <DialogTitle className="text-base font-bold flex items-center gap-2">
                       <span>{currentModalInfo.title}</span>
-                      <Badge variant="outline" className={cn("text-xs font-semibold", currentModalInfo.badgeClass)}>
+                      <Badge variant="outline" className={cn("text-xs font-normal", currentModalInfo.badgeClass)}>
                         {currentModalInfo.comandas.length}{" "}
                         {currentModalInfo.comandas.length === 1 ? "Comanda Aberta" : "Comandas Abertas"}
                       </Badge>
@@ -621,7 +621,8 @@ export function MapaMesasView({
                     const clienteNome =
                       comanda.cliente?.nome || comanda.nomeCliente || (currentModalInfo.type === "DELIVERY" ? "Cliente Delivery" : currentModalInfo.type === "RETIRADA" ? "Cliente Retirada" : "Consumo Local");
                     const valorPago = comanda.valorPago || 0;
-                    const saldoPendente = Math.max(0, round2(cData.totalConsumido - valorPago));
+                    const desconto = comanda.desconto || 0;
+                    const saldoPendente = Math.max(0, round2(cData.totalConsumido - valorPago - desconto));
 
                     return (
                       <div
@@ -640,7 +641,7 @@ export function MapaMesasView({
                                   "size-8 rounded-full flex items-center justify-center shrink-0",
                                   isCadastrado
                                     ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                                    : "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                                    : "bg-primary/10 text-primary"
                                 )}
                               >
                                 <User className="size-4" />
@@ -652,9 +653,9 @@ export function MapaMesasView({
                                   </span>
                                   <Badge
                                     variant="outline"
-                                    className="text-[10px] font-mono px-1 py-0 border-muted-foreground/30"
+                                    className="text-xs font-mono font-normal border-muted-foreground/30"
                                   >
-                                    #{comanda.id}
+                                    #{comanda.numeroComanda || comanda.id}
                                   </Badge>
                                 </div>
                                 <p className="text-[11px] text-muted-foreground truncate">

@@ -1,8 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, RefreshCw, MapPin, User, Phone, Mail, Loader2, Users } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  RefreshCw,
+  MapPin,
+  User,
+  Phone,
+  Mail,
+  Loader2,
+  Users,
+  CalendarClock,
+} from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,14 +39,18 @@ import { toast } from "sonner";
 import {
   apiClientes,
   apiEnderecos,
+  apiVendas,
   Cliente,
   ClienteEnderecoDTO,
   Endereco,
+  Venda,
 } from "@/lib/api";
+import { brl } from "@/lib/mock-data";
 import { LoadingState } from "@/components/common/LoadingState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
+import { ExtratoDebitosClienteModal } from "@/components/vendas/ExtratoDebitosClienteModal";
 
 export const Route = createFileRoute("/clientes")({
   head: () => ({
@@ -50,6 +67,8 @@ export const Route = createFileRoute("/clientes")({
 
 function ClientesPage() {
   const [clientesList, setClientesList] = useState<Cliente[]>([]);
+  const [vendasAPrazo, setVendasAPrazo] = useState<Venda[]>([]);
+  const [selectedClienteForDebitos, setSelectedClienteForDebitos] = useState<Cliente | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -83,8 +102,12 @@ function ClientesPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await apiClientes.listar();
+      const [data, aPrazoData] = await Promise.all([
+        apiClientes.listar(),
+        apiVendas.listarAPrazo().catch(() => []),
+      ]);
       setClientesList(data);
+      setVendasAPrazo(aPrazoData || []);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Erro ao carregar clientes");
@@ -317,77 +340,113 @@ function ClientesPage() {
                     <TableHead>Telefone / WhatsApp</TableHead>
                     <TableHead>E-mail</TableHead>
                     <TableHead>CPF</TableHead>
+                    <TableHead className="text-center">Conta / Débito</TableHead>
                     <TableHead className="text-center">Endereços</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClientes.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        #{c.id}
-                      </TableCell>
-                      <TableCell className="font-medium flex items-center gap-2">
-                        <User className="size-4 text-muted-foreground shrink-0" />
-                        {c.nome}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {c.telefone ? (
-                          <span className="flex items-center gap-1">
-                            <Phone className="size-3 text-muted-foreground" />
-                            {c.telefone}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {c.email ? (
-                          <span className="flex items-center gap-1">
-                            <Mail className="size-3 text-muted-foreground" />
-                            {c.email}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-xs">
-                        {c.cpf || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenEnderecosModal(c)}
-                          className="h-8 text-xs"
-                        >
-                          <MapPin className="size-3 mr-1 text-primary" /> Ver Endereços
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                  {filteredClientes.map((c) => {
+                    const debitosCliente = vendasAPrazo.filter((v) => v.cliente?.id === c.id);
+                    const totalDevedor = debitosCliente.reduce((acc, v) => acc + (v.total || 0), 0);
+
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          #{c.id}
+                        </TableCell>
+                        <TableCell className="font-medium flex items-center gap-2">
+                          <User className="size-4 text-muted-foreground shrink-0" />
+                          {c.nome}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {c.telefone ? (
+                            <span className="flex items-center gap-1">
+                              <Phone className="size-3 text-muted-foreground" />
+                              {c.telefone}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {c.email ? (
+                            <span className="flex items-center gap-1">
+                              <Mail className="size-3 text-muted-foreground" />
+                              {c.email}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-xs">
+                          {c.cpf || "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {totalDevedor > 0 ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedClienteForDebitos(c)}
+                              className="h-8 text-xs font-semibold border-purple-500/40 text-purple-700 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 cursor-pointer"
+                              title="Ver débitos e quitar"
+                            >
+                              <CalendarClock className="size-3.5 mr-1" />
+                              {brl(totalDevedor)}
+                            </Button>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="text-[11px] font-normal text-muted-foreground border-border/60"
+                            >
+                              Sem débitos
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenEditModal(c)}
-                            className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-                            title="Editar Cliente"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenEnderecosModal(c)}
+                            className="h-8 text-xs"
                           >
-                            <Pencil className="size-4" />
+                            <MapPin className="size-3 mr-1 text-primary" /> Ver Endereços
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => c.id && setDeleteId(c.id)}
-                            className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                            title="Excluir Cliente"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setSelectedClienteForDebitos(c)}
+                              className="size-8 text-muted-foreground hover:text-purple-600 hover:bg-purple-500/10 cursor-pointer"
+                              title="Extrato e Débitos a Prazo"
+                            >
+                              <CalendarClock className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenEditModal(c)}
+                              className="size-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                              title="Editar Cliente"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => c.id && setDeleteId(c.id)}
+                              className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                              title="Excluir Cliente"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -767,6 +826,13 @@ function ClientesPage() {
         description="Esta ação excluirá o cliente e seus registros vinculados."
         onConfirm={handleDeleteCliente}
         loading={deleting}
+      />
+
+      <ExtratoDebitosClienteModal
+        cliente={selectedClienteForDebitos}
+        open={selectedClienteForDebitos !== null}
+        onOpenChange={(open) => !open && setSelectedClienteForDebitos(null)}
+        onSuccess={() => fetchClientes()}
       />
     </AppShell>
   );

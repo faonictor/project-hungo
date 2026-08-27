@@ -29,6 +29,7 @@ import { LoadingState } from "@/components/common/LoadingState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { NovaComandaModal } from "@/components/vendas/NovaComandaModal";
 import { FecharComandaModal } from "@/components/vendas/FecharComandaModal";
+import { EncerrarComandaModal } from "@/components/vendas/EncerrarComandaModal";
 import { VerItensComandaModal } from "@/components/vendas/VerItensComandaModal";
 import { GerenciarMesasModal } from "@/components/vendas/GerenciarMesasModal";
 import { ExcluirComandaModal } from "@/components/vendas/ExcluirComandaModal";
@@ -68,6 +69,7 @@ function VendasPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [modoExibicao, setModoExibicao] = useState<"COMANDAS" | "MESAS">("COMANDAS");
+  const [comandasActiveTab, setComandasActiveTab] = useState<string>("TODOS");
 
   // Modais
   const [isNovaVendaModalOpen, setIsNovaVendaModalOpen] = useState(false);
@@ -87,6 +89,9 @@ function VendasPage() {
 
   const [vendaParaFechar, setVendaParaFechar] = useState<Venda | null>(null);
   const [closingVenda, setClosingVenda] = useState(false);
+
+  const [vendaParaEncerrar, setVendaParaEncerrar] = useState<Venda | null>(null);
+  const [encerrandoVenda, setEncerrandoVenda] = useState(false);
 
   const [comandaParaExcluir, setComandaParaExcluir] = useState<Venda | null>(null);
   const [deletingVenda, setDeletingVenda] = useState(false);
@@ -401,7 +406,6 @@ function VendasPage() {
           totalAntes: estornoModalVenda.valorPago || 0,
           saldoRestante: novoValorPago,
           desconto: 0,
-          dataPagamento: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno em pagamentos-comanda:", e);
@@ -414,7 +418,6 @@ function VendasPage() {
           descricao: `Estorno/Devolução ao cliente: ${payload.motivo}`,
           transacao: "Saída",
           fluxo: payload.valorEstorno,
-          dataTransacao: new Date().toISOString(),
         });
       } catch (e) {
         console.error("Erro ao registrar estorno no fluxo financeiro:", e);
@@ -536,10 +539,13 @@ function VendasPage() {
   };
 
   const handleConfirmarFechamentoComanda = async (payload: {
-    tipoFechamento: "TOTAL" | "PARCIAL";
+    tipoFechamento: "TOTAL" | "PARCIAL" | "A_PRAZO";
     formaPagamento: string;
     desconto: number;
     valorPagoAgora: number;
+    dataVencimento?: string;
+    clienteId?: number;
+    novoCliente?: { nome: string; telefone: string };
   }) => {
     if (!vendaParaFechar || !vendaParaFechar.id) return;
     try {
@@ -548,23 +554,105 @@ function VendasPage() {
         (vendaParaFechar.valorPago || 0) + payload.valorPagoAgora
       );
 
-      if (payload.tipoFechamento === "TOTAL") {
+      let clienteAssociado: Cliente | undefined = undefined;
+      if (payload.clienteId) {
+        clienteAssociado = clientesList.find((c) => c.id === payload.clienteId) || (vendaParaFechar.cliente?.id === payload.clienteId ? vendaParaFechar.cliente : undefined);
+      } else if (vendaParaFechar.cliente?.id) {
+        clienteAssociado = vendaParaFechar.cliente;
+      }
+
+      if (!clienteAssociado && payload.novoCliente) {
+        try {
+          const salvo = await apiClientes.salvar({
+            nome: payload.novoCliente.nome,
+            telefone: payload.novoCliente.telefone,
+            status: true,
+          });
+          clienteAssociado = salvo;
+        } catch (err) {
+          console.error("Erro ao cadastrar cliente rápido:", err);
+        }
+      }
+
+      const saldoPendenteNoAto = round2(
+        vendaParaFechar.total !== undefined && vendaParaFechar.total > 0
+          ? vendaParaFechar.total
+          : Math.max(0, (vendaParaFechar.totalBruto || 0) - (vendaParaFechar.valorPago || 0) - (vendaParaFechar.desconto || 0))
+      );
+      const valorTotalDaComandaNoAto = round2(
+        saldoPendenteNoAto > 0
+          ? saldoPendenteNoAto
+          : (vendaParaFechar.totalBruto || (payload.valorPagoAgora + (payload.desconto || 0)))
+      );
+
+      const podeFechar = payload.podeFecharComanda !== false;
+
+      if (payload.tipoFechamento === "A_PRAZO") {
         await apiVendas.atualizar(vendaParaFechar.id, {
           ...vendaParaFechar,
+          cliente: clienteAssociado,
+          formaPagamento: "A_PRAZO",
+          dataVencimento: payload.dataVencimento || null,
           valorPago: novoValorPagoTotalDinheiro,
+          desconto: round2((vendaParaFechar.desconto || 0) + (payload.desconto || 0)),
         });
-        await apiVendas.fecharVenda(vendaParaFechar.id);
+        if (podeFechar) {
+          await apiVendas.fecharVenda(vendaParaFechar.id);
+        }
+
+        if (payload.valorPagoAgora > 0) {
+          try {
+            await apiPagamentosComanda.salvar({
+              venda: { id: vendaParaFechar.id } as Venda,
+              valorPago: payload.valorPagoAgora,
+              formaPagamento: payload.formaPagamento,
+              tipo: "ENTRADA_A_PRAZO",
+              totalAntes: valorTotalDaComandaNoAto,
+              saldoRestante: round2(Math.max(0, valorTotalDaComandaNoAto - payload.valorPagoAgora - (payload.desconto || 0))),
+              desconto: payload.desconto,
+            });
+          } catch (e) {
+            console.error("Erro ao registrar pagamento comanda:", e);
+          }
+
+          try {
+            await apiFluxoFinanceiro.salvar({
+              nome: `Entrada A Prazo Comanda #${vendaParaFechar.id} - ${clienteAssociado?.nome || "Cliente"} (${payload.formaPagamento})`,
+              descricao: `Entrada de comanda a prazo (${vendaParaFechar.mesa?.nome || vendaParaFechar.tipoAtendimento || "Consumo"})`,
+              transacao: "Entrada",
+              fluxo: payload.valorPagoAgora,
+            });
+          } catch (e) {
+            console.error("Erro fluxo financeiro:", e);
+          }
+        }
+
+        toast.success(
+          podeFechar
+            ? `Comanda #${vendaParaFechar.id} encerrada a prazo para ${clienteAssociado?.nome || "o cliente"}!`
+            : `Pagamento registrado na Comanda #${vendaParaFechar.id} (a prazo)!`
+        );
+      } else if (payload.tipoFechamento === "TOTAL") {
+        await apiVendas.atualizar(vendaParaFechar.id, {
+          ...vendaParaFechar,
+          cliente: clienteAssociado,
+          formaPagamento: payload.formaPagamento,
+          valorPago: novoValorPagoTotalDinheiro,
+          desconto: round2((vendaParaFechar.desconto || 0) + (payload.desconto || 0)),
+        });
+        if (podeFechar) {
+          await apiVendas.fecharVenda(vendaParaFechar.id);
+        }
 
         try {
           await apiPagamentosComanda.salvar({
             venda: { id: vendaParaFechar.id } as Venda,
             valorPago: payload.valorPagoAgora,
             formaPagamento: payload.formaPagamento,
-            tipo: "TOTAL",
-            totalAntes: payload.valorPagoAgora + payload.desconto,
-            saldoRestante: 0,
+            tipo: podeFechar ? "TOTAL" : "PARCIAL",
+            totalAntes: valorTotalDaComandaNoAto,
+            saldoRestante: podeFechar ? 0 : round2(Math.max(0, valorTotalDaComandaNoAto - payload.valorPagoAgora - (payload.desconto || 0))),
             desconto: payload.desconto,
-            dataPagamento: new Date().toISOString(),
           });
         } catch (e) {
           console.error("Erro ao registrar pagamento comanda:", e);
@@ -573,20 +661,26 @@ function VendasPage() {
         try {
           await apiFluxoFinanceiro.salvar({
             nome: `Recebimento Comanda #${vendaParaFechar.id} - ${payload.formaPagamento}`,
-            descricao: `Encerramento comanda ${vendaParaFechar.mesa?.nome || vendaParaFechar.tipoAtendimento || "Consumo"}`,
+            descricao: `${podeFechar ? "Encerramento" : "Pagamento"} comanda ${vendaParaFechar.mesa?.nome || vendaParaFechar.tipoAtendimento || "Consumo"}`,
             transacao: "Entrada",
             fluxo: payload.valorPagoAgora,
-            dataTransacao: new Date().toISOString(),
           });
         } catch (e) {
           console.error("Erro fluxo financeiro:", e);
         }
 
-        toast.success(`Comanda #${vendaParaFechar.id} encerrada com sucesso!`);
+        toast.success(
+          podeFechar
+            ? `Comanda #${vendaParaFechar.id} encerrada com sucesso!`
+            : `Pagamento de ${brl(payload.valorPagoAgora)} registrado na Comanda #${vendaParaFechar.id}!`
+        );
       } else {
         await apiVendas.atualizar(vendaParaFechar.id, {
           ...vendaParaFechar,
+          cliente: clienteAssociado,
+          formaPagamento: payload.formaPagamento,
           valorPago: novoValorPagoTotalDinheiro,
+          desconto: round2((vendaParaFechar.desconto || 0) + (payload.desconto || 0)),
         });
 
         try {
@@ -595,10 +689,9 @@ function VendasPage() {
             valorPago: payload.valorPagoAgora,
             formaPagamento: payload.formaPagamento,
             tipo: "PARCIAL",
-            totalAntes: payload.valorPagoAgora + payload.desconto,
-            saldoRestante: Math.max(0, (vendaParaFechar.total || 0) - novoValorPagoTotalDinheiro),
+            totalAntes: valorTotalDaComandaNoAto,
+            saldoRestante: round2(Math.max(0, valorTotalDaComandaNoAto - payload.valorPagoAgora - (payload.desconto || 0))),
             desconto: payload.desconto,
-            dataPagamento: new Date().toISOString(),
           });
         } catch (e) {
           console.error("Erro pagamento parcial:", e);
@@ -610,13 +703,12 @@ function VendasPage() {
             descricao: `Pagamento parcial comanda ${vendaParaFechar.mesa?.nome || vendaParaFechar.tipoAtendimento || "Consumo"}`,
             transacao: "Entrada",
             fluxo: payload.valorPagoAgora,
-            dataTransacao: new Date().toISOString(),
           });
         } catch (e) {
           console.error("Erro fluxo financeiro:", e);
         }
 
-        toast.success(`Pagamento parcial de ${payload.valorPagoAgora} registrado na Comanda #${vendaParaFechar.id}!`);
+        toast.success(`Pagamento parcial de ${brl(payload.valorPagoAgora)} registrado na Comanda #${vendaParaFechar.id}!`);
       }
 
       setVendaParaFechar(null);
@@ -629,27 +721,93 @@ function VendasPage() {
     }
   };
 
+  const handleOpenFecharOuEncerrarComanda = (v: Venda) => {
+    const itensDaVenda = allItensAbertos.filter(
+      (i) =>
+        i.vendaId === v.id ||
+        (i as any).vendaId === v.id ||
+        i.pedido?.venda?.id === v.id
+    );
+    const subtotalItens = round2(
+      itensDaVenda
+        .filter((i) => !i.statusItem || i.statusItem.toUpperCase() !== "CANCELADO")
+        .reduce((acc, i) => acc + (i.total || 0), 0)
+    );
+    const taxa = round2(v.taxaEntrega || 0);
+    const totalConsumido = round2(
+      Math.max(subtotalItens + taxa, v.totalBruto || v.total || 0)
+    );
+    const valorPago = round2(v.valorPago || 0);
+    const desconto = round2(v.desconto || 0);
+    const saldoPendente = round2(
+      Math.max(0, totalConsumido - valorPago - desconto)
+    );
+
+    if (saldoPendente <= 0.001) {
+      setVendaParaEncerrar(v);
+    } else {
+      setVendaParaFechar(v);
+    }
+  };
+
+  const handleConfirmarEncerramentoDireto = async (vendaId: number) => {
+    try {
+      setEncerrandoVenda(true);
+      await apiVendas.fecharVenda(vendaId);
+      toast.success(
+        `Comanda #${vendaParaEncerrar?.numeroComanda || vendaId} encerrada com sucesso!`
+      );
+      setVendaParaEncerrar(null);
+      setVerItensComandaModal(null);
+      fetchVendasAbertas();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao encerrar comanda.");
+    } finally {
+      setEncerrandoVenda(false);
+    }
+  };
+
+  const handleConfirmExcluirComanda = async () => {
+    if (!comandaParaExcluir) return;
+
+    try {
+      setExcluindoComanda(true);
+      await apiVendas.deletar(comandaParaExcluir.id!);
+      toast.success(
+        `Comanda #${comandaParaExcluir.numeroComanda || comandaParaExcluir.id} excluída com sucesso!`
+      );
+      setComandaParaExcluir(null);
+      await fetchVendasAbertas();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message ||
+          "Não foi possível excluir a comanda. Verifique se há pedidos ou pagamentos vinculados."
+      );
+    } finally {
+      setExcluindoComanda(false);
+    }
+  };
+
   return (
     <AppShell
-      title="Comandas"
-      description={`${vendasAbertas.length} comanda(s) em aberto no local, retirada e delivery.`}
+      title="Comandas & Mesas"
+      description="Gerencie comandas abertas, pedidos de consumo local, retirada e delivery."
       actions={
-        <div className="flex flex-wrap items-center gap-2">
-          <Tabs value={modoExibicao} onValueChange={(val) => setModoExibicao(val as any)}>
+        <div className="flex items-center gap-2">
+          <Tabs
+            value={modoExibicao}
+            onValueChange={(v) => setModoExibicao(v as "COMANDAS" | "MESAS")}
+            className="w-auto"
+          >
             <TabsList className="h-9">
-              <TabsTrigger
-                value="COMANDAS"
-                className="text-xs flex items-center gap-1.5 cursor-pointer data-[state=active]:text-primary"
-              >
+              <TabsTrigger value="COMANDAS" className="text-xs flex items-center gap-1.5">
                 <Receipt className="size-3.5" />
-                <span>Comandas</span>
+                <span className="hidden sm:inline">Comandas</span>
               </TabsTrigger>
-              <TabsTrigger
-                value="MESAS"
-                className="text-xs flex items-center gap-1.5 cursor-pointer data-[state=active]:text-primary"
-              >
+              <TabsTrigger value="MESAS" className="text-xs flex items-center gap-1.5">
                 <LayoutGrid className="size-3.5" />
-                <span>Mapa de Mesas</span>
+                <span className="hidden sm:inline">Mapa de Mesas</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -665,7 +823,14 @@ function VendasPage() {
           </Button>
 
           <Button
-            onClick={() => handleOpenNovaVenda()}
+            onClick={() =>
+              handleOpenNovaVenda(
+                undefined,
+                modoExibicao === "COMANDAS" && comandasActiveTab !== "TODOS"
+                  ? comandasActiveTab
+                  : "LOCAL"
+              )
+            }
             className="bg-brand text-primary-foreground hover:opacity-90 text-xs font-semibold h-9 px-4 cursor-pointer"
           >
             <Plus className="size-3.5 mr-1" /> Nova Comanda
@@ -687,19 +852,21 @@ function VendasPage() {
           onLancarItens={(v) =>
             navigate({ to: "/vendas/$vendaId/lancar", params: { vendaId: v.id!.toString() } })
           }
-          onFecharComanda={setVendaParaFechar}
+          onFecharComanda={handleOpenFecharOuEncerrarComanda}
           onGerenciarMesas={() => setIsGerenciarMesasOpen(true)}
         />
       ) : (
         <ComandasListView
           vendasAbertas={vendasAbertas}
           allItensAbertos={allItensAbertos}
-          onOpenNovaComanda={() => handleOpenNovaVenda()}
+          activeTab={comandasActiveTab}
+          onTabChange={setComandasActiveTab}
+          onOpenNovaComanda={(tipo) => handleOpenNovaVenda(undefined, tipo)}
           onVerItensComanda={handleOpenVerItensComanda}
           onLancarItens={(v) =>
             navigate({ to: "/vendas/$vendaId/lancar", params: { vendaId: v.id!.toString() } })
           }
-          onFecharComanda={setVendaParaFechar}
+          onFecharComanda={handleOpenFecharOuEncerrarComanda}
           onExcluirComanda={setComandaParaExcluir}
         />
       )}
@@ -747,7 +914,7 @@ function VendasPage() {
         }}
         onFecharComanda={(v) => {
           setVerItensComandaModal(null);
-          setVendaParaFechar(v);
+          handleOpenFecharOuEncerrarComanda(v);
         }}
         onRemoverItem={(item) => handleRemoverItemDaComanda(item)}
         cancelingItemId={cancelingItemId}
@@ -776,8 +943,18 @@ function VendasPage() {
         itensAbertos={allItensAbertos}
         open={vendaParaFechar !== null}
         onOpenChange={(o) => !o && setVendaParaFechar(null)}
+        clientesList={clientesList}
         onConfirm={handleConfirmarFechamentoComanda}
         loading={closingVenda}
+      />
+
+      <EncerrarComandaModal
+        venda={vendaParaEncerrar}
+        itensAbertos={allItensAbertos}
+        open={vendaParaEncerrar !== null}
+        onOpenChange={(o) => !o && setVendaParaEncerrar(null)}
+        onConfirm={handleConfirmarEncerramentoDireto}
+        loading={encerrandoVenda}
       />
 
       <PerguntaEstornoPedidoModal
