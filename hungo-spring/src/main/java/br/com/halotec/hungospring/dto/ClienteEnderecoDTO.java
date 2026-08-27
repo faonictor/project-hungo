@@ -4,7 +4,6 @@ public class ClienteEnderecoDTO {
     private String nome;
     private String telefone;
     private String email;
-    private String senha;
     private String cpf;
     private String rua;
     private Integer numero;
@@ -22,8 +21,6 @@ public class ClienteEnderecoDTO {
     public void setTelefone(String telefone) { this.telefone = telefone; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public String getSenha() { return senha; }
-    public void setSenha(String senha) { this.senha = senha; }
     public String getCpf() { return cpf; }
     public void setCpf(String cpf) { this.cpf = cpf; }
     public String getRua() { return rua; }

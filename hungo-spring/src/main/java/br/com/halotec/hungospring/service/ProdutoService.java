@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -61,7 +62,7 @@ public class ProdutoService {
         }
 
         produto.setNome(produtoDTO.getNome());
-        produto.setPreco(produtoDTO.getPreco());
+        produto.setPreco(produtoDTO.getPreco() != null ? produtoDTO.getPreco() : BigDecimal.ZERO);
         produto.setTipo(produtoDTO.getTipo() != null ? produtoDTO.getTipo() : true);
 
         boolean querFavorito = Boolean.TRUE.equals(produtoDTO.getFavorito());

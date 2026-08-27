@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -23,14 +24,16 @@ public class ComandaExcluida implements Serializable {
     private Long comandaId;
     private LocalDateTime dataHoraExclusao;
     private String nomeCliente;
-    private Float valorTotal;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorTotal;
 
     @Column(columnDefinition = "TEXT")
     private String motivo;
 
     public ComandaExcluida() {}
 
-    public ComandaExcluida(Long comandaId, LocalDateTime dataHoraExclusao, String nomeCliente, Float valorTotal, String motivo) {
+    public ComandaExcluida(Long comandaId, LocalDateTime dataHoraExclusao, String nomeCliente, BigDecimal valorTotal, String motivo) {
         this.comandaId = comandaId;
         this.dataHoraExclusao = dataHoraExclusao;
         this.nomeCliente = nomeCliente;
@@ -70,11 +73,11 @@ public class ComandaExcluida implements Serializable {
         this.nomeCliente = nomeCliente;
     }
 
-    public Float getValorTotal() {
-        return valorTotal;
+    public BigDecimal getValorTotal() {
+        return valorTotal != null ? valorTotal : BigDecimal.ZERO;
     }
 
-    public void setValorTotal(Float valorTotal) {
+    public void setValorTotal(BigDecimal valorTotal) {
         this.valorTotal = valorTotal;
     }
 

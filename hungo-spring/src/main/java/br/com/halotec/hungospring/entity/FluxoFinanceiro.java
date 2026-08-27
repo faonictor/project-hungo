@@ -1,6 +1,8 @@
 package br.com.halotec.hungospring.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -8,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -26,11 +29,12 @@ public class FluxoFinanceiro implements Serializable {
     private String transacao;
     private LocalDateTime dataTransacao;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venda_id")
     private Venda venda;
 
-    private Float fluxo;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal fluxo;
 
     public FluxoFinanceiro() {}
 
@@ -82,11 +86,11 @@ public class FluxoFinanceiro implements Serializable {
         this.venda = venda;
     }
 
-    public Float getFluxo() {
-        return fluxo != null ? fluxo : 0.0f;
+    public BigDecimal getFluxo() {
+        return fluxo != null ? fluxo : BigDecimal.ZERO;
     }
 
-    public void setFluxo(Float fluxo) {
+    public void setFluxo(BigDecimal fluxo) {
         this.fluxo = fluxo;
     }
 

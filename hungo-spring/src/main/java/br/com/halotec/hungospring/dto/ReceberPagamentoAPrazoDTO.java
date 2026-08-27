@@ -1,28 +1,29 @@
 package br.com.halotec.hungospring.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 public class ReceberPagamentoAPrazoDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Float valorRecebido;
+    private BigDecimal valorRecebido;
     private String formaPagamentoReal;
-    private Float desconto;
+    private BigDecimal desconto;
 
     public ReceberPagamentoAPrazoDTO() {}
 
-    public ReceberPagamentoAPrazoDTO(Float valorRecebido, String formaPagamentoReal, Float desconto) {
+    public ReceberPagamentoAPrazoDTO(BigDecimal valorRecebido, String formaPagamentoReal, BigDecimal desconto) {
         this.valorRecebido = valorRecebido;
         this.formaPagamentoReal = formaPagamentoReal;
         this.desconto = desconto;
     }
 
-    public Float getValorRecebido() {
-        return valorRecebido;
+    public BigDecimal getValorRecebido() {
+        return valorRecebido != null ? valorRecebido : BigDecimal.ZERO;
     }
 
-    public void setValorRecebido(Float valorRecebido) {
+    public void setValorRecebido(BigDecimal valorRecebido) {
         this.valorRecebido = valorRecebido;
     }
 
@@ -34,11 +35,11 @@ public class ReceberPagamentoAPrazoDTO implements Serializable {
         this.formaPagamentoReal = formaPagamentoReal;
     }
 
-    public Float getDesconto() {
-        return desconto;
+    public BigDecimal getDesconto() {
+        return desconto != null ? desconto : BigDecimal.ZERO;
     }
 
-    public void setDesconto(Float desconto) {
+    public void setDesconto(BigDecimal desconto) {
         this.desconto = desconto;
     }
 }

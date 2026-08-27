@@ -22,13 +22,23 @@ public class Funcionario implements Serializable {
     private String nome;
     private String telefone;
     private String email;
-    private String senha;
     private LocalDateTime dataCadastro;
     private String funcao;
     private String permissao;
     private String cpf;
 
     public Funcionario() {}
+
+    public Funcionario(Long id, String nome, String telefone, String email, LocalDateTime dataCadastro, String funcao, String permissao, String cpf) {
+        this.id = id;
+        this.nome = nome;
+        this.telefone = telefone;
+        this.email = email;
+        this.dataCadastro = dataCadastro;
+        this.funcao = funcao;
+        this.permissao = permissao;
+        this.cpf = cpf;
+    }
 
     public Long getId() {
         return id;
@@ -60,14 +70,6 @@ public class Funcionario implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 
     public LocalDateTime getDataCadastro() {

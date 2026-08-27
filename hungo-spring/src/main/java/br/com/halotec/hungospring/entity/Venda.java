@@ -2,14 +2,15 @@ package br.com.halotec.hungospring.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -27,41 +28,46 @@ public class Venda implements Serializable {
     // Número sequencial diário da comanda (reinicia a 00:00 todo dia: 1, 2, 3...)
     private Integer numeroComanda;
 
-    // LOCAL, RETIRADA, BALCAO, DELIVERY
+    // LOCAL, RETIRADA, DELIVERY
     private String tipoAtendimento;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mesa_id")
     private Mesa mesa;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
     private String nomeCliente;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "endereco_id")
     private Endereco endereco;
 
-    private Float taxaEntrega;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal taxaEntrega;
+
     private String formaPagamento;
 
     private LocalDateTime dataInicioVenda;
     private LocalDateTime dataFimVenda;
     private LocalDate dataVencimento;
     private String statusPagamento; // PAGO, PENDENTE, PARCIAL
-    private Float total;
-    private Float valorPago;
-    private Float desconto;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal total;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorPago;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal desconto;
 
     private String status;
 
     @Column(columnDefinition = "TEXT")
     private String motivoCancelamento;
-
-    @Transient
-    private Float totalBruto;
 
     public Venda() {}
 
@@ -121,11 +127,11 @@ public class Venda implements Serializable {
         this.endereco = endereco;
     }
 
-    public Float getTaxaEntrega() {
-        return taxaEntrega;
+    public BigDecimal getTaxaEntrega() {
+        return taxaEntrega != null ? taxaEntrega : BigDecimal.ZERO;
     }
 
-    public void setTaxaEntrega(Float taxaEntrega) {
+    public void setTaxaEntrega(BigDecimal taxaEntrega) {
         this.taxaEntrega = taxaEntrega;
     }
 
@@ -169,27 +175,27 @@ public class Venda implements Serializable {
         this.statusPagamento = statusPagamento;
     }
 
-    public Float getTotal() {
-        return total != null ? total : 0.0f;
+    public BigDecimal getTotal() {
+        return total != null ? total : BigDecimal.ZERO;
     }
 
-    public void setTotal(Float total) {
+    public void setTotal(BigDecimal total) {
         this.total = total;
     }
 
-    public Float getValorPago() {
-        return valorPago != null ? valorPago : 0.0f;
+    public BigDecimal getValorPago() {
+        return valorPago != null ? valorPago : BigDecimal.ZERO;
     }
 
-    public void setValorPago(Float valorPago) {
+    public void setValorPago(BigDecimal valorPago) {
         this.valorPago = valorPago;
     }
 
-    public Float getDesconto() {
-        return desconto != null ? desconto : 0.0f;
+    public BigDecimal getDesconto() {
+        return desconto != null ? desconto : BigDecimal.ZERO;
     }
 
-    public void setDesconto(Float desconto) {
+    public void setDesconto(BigDecimal desconto) {
         this.desconto = desconto;
     }
 
@@ -207,14 +213,6 @@ public class Venda implements Serializable {
 
     public void setMotivoCancelamento(String motivoCancelamento) {
         this.motivoCancelamento = motivoCancelamento;
-    }
-
-    public Float getTotalBruto() {
-        return totalBruto;
-    }
-
-    public void setTotalBruto(Float totalBruto) {
-        this.totalBruto = totalBruto;
     }
 
     @Override

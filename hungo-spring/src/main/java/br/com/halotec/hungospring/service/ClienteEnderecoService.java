@@ -26,7 +26,6 @@ public class ClienteEnderecoService {
         cliente.setTelefone(dto.getTelefone());
         cliente.setEmail(dto.getEmail());
         cliente.setCpf(dto.getCpf());
-        cliente.setSenha(dto.getSenha());
         cliente.setDataCadastro(LocalDateTime.now());
         cliente.setStatus(dto.getStatus() != null ? dto.getStatus() : true);
 

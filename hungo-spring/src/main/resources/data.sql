@@ -41,14 +41,14 @@ INSERT IGNORE INTO Produto (id, nome, preco, tipo, favorito, categoria_id) VALUE
 UPDATE Produto SET favorito = true WHERE id BETWEEN 1 AND 12;
 
 -- CLIENTES
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (1, 'João Carlos da Silva', '(11) 98888-7777', 'joao.silva@email.com', '123456', '123.456.789-01', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (2, 'Maria Eduarda Santos', '(11) 97777-6666', 'maria.santos@email.com', '123456', '234.567.890-12', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (3, 'Carlos Eduardo Oliveira', '(11) 96666-5555', 'carlos.oliveira@email.com', '123456', '345.678.901-23', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (4, 'Fernanda Lima Alencar', '(11) 95555-4444', 'fernanda.lima@email.com', '123456', '456.789.012-34', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (5, 'Lucas Gabriel Souza', '(11) 94444-3333', 'lucas.souza@email.com', '123456', '567.890.123-45', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (6, 'Beatriz Mendes Ferreira', '(11) 93333-2222', 'beatriz.mendes@email.com', '123456', '678.901.234-56', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (7, 'Pedro Henrique Ribeiro', '(11) 92222-1111', 'pedro.ribeiro@email.com', '123456', '789.012.345-67', NOW(), true);
-INSERT IGNORE INTO Cliente (id, nome, telefone, email, senha, cpf, dataCadastro, status) VALUES (8, 'Ana Clara Costa', '(11) 91111-0000', 'ana.costa@email.com', '123456', '890.123.456-78', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (1, 'João Carlos da Silva', '(11) 98888-7777', 'joao.silva@email.com', '123.456.789-01', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (2, 'Maria Eduarda Santos', '(11) 97777-6666', 'maria.santos@email.com', '234.567.890-12', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (3, 'Carlos Eduardo Oliveira', '(11) 96666-5555', 'carlos.oliveira@email.com', '345.678.901-23', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (4, 'Fernanda Lima Alencar', '(11) 95555-4444', 'fernanda.lima@email.com', '456.789.012-34', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (5, 'Lucas Gabriel Souza', '(11) 94444-3333', 'lucas.souza@email.com', '567.890.123-45', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (6, 'Beatriz Mendes Ferreira', '(11) 93333-2222', 'beatriz.mendes@email.com', '678.901.234-56', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (7, 'Pedro Henrique Ribeiro', '(11) 92222-1111', 'pedro.ribeiro@email.com', '789.012.345-67', NOW(), true);
+INSERT IGNORE INTO Cliente (id, nome, telefone, email, cpf, dataCadastro, status) VALUES (8, 'Ana Clara Costa', '(11) 91111-0000', 'ana.costa@email.com', '890.123.456-78', NOW(), true);
 
 -- ENDEREÇOS
 INSERT IGNORE INTO Endereco (id, rua, numero, complemento, bairro, cidade, cep, cliente_id) VALUES (1, 'Avenida Paulista', 1000, 'Apto 42', 'Bela Vista', 'São Paulo', '01310-100', 1);

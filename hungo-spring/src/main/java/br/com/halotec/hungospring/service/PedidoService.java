@@ -17,6 +17,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,19 +149,21 @@ public class PedidoService {
                             .orElse(null);
                 }
 
+                int qtd = itemDTO.getQuantidade() != null && itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1;
+
                 if (itemToSave != null) {
                     if (itemDtoId != null) {
-                        itemToSave.setQuantidade(itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1);
+                        itemToSave.setQuantidade(qtd);
                     } else {
-                        itemToSave.setQuantidade(itemToSave.getQuantidade() + (itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1));
+                        itemToSave.setQuantidade(itemToSave.getQuantidade() + qtd);
                     }
-                    itemToSave.setTotal(itemToSave.getQuantidade() * produto.getPreco());
+                    itemToSave.setTotal(produto.getPreco().multiply(BigDecimal.valueOf(itemToSave.getQuantidade())));
                 } else {
                     itemToSave = new ItemPedido();
                     itemToSave.setPedido(pedido);
                     itemToSave.setProduto(produto);
-                    itemToSave.setQuantidade(itemDTO.getQuantidade() > 0 ? itemDTO.getQuantidade() : 1);
-                    itemToSave.setTotal(itemToSave.getQuantidade() * produto.getPreco());
+                    itemToSave.setQuantidade(qtd);
+                    itemToSave.setTotal(produto.getPreco().multiply(BigDecimal.valueOf(qtd)));
                     itemToSave.setStatusItem(itemDTO.getStatusItem() != null ? itemDTO.getStatusItem() : "ATIVO");
                 }
 
@@ -320,12 +323,15 @@ public class PedidoService {
         if (vendaId == null) return;
         Venda venda = vendaRepository.findById(vendaId).orElse(null);
         if (venda != null) {
-            Float totalItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
-            float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-            float valorPago = venda.getValorPago() != null ? venda.getValorPago() : 0.0f;
-            float desconto = venda.getDesconto() != null ? venda.getDesconto() : 0.0f;
-            float totalConsumido = (totalItens != null ? totalItens : 0.0f) + taxa;
-            venda.setTotal(Math.max(0.0f, totalConsumido - valorPago - desconto));
+            BigDecimal totalItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
+            if (totalItens == null) totalItens = BigDecimal.ZERO;
+            BigDecimal taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : BigDecimal.ZERO;
+            BigDecimal valorPago = venda.getValorPago() != null ? venda.getValorPago() : BigDecimal.ZERO;
+            BigDecimal desconto = venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO;
+
+            BigDecimal totalConsumido = totalItens.add(taxa);
+            BigDecimal saldo = totalConsumido.subtract(valorPago).subtract(desconto);
+            venda.setTotal(saldo.compareTo(BigDecimal.ZERO) > 0 ? saldo : BigDecimal.ZERO);
             vendaRepository.save(venda);
         }
     }

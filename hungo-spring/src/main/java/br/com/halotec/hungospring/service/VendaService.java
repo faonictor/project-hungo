@@ -18,19 +18,16 @@ import br.com.halotec.hungospring.repository.MesaRepository;
 import br.com.halotec.hungospring.repository.PagamentoComandaRepository;
 import br.com.halotec.hungospring.repository.PedidoRepository;
 import br.com.halotec.hungospring.repository.VendaRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class VendaService {
@@ -65,35 +62,6 @@ public class VendaService {
         this.enderecoRepository = enderecoRepository;
         this.pagamentoComandaRepository = pagamentoComandaRepository;
         this.fluxoFinanceiroRepository = fluxoFinanceiroRepository;
-    }
-
-    @PostConstruct
-    @Transactional
-    public void inicializarNumerosComandaLegadas() {
-        try {
-            List<Venda> semNumero = vendaRepository.findAll().stream()
-                    .filter(v -> v.getNumeroComanda() == null)
-                    .toList();
-            if (semNumero.isEmpty()) return;
-
-            Map<LocalDate, List<Venda>> porDia = semNumero.stream()
-                    .collect(Collectors.groupingBy(v -> v.getDataInicioVenda() != null ? v.getDataInicioVenda().toLocalDate() : LocalDate.now()));
-
-            for (Map.Entry<LocalDate, List<Venda>> entry : porDia.entrySet()) {
-                LocalDateTime inicioDia = entry.getKey().atStartOfDay();
-                LocalDateTime fimDia = entry.getKey().atTime(23, 59, 59, 999999999);
-                Integer maxExistente = vendaRepository.findMaxNumeroComandaBetween(inicioDia, fimDia);
-                int seq = (maxExistente != null ? maxExistente : 0) + 1;
-                List<Venda> lista = new ArrayList<>(entry.getValue());
-                lista.sort(Comparator.comparing(v -> v.getId() != null ? v.getId() : 0L));
-                for (Venda v : lista) {
-                    v.setNumeroComanda(seq++);
-                    vendaRepository.save(v);
-                }
-            }
-        } catch (Exception e) {
-            // Ignora se tabela estiver vazia na inicialização
-        }
     }
 
     @Transactional(readOnly = true)
@@ -137,10 +105,10 @@ public class VendaService {
                 venda.setEndereco(end);
             }
             if (venda.getTaxaEntrega() == null) {
-                venda.setTaxaEntrega(0.0f);
+                venda.setTaxaEntrega(BigDecimal.ZERO);
             }
         } else {
-            venda.setTaxaEntrega(0.0f);
+            venda.setTaxaEntrega(BigDecimal.ZERO);
             venda.setEndereco(null);
         }
 
@@ -171,7 +139,7 @@ public class VendaService {
         if (dadosNovos.getTipoAtendimento() != null) {
             existente.setTipoAtendimento(dadosNovos.getTipoAtendimento());
 
-            if ("LOCAL".equalsIgnoreCase(dadosNovos.getTipoAtendimento()) || "SALAO".equalsIgnoreCase(dadosNovos.getTipoAtendimento())) {
+            if ("LOCAL".equalsIgnoreCase(dadosNovos.getTipoAtendimento())) {
                 if (dadosNovos.getMesa() != null && dadosNovos.getMesa().getId() != null) {
                     Long novaMesaId = dadosNovos.getMesa().getId();
                     Mesa novaMesa = novaMesaId != null ? mesaRepository.findById(novaMesaId).orElse(null) : null;
@@ -209,7 +177,7 @@ public class VendaService {
                 existente.setEndereco(null);
             }
         } else {
-            existente.setTaxaEntrega(0.0f);
+            existente.setTaxaEntrega(BigDecimal.ZERO);
             existente.setEndereco(null);
         }
 
@@ -251,12 +219,14 @@ public class VendaService {
             existente.setDesconto(dadosNovos.getDesconto());
         }
 
-        Float totalItens = itemPedidoRepository.somarTotalPorVendaId(id);
-        float taxa = existente.getTaxaEntrega() != null ? existente.getTaxaEntrega() : 0.0f;
-        float valorPagoAtual = existente.getValorPago() != null ? existente.getValorPago() : 0.0f;
-        float descAtual = existente.getDesconto() != null ? existente.getDesconto() : 0.0f;
-        float totalConsumido = (totalItens != null ? totalItens : 0.0f) + taxa;
-        existente.setTotal(Math.max(0.0f, totalConsumido - valorPagoAtual - descAtual));
+        BigDecimal totalItens = itemPedidoRepository.somarTotalPorVendaId(id);
+        if (totalItens == null) totalItens = BigDecimal.ZERO;
+        BigDecimal taxa = existente.getTaxaEntrega() != null ? existente.getTaxaEntrega() : BigDecimal.ZERO;
+        BigDecimal valorPagoAtual = existente.getValorPago() != null ? existente.getValorPago() : BigDecimal.ZERO;
+        BigDecimal descAtual = existente.getDesconto() != null ? existente.getDesconto() : BigDecimal.ZERO;
+        BigDecimal totalConsumido = totalItens.add(taxa);
+        BigDecimal saldo = totalConsumido.subtract(valorPagoAtual).subtract(descAtual);
+        existente.setTotal(saldo.compareTo(BigDecimal.ZERO) > 0 ? saldo : BigDecimal.ZERO);
 
         if (existente.getNumeroComanda() == null) {
             LocalDate dataRef = (existente.getDataInicioVenda() != null ? existente.getDataInicioVenda() : LocalDateTime.now()).toLocalDate();
@@ -287,9 +257,10 @@ public class VendaService {
         Venda venda = vendaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + id));
 
-        Float valorItens = itemPedidoRepository.somarTotalPorVendaId(id);
-        float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-        float valorTotalMomento = (valorItens != null ? valorItens : 0.0f) + taxa;
+        BigDecimal valorItens = itemPedidoRepository.somarTotalPorVendaId(id);
+        if (valorItens == null) valorItens = BigDecimal.ZERO;
+        BigDecimal taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : BigDecimal.ZERO;
+        BigDecimal valorTotalMomento = valorItens.add(taxa);
 
         String nomeCliente = venda.getMesa() != null
                 ? venda.getMesa().getNome()
@@ -343,31 +314,18 @@ public class VendaService {
         }
     }
 
-    private void enriquecerTotalBruto(Venda venda) {
-        if (venda == null || venda.getId() == null) return;
-        Float valorItens = itemPedidoRepository.somarTotalPorVendaId(venda.getId());
-        float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-        float totalBruto = (valorItens != null ? valorItens : 0.0f) + taxa;
-        venda.setTotalBruto(totalBruto);
-    }
-
     @Transactional(readOnly = true)
     public List<Venda> buscarVendasEmAberto() {
-        List<Venda> abertas = vendaRepository.findByDataFimVendaIsNull();
-        if (abertas != null) {
-            abertas.forEach(this::enriquecerTotalBruto);
-        }
-        return abertas;
+        return vendaRepository.findByDataFimVendaIsNull();
     }
 
     @Transactional(readOnly = true)
     public List<Venda> buscarVendasFechadas() {
         List<Venda> fechadas = new ArrayList<>(vendaRepository.findByDataFimVendaIsNotNull());
-        List<Venda> parciais = vendaRepository.findByValorPagoGreaterThanAndDataFimVendaIsNull(0.0f);
+        List<Venda> parciais = vendaRepository.findByValorPagoGreaterThanAndDataFimVendaIsNull(BigDecimal.ZERO);
         if (parciais != null) {
             fechadas.addAll(parciais);
         }
-        fechadas.forEach(this::enriquecerTotalBruto);
         return fechadas;
     }
 
@@ -392,10 +350,11 @@ public class VendaService {
             }
         }
 
-        Float valorItens = itemPedidoRepository.somarTotalPorVendaId(id);
-        float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-        float valorTotal = (valorItens != null ? valorItens : 0.0f) + taxa;
-        float desconto = venda.getDesconto() != null ? venda.getDesconto() : 0.0f;
+        BigDecimal valorItens = itemPedidoRepository.somarTotalPorVendaId(id);
+        if (valorItens == null) valorItens = BigDecimal.ZERO;
+        BigDecimal taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : BigDecimal.ZERO;
+        BigDecimal valorTotal = valorItens.add(taxa);
+        BigDecimal desconto = venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO;
 
         boolean isAPrazo = "A_PRAZO".equalsIgnoreCase(venda.getFormaPagamento());
 
@@ -403,20 +362,21 @@ public class VendaService {
         venda.setDataFimVenda(LocalDateTime.now());
 
         if (isAPrazo) {
-            float valorPago = venda.getValorPago() != null ? venda.getValorPago() : 0.0f;
-            float saldoRestante = Math.max(0.0f, valorTotal - valorPago - desconto);
+            BigDecimal valorPago = venda.getValorPago() != null ? venda.getValorPago() : BigDecimal.ZERO;
+            BigDecimal saldoRestante = valorTotal.subtract(valorPago).subtract(desconto);
+            if (saldoRestante.compareTo(BigDecimal.ZERO) < 0) saldoRestante = BigDecimal.ZERO;
             venda.setTotal(saldoRestante);
-            venda.setStatusPagamento(saldoRestante <= 0.001f ? "PAGO" : (valorPago > 0.0f ? "PARCIAL" : "PENDENTE"));
+            venda.setStatusPagamento(saldoRestante.compareTo(BigDecimal.ZERO) == 0 ? "PAGO" : (valorPago.compareTo(BigDecimal.ZERO) > 0 ? "PARCIAL" : "PENDENTE"));
         } else {
-            venda.setTotal(0.0f);
-            if (venda.getValorPago() == null || venda.getValorPago() <= 0.0f) {
-                venda.setValorPago(Math.max(0.0f, valorTotal - desconto));
+            venda.setTotal(BigDecimal.ZERO);
+            if (venda.getValorPago() == null || venda.getValorPago().compareTo(BigDecimal.ZERO) <= 0) {
+                BigDecimal valorFinal = valorTotal.subtract(desconto);
+                venda.setValorPago(valorFinal.compareTo(BigDecimal.ZERO) > 0 ? valorFinal : BigDecimal.ZERO);
             }
             venda.setStatusPagamento("PAGO");
         }
 
         Venda salva = vendaRepository.save(venda);
-        enriquecerTotalBruto(salva);
 
         if (salva.getMesa() != null && salva.getMesa().getId() != null) {
             Long mesaId = salva.getMesa().getId();
@@ -432,47 +392,50 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda receberPagamentoAPrazo(Long vendaId, Float valorRecebido, String formaPagamentoReal, Float desconto) {
+    public Venda receberPagamentoAPrazo(Long vendaId, BigDecimal valorRecebido, String formaPagamentoReal, BigDecimal desconto) {
         Venda venda = vendaRepository.findById(vendaId)
                 .orElseThrow(() -> new EntityNotFoundException("Venda não encontrada com o ID: " + vendaId));
 
-        if (valorRecebido == null || valorRecebido <= 0.0f) {
+        if (valorRecebido == null || valorRecebido.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valor recebido deve ser maior que zero.");
         }
 
-        float desc = desconto != null ? Math.max(0.0f, desconto) : 0.0f;
-        Float valorItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
-        float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-        float totalBruto = (valorItens != null ? valorItens : 0.0f) + taxa;
+        BigDecimal desc = desconto != null && desconto.compareTo(BigDecimal.ZERO) > 0 ? desconto : BigDecimal.ZERO;
+        BigDecimal valorItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
+        if (valorItens == null) valorItens = BigDecimal.ZERO;
+        BigDecimal taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : BigDecimal.ZERO;
+        BigDecimal totalBruto = valorItens.add(taxa);
 
-        float valorPagoAnterior = venda.getValorPago() != null ? venda.getValorPago() : 0.0f;
-        float descontoAnterior = venda.getDesconto() != null ? venda.getDesconto() : 0.0f;
-        float saldoAnterior = venda.getTotal() != null && venda.getTotal() > 0 ? venda.getTotal() : Math.max(0.0f, totalBruto - valorPagoAnterior - descontoAnterior);
+        BigDecimal valorPagoAnterior = venda.getValorPago() != null ? venda.getValorPago() : BigDecimal.ZERO;
+        BigDecimal descontoAnterior = venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO;
+        BigDecimal saldoAnterior = (venda.getTotal() != null && venda.getTotal().compareTo(BigDecimal.ZERO) > 0)
+                ? venda.getTotal()
+                : totalBruto.subtract(valorPagoAnterior).subtract(descontoAnterior);
+        if (saldoAnterior.compareTo(BigDecimal.ZERO) < 0) saldoAnterior = BigDecimal.ZERO;
 
-        float novoValorPago = valorPagoAnterior + valorRecebido;
-        float novoDescontoTotal = descontoAnterior + desc;
+        BigDecimal novoValorPago = valorPagoAnterior.add(valorRecebido);
+        BigDecimal novoDescontoTotal = descontoAnterior.add(desc);
         venda.setValorPago(novoValorPago);
         venda.setDesconto(novoDescontoTotal);
 
-        float novoSaldo = Math.max(0.0f, saldoAnterior - valorRecebido - desc);
-        venda.setTotal(novoSaldo);
-
-        if (novoSaldo <= 0.001f) {
+        BigDecimal novoSaldo = saldoAnterior.subtract(valorRecebido).subtract(desc);
+        if (novoSaldo.compareTo(BigDecimal.ZERO) <= 0) {
+            novoSaldo = BigDecimal.ZERO;
             venda.setStatusPagamento("PAGO");
-            venda.setTotal(0.0f);
+            venda.setTotal(BigDecimal.ZERO);
         } else {
             venda.setStatusPagamento("PARCIAL");
+            venda.setTotal(novoSaldo);
         }
 
         Venda salva = vendaRepository.save(venda);
-        enriquecerTotalBruto(salva);
 
         // Registrar histórico em PagamentoComanda
         PagamentoComanda pc = new PagamentoComanda();
         pc.setVenda(salva);
         pc.setValorPago(valorRecebido);
         pc.setFormaPagamento(formaPagamentoReal != null ? formaPagamentoReal : "Dinheiro");
-        pc.setTipo(novoSaldo <= 0.001f ? "QUITACAO_A_PRAZO" : "DEBITO_PARCIAL");
+        pc.setTipo(novoSaldo.compareTo(BigDecimal.ZERO) == 0 ? "QUITACAO_A_PRAZO" : "DEBITO_PARCIAL");
         pc.setTotalAntes(saldoAnterior);
         pc.setSaldoRestante(novoSaldo);
         pc.setDesconto(desc);
@@ -483,7 +446,7 @@ public class VendaService {
         String clienteNome = salva.getCliente() != null ? salva.getCliente().getNome() : (salva.getNomeCliente() != null ? salva.getNomeCliente() : "Cliente");
         FluxoFinanceiro ff = new FluxoFinanceiro();
         ff.setNome("Recebimento A Prazo - " + clienteNome + " (" + (formaPagamentoReal != null ? formaPagamentoReal : "Dinheiro") + ")");
-        ff.setDescricao("Quitação de Comanda #" + salva.getId() + " (" + (novoSaldo <= 0.001f ? "Total" : "Parcial") + ")");
+        ff.setDescricao("Quitação de Comanda #" + salva.getId() + " (" + (novoSaldo.compareTo(BigDecimal.ZERO) == 0 ? "Total" : "Parcial") + ")");
         ff.setTransacao("Entrada");
         ff.setFluxo(valorRecebido);
         ff.setVenda(salva);
@@ -496,18 +459,12 @@ public class VendaService {
     @Transactional(readOnly = true)
     public List<Venda> buscarVendasAPrazoPendentes() {
         List<Venda> vendas = vendaRepository.findByStatusPagamentoIn(List.of("PENDENTE", "PARCIAL"));
-        if (vendas != null) {
-            vendas.forEach(this::enriquecerTotalBruto);
-        }
         return vendas != null ? vendas : new ArrayList<>();
     }
 
     @Transactional(readOnly = true)
     public List<Venda> buscarVendasAPrazoPorCliente(Long clienteId) {
         List<Venda> vendas = vendaRepository.findByClienteIdAndStatusPagamentoIn(clienteId, List.of("PENDENTE", "PARCIAL"));
-        if (vendas != null) {
-            vendas.forEach(this::enriquecerTotalBruto);
-        }
         return vendas != null ? vendas : new ArrayList<>();
     }
 

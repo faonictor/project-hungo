@@ -1,7 +1,8 @@
 package br.com.halotec.hungospring.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
@@ -21,17 +23,19 @@ public class ItemPedido implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id")
-    @JsonIgnoreProperties({"venda", "cliente", "endereco"})
     private Pedido pedido;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id")
     private Produto produto;
 
     private Integer quantidade;
-    private Float total;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal total;
+
     private String statusItem;
     private String motivoCancelamento;
 
@@ -69,11 +73,11 @@ public class ItemPedido implements Serializable {
         this.quantidade = quantidade;
     }
 
-    public Float getTotal() {
-        return total != null ? total : 0.0f;
+    public BigDecimal getTotal() {
+        return total != null ? total : BigDecimal.ZERO;
     }
 
-    public void setTotal(Float total) {
+    public void setTotal(BigDecimal total) {
         this.total = total;
     }
 
@@ -91,10 +95,6 @@ public class ItemPedido implements Serializable {
 
     public void setMotivoCancelamento(String motivoCancelamento) {
         this.motivoCancelamento = motivoCancelamento;
-    }
-
-    public Long getVendaId() {
-        return (pedido != null && pedido.getVenda() != null) ? pedido.getVenda().getId() : null;
     }
 
     @Override

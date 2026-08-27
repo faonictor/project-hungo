@@ -1,6 +1,8 @@
 package br.com.halotec.hungospring.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -8,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -21,16 +24,25 @@ public class PagamentoComanda implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venda_id")
     private Venda venda;
 
-    private Float valorPago;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorPago;
+
     private String formaPagamento;
-    private String tipo; // PARCIAL ou TOTAL
-    private Float totalAntes;
-    private Float saldoRestante;
-    private Float desconto;
+    private String tipo;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal totalAntes;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal saldoRestante;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal desconto;
+
     private LocalDateTime dataPagamento;
 
     public PagamentoComanda() {}
@@ -51,11 +63,11 @@ public class PagamentoComanda implements Serializable {
         this.venda = venda;
     }
 
-    public Float getValorPago() {
-        return valorPago != null ? valorPago : 0.0f;
+    public BigDecimal getValorPago() {
+        return valorPago != null ? valorPago : BigDecimal.ZERO;
     }
 
-    public void setValorPago(Float valorPago) {
+    public void setValorPago(BigDecimal valorPago) {
         this.valorPago = valorPago;
     }
 
@@ -75,27 +87,27 @@ public class PagamentoComanda implements Serializable {
         this.tipo = tipo;
     }
 
-    public Float getTotalAntes() {
-        return totalAntes != null ? totalAntes : 0.0f;
+    public BigDecimal getTotalAntes() {
+        return totalAntes != null ? totalAntes : BigDecimal.ZERO;
     }
 
-    public void setTotalAntes(Float totalAntes) {
+    public void setTotalAntes(BigDecimal totalAntes) {
         this.totalAntes = totalAntes;
     }
 
-    public Float getSaldoRestante() {
-        return saldoRestante != null ? saldoRestante : 0.0f;
+    public BigDecimal getSaldoRestante() {
+        return saldoRestante != null ? saldoRestante : BigDecimal.ZERO;
     }
 
-    public void setSaldoRestante(Float saldoRestante) {
+    public void setSaldoRestante(BigDecimal saldoRestante) {
         this.saldoRestante = saldoRestante;
     }
 
-    public Float getDesconto() {
-        return desconto != null ? desconto : 0.0f;
+    public BigDecimal getDesconto() {
+        return desconto != null ? desconto : BigDecimal.ZERO;
     }
 
-    public void setDesconto(Float desconto) {
+    public void setDesconto(BigDecimal desconto) {
         this.desconto = desconto;
     }
 

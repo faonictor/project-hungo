@@ -22,12 +22,21 @@ public class Cliente implements Serializable {
     private String nome;
     private String telefone;
     private String email;
-    private String senha;
     private String cpf;
     private LocalDateTime dataCadastro;
-    private Boolean status;
+    private Boolean status = true;
 
     public Cliente() {}
+
+    public Cliente(Long id, String nome, String telefone, String email, String cpf, LocalDateTime dataCadastro, Boolean status) {
+        this.id = id;
+        this.nome = nome;
+        this.telefone = telefone;
+        this.email = email;
+        this.cpf = cpf;
+        this.dataCadastro = dataCadastro;
+        this.status = status;
+    }
 
     public Long getId() {
         return id;
@@ -59,14 +68,6 @@ public class Cliente implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
     }
 
     public String getCpf() {

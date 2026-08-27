@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,7 +46,9 @@ public class ItemPedidoService {
         Produto produto = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + produtoId));
 
-        itemPedido.setTotal(itemPedido.getQuantidade() * produto.getPreco());
+        int qtd = itemPedido.getQuantidade() != null && itemPedido.getQuantidade() > 0 ? itemPedido.getQuantidade() : 1;
+        itemPedido.setQuantidade(qtd);
+        itemPedido.setTotal(produto.getPreco().multiply(BigDecimal.valueOf(qtd)));
         ItemPedido salvo = itemPedidoRepository.save(itemPedido);
 
         if (salvo.getPedido() != null && salvo.getPedido().getVenda() != null && salvo.getPedido().getVenda().getId() != null) {
@@ -101,16 +104,19 @@ public class ItemPedidoService {
         }
     }
 
-    private void atualizarTotalVenda(Long vendaId) {
+    public void atualizarTotalVenda(Long vendaId) {
         if (vendaId == null) return;
         Venda venda = vendaRepository.findById(vendaId).orElse(null);
         if (venda != null) {
-            Float totalItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
-            float taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : 0.0f;
-            float valorPago = venda.getValorPago() != null ? venda.getValorPago() : 0.0f;
-            float desconto = venda.getDesconto() != null ? venda.getDesconto() : 0.0f;
-            float totalConsumido = (totalItens != null ? totalItens : 0.0f) + taxa;
-            venda.setTotal(Math.max(0.0f, totalConsumido - valorPago - desconto));
+            BigDecimal totalItens = itemPedidoRepository.somarTotalPorVendaId(vendaId);
+            if (totalItens == null) totalItens = BigDecimal.ZERO;
+            BigDecimal taxa = venda.getTaxaEntrega() != null ? venda.getTaxaEntrega() : BigDecimal.ZERO;
+            BigDecimal valorPago = venda.getValorPago() != null ? venda.getValorPago() : BigDecimal.ZERO;
+            BigDecimal desconto = venda.getDesconto() != null ? venda.getDesconto() : BigDecimal.ZERO;
+
+            BigDecimal totalConsumido = totalItens.add(taxa);
+            BigDecimal saldo = totalConsumido.subtract(valorPago).subtract(desconto);
+            venda.setTotal(saldo.compareTo(BigDecimal.ZERO) > 0 ? saldo : BigDecimal.ZERO);
             vendaRepository.save(venda);
         }
     }

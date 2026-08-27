@@ -1,6 +1,8 @@
 package br.com.halotec.hungospring.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -8,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
@@ -21,15 +24,27 @@ public class Produto implements Serializable {
     private Long id;
 
     private String nome;
-    private Float preco;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal preco;
+
     private Boolean tipo;
     private Boolean favorito = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
     public Produto() {}
+
+    public Produto(Long id, String nome, BigDecimal preco, Boolean tipo, Boolean favorito, Categoria categoria) {
+        this.id = id;
+        this.nome = nome;
+        this.preco = preco;
+        this.tipo = tipo;
+        this.favorito = favorito;
+        this.categoria = categoria;
+    }
 
     public Long getId() {
         return id;
@@ -47,11 +62,11 @@ public class Produto implements Serializable {
         this.nome = nome;
     }
 
-    public Float getPreco() {
-        return preco;
+    public BigDecimal getPreco() {
+        return preco != null ? preco : BigDecimal.ZERO;
     }
 
-    public void setPreco(Float preco) {
+    public void setPreco(BigDecimal preco) {
         this.preco = preco;
     }
 
